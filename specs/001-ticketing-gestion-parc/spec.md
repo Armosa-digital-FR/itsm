@@ -312,7 +312,9 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   ou plusieurs équipements du parc.
 - **FR-018**: Chaque ticket DOIT avoir une priorité parmi haute, normale et basse ; la priorité
   par défaut est normale.
-- **FR-019**: Chaque ticket DOIT être rattaché à un demandeur et à une filiale.
+- **FR-019**: Un ticket DOIT être rattaché à un demandeur et à une filiale pour pouvoir être pris
+  en compte. Le demandeur peut rester vide uniquement pour un expéditeur non identifié (jusqu'à
+  sa qualification) ou après anonymisation (FR-072).
 
 **Tickets : affectation et compétences**
 
@@ -418,6 +420,12 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 
   Aucune autre donnée personnelle (notamment donnée sensible au sens du RGPD) n'est collectée
   volontairement ; les techniciens sont invités à n'en saisir aucune dans les résolutions.
+- **FR-075**: Les administrateurs DOIVENT pouvoir, sans intervention en base de données,
+  exporter (format JSON) toutes les données d'une personne et anonymiser ses données de façon
+  anticipée sur demande ; chaque opération est journalisée (FR-071). La rectification se fait
+  dans Entra, source de vérité de l'annuaire.
+- **FR-076**: Les listes de tickets et d'équipements DOIVENT être exportables en CSV avec les
+  filtres appliqués (format ouvert, constitution V).
 
 **Identité visuelle**
 

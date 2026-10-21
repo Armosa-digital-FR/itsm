@@ -134,6 +134,9 @@ d'audit `remote_session.declare`.
    **Attendu** : demandeur « anonymisé », notes et pièces jointes supprimées, résolution
    conservée avec e-mails et téléphones masqués.
 4. Tentative de modification d'une `AuditEntry` en base → refusée par la base.
+5. Recette : avec l'identité de l'application, lire la boîte d'un utilisateur qui n'est pas une
+   boîte support (`GET /users/{autre boîte}/messages`).
+   **Attendu** : refus `403` (restriction RBAC Exchange effective, FR-004 et principe II).
 
 ## Critères de sortie de la recette
 
