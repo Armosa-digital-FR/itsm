@@ -3,7 +3,7 @@
 import re
 
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
 
@@ -30,6 +30,10 @@ GENERIC_SERIALS = frozenset(
 
 def normalize_serial(value: str | None) -> str:
     return re.sub(r"\s+", "", value or "").upper()
+
+
+def normalize_teamviewer_id(value: str | None) -> str:
+    return re.sub(r"\s+", "", value or "")
 
 
 def is_generic_serial(value: str | None) -> bool:
@@ -104,6 +108,15 @@ class Equipment(models.Model):
         related_name="equipment",
         verbose_name="affecté à",
     )
+    teamviewer_id = models.CharField(
+        "identifiant TeamViewer",
+        max_length=10,
+        blank=True,
+        validators=[
+            RegexValidator(r"^\d{9,10}$", "L'identifiant TeamViewer compte 9 ou 10 chiffres.")
+        ],
+        help_text="9 ou 10 chiffres, espaces ignorés (TeamViewer s'utilise hors de l'ITSM).",
+    )
     purchase_date = models.DateField("date d'achat", null=True, blank=True)
     warranty_end = models.DateField("fin de garantie", null=True, blank=True)
     notes = models.TextField("notes", blank=True)
@@ -130,6 +143,7 @@ class Equipment(models.Model):
 
     def save(self, *args, **kwargs):
         self.serial_number = normalize_serial(self.serial_number)
+        self.teamviewer_id = normalize_teamviewer_id(self.teamviewer_id)
         super().save(*args, **kwargs)
 
     @property

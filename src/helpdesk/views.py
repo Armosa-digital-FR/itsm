@@ -28,6 +28,7 @@ from .forms import (
     KnowledgeSearchForm,
     NoteForm,
     QualifyForm,
+    RemoteSessionForm,
     StatusForm,
     TicketCreateForm,
     TicketFilterForm,
@@ -35,7 +36,7 @@ from .forms import (
 )
 from .mail.parsing import split_quoted
 from .models import Attachment, EmailMessage, Ticket, TicketEvent, TicketNote, TimeEntry
-from .services import knowledge, lifecycle, sla
+from .services import knowledge, lifecycle, remote, sla
 from .services import tickets as svc
 
 PAGE_SIZE = 50
@@ -355,6 +356,10 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
             }
         ),
         "note_form": extra.pop("note_form", None) or NoteForm(),
+        "remote_form": extra.pop("remote_form", None) or RemoteSessionForm(ticket=ticket),
+        "remote_sessions": ticket.remote_sessions.select_related(
+            "technician__directory_user", "equipment"
+        ),
         "time_form": extra.pop("time_form", None) or TimeForm(),
         "now": timezone.now(),
         **extra,
@@ -498,6 +503,31 @@ def ticket_equipment(request, number: int):
         return _done(request, ticket, f"{equipment} lié au ticket.")
     svc.unlink_equipment(ticket, request.user, equipment)
     return _done(request, ticket, f"{equipment} délié du ticket.")
+
+
+@technician_required
+@require_POST
+def ticket_remote(request, number: int):
+    """Déclare une prise en main TeamViewer réalisée (aucun lancement depuis l'ITSM)."""
+    ticket = _get_ticket(number)
+    form = RemoteSessionForm(request.POST, ticket=ticket)
+    if not form.is_valid():
+        errors = [e for errs in form.errors.values() for e in errs]
+        return _error(request, ticket, ValidationError(errors), remote_form=form)
+    data = form.cleaned_data
+    try:
+        remote.declare(
+            ticket,
+            request.user,
+            data["equipment"],
+            data["started_at"],
+            data["ended_at"],
+            data["comment"],
+            request=request,
+        )
+    except ValidationError as exc:
+        return _error(request, ticket, exc, remote_form=form)
+    return _done(request, ticket, "Prise en main déclarée.")
 
 
 @technician_required

@@ -510,3 +510,55 @@ class TicketEvent(models.Model):
 
     def __str__(self) -> str:
         return f"{self.ticket.reference} · {self.get_kind_display()}"
+
+
+class RemoteSession(models.Model):
+    """Intervention TeamViewer déclarée après coup (US7, research R13).
+
+    L'ITSM ne lance ni ne pilote TeamViewer : il trace l'intervention dans le ticket.
+    """
+
+    technician = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="remote_sessions",
+        verbose_name="technicien",
+    )
+    equipment = models.ForeignKey(
+        "inventory.Equipment",
+        on_delete=models.PROTECT,
+        related_name="remote_sessions",
+        verbose_name="équipement",
+    )
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="remote_sessions")
+    started_at = models.DateTimeField("début")
+    ended_at = models.DateTimeField("fin")
+    comment = models.CharField("commentaire", max_length=500, blank=True)
+    created_at = models.DateTimeField("déclarée le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "prise en main à distance"
+        verbose_name_plural = "prises en main à distance"
+        ordering = ["-started_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(ended_at__gt=models.F("started_at")),
+                name="remotesession_end_after_start",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.ticket.reference} · {self.equipment} · {self.started_at:%d/%m/%Y %H:%M}"
+
+    @property
+    def minutes(self) -> int:
+        return int((self.ended_at - self.started_at).total_seconds() // 60)
+
+    def clean(self):
+        errors = {}
+        if self.started_at and self.started_at > timezone.now():
+            errors["started_at"] = "Le début ne peut pas être dans le futur."
+        if self.started_at and self.ended_at and self.ended_at <= self.started_at:
+            errors["ended_at"] = "La fin doit être postérieure au début."
+        if errors:
+            raise ValidationError(errors)

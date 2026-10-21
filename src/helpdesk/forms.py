@@ -266,3 +266,32 @@ class KnowledgeSearchForm(ITSMForm):
         required=False,
         widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
     )
+
+
+DATETIME = forms.DateTimeInput(format="%Y-%m-%dT%H:%M", attrs={"type": "datetime-local"})
+
+
+class RemoteSessionForm(forms.Form):
+    """Déclaration d'une intervention TeamViewer réalisée (US7)."""
+
+    equipment = forms.ModelChoiceField(label="Appareil", queryset=Equipment.objects.none())
+    started_at = forms.DateTimeField(
+        label="Début", widget=DATETIME, input_formats=["%Y-%m-%dT%H:%M"]
+    )
+    ended_at = forms.DateTimeField(label="Fin", widget=DATETIME, input_formats=["%Y-%m-%dT%H:%M"])
+    comment = forms.CharField(label="Commentaire", required=False, max_length=500)
+
+    def __init__(self, *args, ticket=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if ticket is not None:
+            from django.db.models import Q
+
+            criteria = Q(tickets=ticket)
+            if ticket.requester_id:
+                criteria |= Q(assigned_to=ticket.requester)
+            self.fields["equipment"].queryset = (
+                Equipment.objects.filter(criteria).select_related("type").distinct()
+            )
+        self.fields["equipment"].label_from_instance = lambda e: (
+            f"{e.type} · {e.name}" + (f" (TeamViewer {e.teamviewer_id})" if e.teamviewer_id else "")
+        )

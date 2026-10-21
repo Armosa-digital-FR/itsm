@@ -113,7 +113,8 @@
         <h3>Équipements liés</h3>
         {% for e in equipment %}
           <div class="row" style="justify-content:space-between">
-            <span><a href="{% url 'inventory:equipment_detail' e.pk %}">{{ e.type }} · {{ e.name }}</a>{% if e.serial_number %} <span class="muted">{{ e.serial_number }}</span>{% endif %}</span>
+            <span><a href="{% url 'inventory:equipment_detail' e.pk %}">{{ e.type }} · {{ e.name }}</a>{% if e.serial_number %} <span class="muted">{{ e.serial_number }}</span>{% endif %}
+              {% if e.teamviewer_id %}<br>{% include "inventory/partials/teamviewer_id.html" with value=e.teamviewer_id %}{% endif %}</span>
             <form hx-post="{% url 'helpdesk:ticket_equipment' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_equipment' ticket.number %}">{% csrf_token %}<input type="hidden" name="equipment" value="{{ e.pk }}"><input type="hidden" name="action" value="delier"><button class="btn-link" type="submit">Délier</button></form>
           </div>
         {% empty %}<p class="muted">Aucun équipement lié.</p>{% endfor %}
@@ -125,6 +126,20 @@
           <button class="btn btn-small" type="submit">Lier</button>
         </form>
         {% endif %}
+      </section>
+
+      <section class="card">
+        <h3>Prise en main à distance</h3>
+        <p class="muted">TeamViewer s'utilise en dehors de l'ITSM : copiez l'identifiant de l'appareil, puis déclarez ici l'intervention réalisée.</p>
+        {% for r in remote_sessions %}
+          <p class="event">{{ r.started_at|date:"d/m H:i" }}–{{ r.ended_at|date:"H:i" }} · {{ r.equipment }} · {{ r.technician.display_name }}{% if r.comment %} <span class="muted">— {{ r.comment }}</span>{% endif %}</p>
+        {% endfor %}
+        {% if remote_form.fields.equipment.queryset %}
+        <form hx-post="{% url 'helpdesk:ticket_remote' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_remote' ticket.number %}">{% csrf_token %}
+          {% for field in remote_form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+          <button class="btn btn-small" type="submit">Déclarer la prise en main</button>
+        </form>
+        {% else %}<p class="muted">Liez un équipement au ticket pour déclarer une intervention.</p>{% endif %}
       </section>
 
       <section class="card">

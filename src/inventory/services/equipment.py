@@ -15,7 +15,15 @@ E = Equipment.Status
 TO_DEFINE_SITE = "À définir"
 
 # Champs modifiables dans l'ITSM quelle que soit la source (FR-062).
-ITSM_FIELDS = ("site", "status", "assigned_to", "notes", "purchase_date", "warranty_end")
+ITSM_FIELDS = (
+    "site",
+    "status",
+    "assigned_to",
+    "notes",
+    "purchase_date",
+    "warranty_end",
+    "teamviewer_id",
+)
 # Champs descriptifs, modifiables seulement pour une saisie manuelle.
 MANUAL_FIELDS = ("type", "name", "manufacturer", "model", "serial_number")
 

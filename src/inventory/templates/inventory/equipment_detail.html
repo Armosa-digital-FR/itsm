@@ -47,6 +47,12 @@
   </div>
   <aside class="stack">
     <section class="card">
+      <h3>TeamViewer</h3>
+      {% if equipment.teamviewer_id %}{% include "inventory/partials/teamviewer_id.html" with value=equipment.teamviewer_id %}
+      {% else %}<p class="muted">Aucun identifiant TeamViewer renseigné.</p>{% endif %}
+      <p class="muted" style="margin-top:var(--space-2)">TeamViewer s'utilise hors de l'ITSM ; les interventions se déclarent dans le ticket.</p>
+    </section>
+    <section class="card">
       <h3>Affectation</h3>
       <form method="post" action="{% url 'inventory:equipment_assign' equipment.pk %}">{% csrf_token %}
         {% include "directory/partials/person_picker.html" with field=assign_form.assigned_to selected=equipment.assigned_to target="assigned_to" label="Rechercher l'utilisateur" %}

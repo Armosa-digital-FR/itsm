@@ -9,6 +9,19 @@ from .models import Equipment, EquipmentType, Licence
 DATE = {"widget": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})}
 
 
+class TeamViewerIdField(forms.CharField):
+    """Accepte « 123 456 789 » : les espaces sont retirés avant validation."""
+
+    def to_python(self, value):
+        return "".join((super().to_python(value) or "").split())
+
+    def widget_attrs(self, widget):
+        attrs = super().widget_attrs(widget)
+        attrs.pop("maxlength", None)  # « 123 456 789 » doit pouvoir être saisi
+        attrs.update({"inputmode": "numeric", "autocomplete": "off"})
+        return attrs
+
+
 def active_sites():
     return Site.objects.filter(is_active=True)
 
@@ -63,11 +76,13 @@ class EquipmentCreateForm(forms.ModelForm):
             "manufacturer",
             "model",
             "serial_number",
+            "teamviewer_id",
             "purchase_date",
             "warranty_end",
             "notes",
             "assigned_to",
         ]
+        field_classes = {"teamviewer_id": TeamViewerIdField}
         widgets = {
             "purchase_date": DATE["widget"],
             "warranty_end": DATE["widget"],
@@ -93,10 +108,12 @@ class EquipmentEditForm(forms.ModelForm):
             "serial_number",
             "site",
             "status",
+            "teamviewer_id",
             "purchase_date",
             "warranty_end",
             "notes",
         ]
+        field_classes = {"teamviewer_id": TeamViewerIdField}
         widgets = {
             "purchase_date": DATE["widget"],
             "warranty_end": DATE["widget"],

@@ -270,13 +270,13 @@ déclarées et tracées. **Aucun lancement ni intégration de TeamViewer** (rese
 
 ### Tests for User Story 7
 
-- [ ] T091 [P] [US7] Écrire `tests/integration/test_remote_sessions.py` : identifiant TeamViewer affiché sur la fiche ticket pour chaque équipement lié ; déclaration valide → `RemoteSession`, `TicketEvent` `prise_en_main` et `AuditEntry` `remote_session.declare` ; refus si `ended_at` ≤ `started_at` ou `started_at` futur ; aucune URL ni bouton de lancement dans le HTML rendu
+- [X] T091 [P] [US7] Écrire `tests/integration/test_remote_sessions.py` : identifiant TeamViewer affiché sur la fiche ticket pour chaque équipement lié ; déclaration valide → `RemoteSession`, `TicketEvent` `prise_en_main` et `AuditEntry` `remote_session.declare` ; refus si `ended_at` ≤ `started_at` ou `started_at` futur ; aucune URL ni bouton de lancement dans le HTML rendu
 
 ### Implementation for User Story 7
 
-- [ ] T092 [US7] Ajouter `Equipment.teamviewer_id` dans `src/inventory/models.py` (« identifiant TeamViewer (9 à 10 chiffres, espaces ignorés) ; optionnel », modifiable aussi pour un équipement `source = intune`) avec migration ; champ dans les formulaires de `src/inventory/views.py`
-- [ ] T093 [US7] Créer le modèle `RemoteSession` dans `src/helpdesk/models.py` (`technician`, `equipment` obligatoire, `ticket` obligatoire, `started_at` « obligatoire, ≤ maintenant », `ended_at` « obligatoire, > `started_at` », `comment`) avec migration, et `src/helpdesk/services/remote.py` : `declare(ticket, technician, equipment, started_at, ended_at, comment)` créant l'événement et l'entrée d'audit
-- [ ] T094 [US7] Créer la route `POST /tickets/<number>/remote/` et le formulaire HTMX « Déclarer une prise en main » sur `ticket_detail.html` ; afficher l'identifiant TeamViewer avec un bouton « Copier » (presse-papiers, sans lien de lancement) sur la fiche ticket et sur `src/inventory/templates/inventory/equipment_detail.html`
+- [X] T092 [US7] Ajouter `Equipment.teamviewer_id` dans `src/inventory/models.py` (« identifiant TeamViewer (9 à 10 chiffres, espaces ignorés) ; optionnel », modifiable aussi pour un équipement `source = intune`) avec migration ; champ dans les formulaires de `src/inventory/views.py`
+- [X] T093 [US7] Créer le modèle `RemoteSession` dans `src/helpdesk/models.py` (`technician`, `equipment` obligatoire, `ticket` obligatoire, `started_at` « obligatoire, ≤ maintenant », `ended_at` « obligatoire, > `started_at` », `comment`) avec migration, et `src/helpdesk/services/remote.py` : `declare(ticket, technician, equipment, started_at, ended_at, comment)` créant l'événement et l'entrée d'audit
+- [X] T094 [US7] Créer la route `POST /tickets/<number>/remote/` et le formulaire HTMX « Déclarer une prise en main » sur `ticket_detail.html` ; afficher l'identifiant TeamViewer avec un bouton « Copier » (presse-papiers, sans lien de lancement) sur la fiche ticket et sur `src/inventory/templates/inventory/equipment_detail.html`
 
 **Checkpoint**: toutes les user stories sont fonctionnelles.
 
