@@ -392,14 +392,32 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 
 - **FR-070**: L'accès à l'application DOIT se faire par authentification unique avec les
   comptes de l'entreprise ; les rôles minimaux sont technicien et administrateur.
-- **FR-071**: Les actions sensibles (déclaration de prise en main à distance, changement de droits,
-  modification des compétences, suppression) DOIVENT être journalisées dans un journal d'audit.
+- **FR-071**: Les actions sensibles DOIVENT être journalisées dans un journal d'audit non
+  modifiable : déclaration de prise en main à distance, changement de rôle d'un compte (constaté
+  à la connexion, les rôles étant attribués dans Entra), modification des compétences, des
+  groupes et des paramètres, toute suppression de données (y compris via l'administration),
+  export et anonymisation de données personnelles.
 - **FR-072**: Les tickets fermés et leurs données personnelles DOIVENT être conservés selon une
   durée de 3 ans après fermeture (paramétrable), puis anonymisés ; la base de résolution
   conserve les résolutions anonymisées.
 - **FR-073**: Tout technicien DOIT avoir accès aux tickets et au parc de toutes les filiales ;
   aucun cloisonnement par filiale n'est appliqué. Les listes DOIVENT pouvoir être filtrées par
   filiale.
+- **FR-074**: Données personnelles traitées (registre des traitements, constitution III) :
+  finalité unique : support informatique interne et gestion du parc des collaborateurs de
+  l'entreprise et de ses filiales. Le système NE DOIT traiter que les catégories suivantes, avec
+  ces durées de conservation (paramétrables) :
+
+  | Catégorie | Données | Conservation |
+  |---|---|---|
+  | Annuaire | nom, prénom, e-mail, identifiant Entra, filiale, site, service, fonction, responsable, état du compte | tant que le compte est actif dans Entra ; anonymisé 3 ans après sa désactivation s'il n'est plus référencé par un ticket ou un équipement non anonymisé |
+  | Échanges de support | contenu des tickets, notes, e-mails reçus et envoyés, pièces jointes, adresse de l'expéditeur | 3 ans après la fermeture du ticket, puis anonymisation (FR-072) |
+  | Parc | équipements et licences affectés à une personne, identifiant TeamViewer, historique d'affectation | tant que l'équipement est suivi ; l'affectation suit l'anonymisation de la personne |
+  | Activité des techniciens | temps saisis, interventions déclarées, historique des actions | comme le ticket concerné |
+  | Journal d'audit | auteur, action, objet, date, adresse IP | 3 ans, puis purge |
+
+  Aucune autre donnée personnelle (notamment donnée sensible au sens du RGPD) n'est collectée
+  volontairement ; les techniciens sont invités à n'en saisir aucune dans les résolutions.
 
 **Identité visuelle**
 
