@@ -18,8 +18,8 @@ class Subsidiary(models.Model):
     is_active = models.BooleanField("active", default=True)
 
     class Meta:
-        verbose_name = "filiale"
-        verbose_name_plural = "filiales"
+        verbose_name = "entité"
+        verbose_name_plural = "entités"
         ordering = ["name"]
 
     def __str__(self) -> str:
@@ -29,7 +29,7 @@ class Subsidiary(models.Model):
 class Site(models.Model):
     name = models.CharField("nom", max_length=255, unique=True)
     subsidiary = models.ForeignKey(
-        Subsidiary, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="filiale"
+        Subsidiary, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="entité"
     )
     address = models.TextField("adresse", blank=True)
     entra_office_locations = ArrayField(
@@ -61,7 +61,7 @@ class DirectoryUser(models.Model):
     job_title = models.CharField("fonction", max_length=255, blank=True)
     department = models.CharField("service", max_length=255, blank=True)
     subsidiary = models.ForeignKey(
-        Subsidiary, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="filiale"
+        Subsidiary, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="entité"
     )
     site = models.ForeignKey(
         Site, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="site"

@@ -102,7 +102,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "directory.Account"
 AUTHENTICATION_BACKENDS = ["core.auth.ITSMOIDCBackend"]
 LOGIN_URL = "core:login"
-LOGIN_REDIRECT_URL = "/tickets/"
+LOGIN_REDIRECT_URL = "/"
 LOGIN_REDIRECT_URL_FAILURE = "/acces-refuse/"
 LOGOUT_REDIRECT_URL = "/connexion/"
 

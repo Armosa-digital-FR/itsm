@@ -7,9 +7,13 @@
     <div class="eyebrow">ITSM · Support informatique</div>
     <h1>Connexion</h1>
     <p class="muted">Accès réservé aux techniciens et administrateurs du support, avec votre compte Microsoft de l'entreprise.</p>
-    <a class="btn btn-primary" href="{% url 'oidc_authentication_init' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Se connecter avec Microsoft</a>
+    {% if oidc_configured %}
+      <a class="btn btn-primary" href="{% url 'oidc_authentication_init' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Se connecter avec Microsoft</a>
+    {% else %}
+      <div class="form-error" role="alert">La connexion Microsoft n'est pas encore configurée{% if dev_mode %} : renseignez <code>AZURE_TENANT_ID</code>, <code>OIDC_RP_CLIENT_ID</code> et <code>OIDC_RP_CLIENT_SECRET</code> dans <code>.env</code> (voir <code>docs/configuration-entra.md</code>){% endif %}.</div>
+    {% endif %}
     {% if dev_login %}
-      <p class="muted" style="margin-top: var(--space-5)">Développement : <a href="{% url 'core:dev_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">connexion avec un compte de démonstration</a></p>
+      <p class="muted login-dev"><a href="{% url 'core:dev_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Connexion avec un compte de démonstration</a></p>
     {% endif %}
   </div>
 </div>

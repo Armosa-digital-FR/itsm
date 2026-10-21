@@ -14,9 +14,16 @@ def test_s2_creation_manuelle(logged_page):
     requester = DirectoryUserFactory(display_name="Sacha Durand", email="sacha.durand@armosa.test")
 
     page.goto(f"{page.base_url}/tickets/new/")
-    page.get_by_label("Demandeur").fill("sacha")
+    page.get_by_label("Rechercher le demandeur").fill("sacha")
     page.get_by_role("button", name="Sacha Durand").click()
-    expect(page.locator("#requester-selected")).to_contain_text("Sacha Durand")
+    card = page.locator(".picker-selected")
+    expect(card).to_contain_text("Sacha Durand")
+    expect(card).to_contain_text(str(requester.site))
+    expect(page.get_by_label("Rechercher le demandeur")).to_be_hidden()  # masqué une fois choisi
+    page.get_by_role("button", name="Changer").click()
+    expect(page.get_by_label("Rechercher le demandeur")).to_be_visible()
+    page.get_by_label("Rechercher le demandeur").fill("durand")
+    page.get_by_role("button", name="Sacha Durand").click()
     page.get_by_label("Titre").fill("Pas de son en visioconférence")
     page.get_by_label("Description").fill("Appel téléphonique : le casque ne fonctionne plus.")
     page.get_by_role("button", name="Créer le ticket").click()
@@ -25,4 +32,5 @@ def test_s2_creation_manuelle(logged_page):
     expect(page.get_by_text("Application · créé par Hugo Girard")).to_be_visible()
     ticket = Ticket.objects.get()
     assert ticket.requester == requester and ticket.channel == Ticket.Channel.APP
+    assert ticket.site == requester.site
     assert ticket.emails.filter(kind=EmailMessage.Kind.ACCUSE_RECEPTION).exists()

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Accueil{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">ITSM · {{ user.display_name }}</div>
+    <h1>Bonjour{% if user.directory_user.given_name %} {{ user.directory_user.given_name }}{% endif %}</h1>
+  </div>
+  <a class="btn btn-primary" href="{% url 'helpdesk:ticket_new' %}">Nouveau ticket</a>
+</div>
+<div class="stack-lg">
+  {% for block in blocks %}
+    <section aria-labelledby="dash-{{ block.section.key }}">
+      <h2 id="dash-{{ block.section.key }}">{{ block.section.title }}</h2>
+      {% include block.section.template with data=block.context %}
+    </section>
+  {% endfor %}
+</div>
+{% endblock %}

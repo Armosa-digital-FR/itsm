@@ -47,7 +47,7 @@ def missing_qualification(ticket: Ticket) -> list[str]:
     if not ticket.requester_id:
         missing.append("demandeur")
     if not ticket.subsidiary_id:
-        missing.append("filiale")
+        missing.append("entité")
     return missing
 
 

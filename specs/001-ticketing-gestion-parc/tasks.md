@@ -146,6 +146,22 @@ e-mail (notes externes), commentés (notes internes), chronométrés, résolus p
 
 ---
 
+## Retours sur le MVP (2026-10-21)
+
+**Purpose**: retours de l'équipe après essai du MVP (spec : clarifications « retours sur le
+MVP », FR-019, FR-081 à FR-083).
+
+- [X] T104 [US1] Centrer le contenu de la carte de connexion (`src/core/static/css/app.css`) ; afficher « connexion Microsoft non configurée » au lieu de renvoyer vers Entra sans `client_id` (`src/core/views.py`, `core/login.html`) ; guide `docs/configuration-entra.md`
+- [X] T105 [US1] Connexion de démonstration réservée au mode développement (bandeau « Mode développement » dans `base.html`) ; `settings/prod.py` refuse de démarrer sans `AZURE_TENANT_ID`, `OIDC_RP_CLIENT_ID`, `OIDC_RP_CLIENT_SECRET` (FR-083)
+- [X] T106 [US1] Ajouter `Ticket.site` (migration avec reprise depuis le demandeur), renseigné à la création, modifiable en qualification, affiché dans la liste, la fiche, l'export et filtrable (FR-019)
+- [X] T107 [US1] Renommer « Filiale » en « Entité » dans toute l'interface (libellés des modèles, formulaires, gabarits)
+- [X] T108 [US1] Onglets « À traiter / En cours / Traités / Tous » avec compteurs selon les filtres dans `src/helpdesk/views.py` et `partials/ticket_table.html` (FR-082)
+- [X] T109 [US1] Sélecteur de personne réutilisable `directory/partials/person_picker.html` : recherche masquée une fois le demandeur choisi, carte nom/e-mail/entité/site et bouton « Changer » (création manuelle et identification d'un demandeur inconnu)
+- [X] T110 [US1] Page d'accueil `/` avec registre de sections (`src/core/dashboard.py`) et section Tickets (`src/helpdesk/dashboard.py`) ; redirection après connexion vers l'accueil (FR-081)
+- [ ] T111 [US4] Ajouter la section « Parc » au tableau de bord d'accueil (équipements par statut, retirés d'Intune, licences à échéance) — à réaliser avec la phase 7
+
+---
+
 ## Phase 5: User Story 2 - Affectation automatique selon les compétences (Priority: P2)
 
 **Goal**: un ticket qualifié avec un outil est affecté automatiquement au bon technicien ou

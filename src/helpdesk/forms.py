@@ -3,7 +3,7 @@
 from django import forms
 from django.utils import timezone
 
-from directory.models import Account, DirectoryUser, Subsidiary
+from directory.models import Account, DirectoryUser, Site, Subsidiary
 
 from .models import Category, TechnicianGroup, Ticket, TicketNote, Tool
 
@@ -62,14 +62,19 @@ class TechnicianChoiceField(forms.ModelChoiceField):
 
 
 class TicketFilterForm(ITSMForm):
-    STATUS_CHOICES = [("ouverts", "Ouverts"), ("tous", "Tous"), *Ticket.Status.choices]
+    TAB_CHOICES = [
+        ("a_traiter", "À traiter"),
+        ("en_cours", "En cours"),
+        ("traites", "Traités"),
+        ("tous", "Tous"),
+    ]
 
     q = forms.CharField(
         label="Recherche",
         required=False,
         widget=forms.TextInput(attrs={"type": "search", "placeholder": "Titre, n°, demandeur…"}),
     )
-    status = forms.ChoiceField(label="Statut", choices=STATUS_CHOICES, required=False)
+    onglet = forms.ChoiceField(choices=TAB_CHOICES, required=False, widget=forms.HiddenInput)
     priority = forms.ChoiceField(
         label="Priorité", required=False, choices=[("", "Toutes"), *Ticket.Priority.choices]
     )
@@ -78,10 +83,16 @@ class TicketFilterForm(ITSMForm):
         label="Groupe", required=False, queryset=TechnicianGroup.objects.all(), empty_label="Tous"
     )
     subsidiary = forms.ModelChoiceField(
-        label="Filiale",
+        label="Entité",
         required=False,
         queryset=Subsidiary.objects.filter(is_active=True),
         empty_label="Toutes",
+    )
+    site = forms.ModelChoiceField(
+        label="Site",
+        required=False,
+        queryset=Site.objects.filter(is_active=True),
+        empty_label="Tous",
     )
     category = CategoryChoiceField(label="Catégorie", required=False)
     tool = forms.ModelChoiceField(
@@ -134,9 +145,15 @@ class QualifyForm(ITSMForm):
     )
     priority = forms.ChoiceField(label="Priorité", choices=Ticket.Priority.choices)
     subsidiary = forms.ModelChoiceField(
-        label="Filiale",
+        label="Entité",
         required=False,
         queryset=Subsidiary.objects.filter(is_active=True),
+        empty_label="—",
+    )
+    site = forms.ModelChoiceField(
+        label="Site",
+        required=False,
+        queryset=Site.objects.filter(is_active=True),
         empty_label="—",
     )
     requester = forms.ModelChoiceField(

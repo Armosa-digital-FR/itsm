@@ -2,7 +2,7 @@
 <div id="ticket" hx-target="#ticket" hx-swap="outerHTML">
   <div class="page-head">
     <div>
-      <div class="eyebrow">{{ ticket.reference }} · {{ ticket.get_channel_display }}{% if ticket.created_by %} · créé par {{ ticket.created_by.display_name }}{% endif %}</div>
+      <div class="eyebrow">{{ ticket.reference }}{% if ticket.subsidiary %} · {{ ticket.subsidiary }}{% endif %}{% if ticket.site %} · {{ ticket.site }}{% endif %} · {{ ticket.get_channel_display }}{% if ticket.created_by %} · créé par {{ ticket.created_by.display_name }}{% endif %}</div>
       <h1>{{ ticket.title }}</h1>
       <div class="row">
         {% status_tag ticket %} {% priority_tag ticket %}
@@ -92,10 +92,14 @@
       <section class="card">
         <h3>Demandeur</h3>
         {% if ticket.requester %}
-          <p><a href="{% url 'directory:person' ticket.requester.entra_id %}">{{ ticket.requester }}</a><br><span class="muted">{{ ticket.requester.email }} · {{ ticket.requester.site|default:"site ?" }}</span></p>
+          <p><a href="{% url 'directory:person' ticket.requester.entra_id %}">{{ ticket.requester }}</a><br><span class="muted">{{ ticket.requester.email }}</span></p>
         {% else %}
           <p class="muted">{{ ticket.requester_email|default:"Inconnu" }} — non identifié dans l'annuaire.</p>
         {% endif %}
+        <dl class="facts">
+          <dt>Entité</dt><dd>{{ ticket.subsidiary|default:"—" }}</dd>
+          <dt>Site</dt><dd>{{ ticket.site|default:"—" }}</dd>
+        </dl>
       </section>
 
       <section class="card">
@@ -104,9 +108,8 @@
           {% for field in qualify_form %}
             {% if field.name == "requester" %}
               {% if not ticket.requester %}
-              <div class="field"><label for="requester-search">Identifier le demandeur</label>
-                <input id="requester-search" type="search" name="q" placeholder="Nom ou e-mail" hx-get="{% url 'directory:search' %}" hx-trigger="input changed delay:300ms" hx-target="#requester-results" hx-include="this" hx-swap="innerHTML">
-                {{ field }}<div id="requester-selected" class="muted"></div><div id="requester-results"></div></div>
+              <div class="field"><span class="field-label">Identifier le demandeur</span>
+                {% include "directory/partials/person_picker.html" with field=field selected=None target="requester" label="Rechercher le demandeur" %}</div>
               {% else %}{{ field.as_hidden }}{% endif %}
             {% else %}
             <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>

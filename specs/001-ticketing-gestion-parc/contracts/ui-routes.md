@@ -15,11 +15,18 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | POST | `/logout/` | connecté | fin de session |
 | GET | `/healthz` | public | `200` si base joignable et dernière relève mail < 5 min, sinon `503` ; aucune donnée métier |
 
+## Accueil
+
+| Méthode | Route | Rôle | Exigences | Comportement |
+|---|---|---|---|---|
+| GET | `/` | T | FR-081 | tableau de bord par module (tickets : à traiter, en cours, non affectés, délais dépassés, mes tickets, résolus cette semaine, prochaines échéances) ; anonyme → `/connexion/` |
+| GET | `/connexion/` | public | FR-083 | bouton Microsoft si l'application Entra est configurée ; lien de démonstration en mode développement uniquement |
+
 ## Tickets
 
 | Méthode | Route | Rôle | Exigences | Comportement |
 |---|---|---|---|---|
-| GET | `/tickets/` | T | FR-073, SC-006 | liste filtrable : statut, priorité, assigné (dont « moi », « non affecté »), groupe, filiale, catégorie, outil, dépassement, texte ; tri par échéance ; pagination 50 |
+| GET | `/tickets/` | T | FR-073, FR-082, SC-006 | onglets `onglet` = `a_traiter` (défaut), `en_cours`, `traites`, `tous`, avec compteurs ; liste filtrable : priorité, entité, site, assigné (dont « moi », « non affecté »), groupe, filiale, catégorie, outil, dépassement, texte ; tri par échéance ; pagination 50 |
 | GET | `/tickets/?view=dispatch` | T | FR-021 | tickets sans assigné ni groupe |
 | GET | `/tickets/export.csv` | T | principe V | export CSV des tickets filtrés |
 | GET | `/tickets/new/` | T | FR-014 | formulaire de création manuelle |

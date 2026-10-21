@@ -8,12 +8,8 @@
   <div class="card">
     {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
     <div class="field">
-      <label for="requester-search">Demandeur</label>
-      <input id="requester-search" type="search" name="q" placeholder="Nom ou e-mail (2 caractères minimum)" autocomplete="off"
-             hx-get="{% url 'directory:search' %}" hx-trigger="input changed delay:300ms, search" hx-target="#requester-results" hx-include="this">
-      {{ form.requester }}
-      <div id="requester-selected" class="tag tag-plain" aria-live="polite">{% if selected %}{{ selected }} · {{ selected.email }}{% else %}Aucun demandeur choisi{% endif %}</div>
-      <div id="requester-results"></div>
+      <span class="field-label">Demandeur</span>
+      {% include "directory/partials/person_picker.html" with field=form.requester selected=selected target="requester" label="Rechercher le demandeur" %}
       {% if form.requester.errors %}<ul class="errorlist">{% for e in form.requester.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
       <span class="help">Le demandeur recevra l'accusé de réception et les échanges par e-mail, comme pour une demande envoyée par e-mail.</span>
     </div>
@@ -28,7 +24,7 @@
   </div>
   <aside class="band">
     <h3>À savoir</h3>
-    <p class="muted">Le ticket est créé au nom du demandeur choisi, rattaché à sa filiale, et marqué « créé par » vous. Si vous renseignez un outil, il est affecté automatiquement selon les compétences.</p>
+    <p class="muted">Le ticket est créé au nom du demandeur choisi, rattaché à son entité et à son site, et marqué « créé par » vous. Si vous renseignez un outil, il est affecté automatiquement selon les compétences.</p>
   </aside>
 </form>
 {% endblock %}

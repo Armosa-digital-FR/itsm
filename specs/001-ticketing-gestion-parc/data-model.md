@@ -126,7 +126,8 @@ Unicité (`technician`, `tool`). Supprimée automatiquement quand le technicien 
 | `created_by` | → Account | renseigné si `channel = app` |
 | `requester` | → DirectoryUser | vide si expéditeur non identifié ou anonymisé |
 | `requester_email` | e-mail | adresse d'origine, conservée pour les réponses ; vidée à l'anonymisation |
-| `subsidiary` | → Filiale | recopiée du demandeur à la création, modifiable (cas limite multi-filiales) |
+| `subsidiary` | → Filiale | « Entité » dans l'interface ; recopiée du demandeur à la création, modifiable (cas limite multi-filiales) |
+| `site` | → Site | site du demandeur, recopié à la création, modifiable (FR-019) |
 | `type` | énum {`incident`, `demande`} | vide tant que non qualifié |
 | `category` | → Category | nœud de niveau 1 à 3 |
 | `tool` | → Tool | optionnel ; déclenche l'affectation automatique |
@@ -257,7 +258,7 @@ sur une période (vue de suivi).
 | `ticket` | → Ticket | |
 | `at` | date-heure | |
 | `actor` | → Account | vide = système |
-| `kind` | énum {`creation`, `statut`, `priorite`, `categorie`, `type`, `outil`, `affectation`, `filiale`, `demandeur`, `note`, `temps`, `resolution`, `equipement`, `rappel`, `alerte_delai`, `prise_en_main`, `fusion_reponse`} | |
+| `kind` | énum {`creation`, `statut`, `priorite`, `categorie`, `type`, `outil`, `affectation`, `filiale`, `site`, `demandeur`, `note`, `temps`, `resolution`, `equipement`, `rappel`, `alerte_delai`, `prise_en_main`, `fusion_reponse`} | |
 | `old_value`, `new_value` | texte | libellés lisibles |
 | `data` | JSON | détails complémentaires |
 

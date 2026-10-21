@@ -13,6 +13,7 @@
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <a class="skip-link" href="#contenu">Aller au contenu</a>
+  {% if dev_mode %}<div class="dev-banner" role="note">Mode développement — connexion de démonstration et données fictives. Cette version n'est jamais déployée en production.</div>{% endif %}
   {% if user.is_authenticated %}
   <header class="site-header">
     <a class="logo" href="{% url 'core:home' %}"><img src="{% static 'img/logo.svg' %}" alt="Armosa Digital — ITSM"></a>

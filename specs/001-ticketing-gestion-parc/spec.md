@@ -40,6 +40,20 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   dehors de l'application (pas d'intégration ni de lancement depuis l'ITSM) ; l'ITSM conserve
   l'identifiant TeamViewer des appareils et la trace des interventions déclarées.
 
+### Session 2026-10-21 (retours sur le MVP)
+
+- Q: Comment appeler la filiale dans l'interface ? → A: « Entité » (même notion : attribut
+  société d'Entra) ; chaque ticket porte aussi le site du demandeur.
+- Q: Comment choisir le demandeur à la création manuelle ? → A: Recherche tant qu'aucun
+  demandeur n'est choisi, puis une carte (nom, e-mail, entité, site) remplace le champ, avec
+  « Changer ».
+- Q: Faut-il une page d'accueil ? → A: Oui : accueil unique après connexion, avec une section
+  de tableau de bord par module (tickets, parc…).
+- Q: Comment séparer les tickets ? → A: Onglets « À traiter » (créés), « En cours » (pris en
+  compte, en attente de réponse, en attente), « Traités » (résolus, fermés), « Tous ».
+- Q: La connexion de démonstration est-elle acceptable ? → A: Uniquement en mode
+  développement, jamais en production ; un bandeau signale ce mode.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Créer et traiter un ticket de bout en bout (Priority: P1)
@@ -312,8 +326,9 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   ou plusieurs équipements du parc.
 - **FR-018**: Chaque ticket DOIT avoir une priorité parmi haute, normale et basse ; la priorité
   par défaut est normale.
-- **FR-019**: Un ticket DOIT être rattaché à un demandeur et à une filiale pour pouvoir être pris
-  en compte. Le demandeur peut rester vide uniquement pour un expéditeur non identifié (jusqu'à
+- **FR-019**: Un ticket DOIT être rattaché à un demandeur et à une entité (filiale) pour pouvoir
+  être pris en compte ; il porte aussi le site du demandeur, repris à la création et modifiable.
+  Entité et site sont affichés dans la liste, la fiche, la création et l'export. Le demandeur peut rester vide uniquement pour un expéditeur non identifié (jusqu'à
   sa qualification) ou après anonymisation (FR-072).
 
 **Tickets : affectation et compétences**
@@ -427,6 +442,18 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 - **FR-076**: Les listes de tickets et d'équipements DOIVENT être exportables en CSV avec les
   filtres appliqués (format ouvert, constitution V).
 
+**Accueil et navigation**
+
+- **FR-081**: Après connexion, le technicien DOIT arriver sur une page d'accueil présentant une
+  section de tableau de bord par module (tickets ; parc à partir de US4) : indicateurs clés
+  cliquables vers les listes filtrées et listes courtes (prochaines échéances, mes tickets).
+- **FR-082**: La liste des tickets DOIT séparer les tickets « À traiter » (créés), « En cours »
+  (pris en compte, en attente de réponse, en attente) et « Traités » (résolus, fermés), avec un
+  onglet « Tous » ; chaque onglet affiche son nombre de tickets selon les filtres actifs.
+- **FR-083**: La connexion par compte de démonstration NE DOIT exister qu'en mode
+  développement ; la configuration de production refuse de démarrer sans les paramètres de
+  connexion Entra.
+
 **Identité visuelle**
 
 - **FR-080**: L'interface de l'application et les e-mails envoyés aux demandeurs DOIVENT
@@ -437,8 +464,8 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 
 - **Utilisateur** : personne de l'annuaire Entra (demandeur ou technicien) ; filiale, site,
   service, responsable, état actif.
-- **Filiale** : entité juridique/organisationnelle à laquelle sont rattachés utilisateurs,
-  tickets et équipements.
+- **Entité** (filiale) : entité juridique/organisationnelle à laquelle sont rattachés
+  utilisateurs, tickets et équipements ; libellée « Entité » dans l'interface.
 - **Site** : emplacement physique où se trouve un équipement.
 - **Technicien** : utilisateur ayant un rôle de support ; possède des compétences et appartient
   à des groupes.
@@ -448,7 +475,7 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 - **Compétence** : lien entre un technicien et un outil.
 - **Catégorie** : nœud d'une arborescence à 3 niveaux.
 - **Ticket** : canal de création (e-mail ou application), type, catégorie, outil, priorité,
-  statut, demandeur, filiale, affectation (technicien et/ou groupe), équipements liés, dates
+  statut, demandeur, entité, site, affectation (technicien et/ou groupe), équipements liés, dates
   de création, de prise en compte, de résolution et de fermeture.
 - **Note** : message interne ou externe rattaché à un ticket, avec auteur et date.
 - **Saisie de temps** : durée passée par un technicien sur un ticket.

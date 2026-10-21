@@ -3,7 +3,7 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow">Annuaire · {{ person.subsidiary|default:"Filiale non renseignée" }}</div>
+    <div class="eyebrow">Annuaire · {{ person.subsidiary|default:"Entité non renseignée" }}</div>
     <h1>{{ person }}</h1>
   </div>
   {% if person.is_active %}<span class="tag tag-success">Actif</span>{% else %}<span class="tag tag-muted">Inactif depuis le {{ person.deactivated_at|date:"d/m/Y" }}</span>{% endif %}
@@ -22,7 +22,7 @@
       <dt>E-mail</dt><dd>{% if person.email %}<a href="mailto:{{ person.email }}">{{ person.email }}</a>{% else %}—{% endif %}</dd>
       <dt>Fonction</dt><dd>{{ person.job_title|default:"—" }}</dd>
       <dt>Service</dt><dd>{{ person.department|default:"—" }}</dd>
-      <dt>Filiale</dt><dd>{{ person.subsidiary|default:"—" }}</dd>
+      <dt>Entité</dt><dd>{{ person.subsidiary|default:"—" }}</dd>
       <dt>Site</dt><dd>{{ person.site|default:"—" }}</dd>
       <dt>Responsable</dt><dd>{% if person.manager %}<a href="{% url 'directory:person' person.manager.entra_id %}">{{ person.manager }}</a>{% else %}—{% endif %}</dd>
       <dt>Synchronisé</dt><dd>{{ person.last_synced_at|date:"d/m/Y H:i"|default:"—" }}</dd>

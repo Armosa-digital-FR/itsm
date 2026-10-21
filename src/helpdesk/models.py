@@ -7,7 +7,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models
 from django.utils import timezone
 
-from directory.models import DirectoryUser, Subsidiary
+from directory.models import DirectoryUser, Site, Subsidiary
 
 MAX_CATEGORY_LEVEL = 3
 
@@ -189,7 +189,10 @@ class Ticket(models.Model):
     )
     requester_email = models.EmailField("e-mail du demandeur", blank=True)
     subsidiary = models.ForeignKey(
-        Subsidiary, on_delete=models.PROTECT, null=True, blank=True, verbose_name="filiale"
+        Subsidiary, on_delete=models.PROTECT, null=True, blank=True, verbose_name="entité"
+    )
+    site = models.ForeignKey(
+        Site, on_delete=models.PROTECT, null=True, blank=True, verbose_name="site"
     )
     type = models.CharField("type", max_length=10, choices=Type.choices, blank=True)
     category = models.ForeignKey(
@@ -461,7 +464,8 @@ class TicketEvent(models.Model):
         TYPE = "type", "Type"
         OUTIL = "outil", "Outil"
         AFFECTATION = "affectation", "Affectation"
-        FILIALE = "filiale", "Filiale"
+        FILIALE = "filiale", "Entité"
+        SITE = "site", "Site"
         DEMANDEUR = "demandeur", "Demandeur"
         NOTE = "note", "Note"
         TEMPS = "temps", "Temps"

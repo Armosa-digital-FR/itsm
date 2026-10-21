@@ -16,7 +16,9 @@ COPY src ./src
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=itsm.settings.prod
-RUN DJANGO_SECRET_KEY=collectstatic-only AZURE_STORAGE_ACCOUNT_NAME=build \
+# Valeurs factices : collectstatic n'utilise ni la base, ni Entra, ni le stockage.
+RUN DJANGO_SECRET_KEY=build AZURE_STORAGE_ACCOUNT_NAME=build AZURE_TENANT_ID=build \
+    OIDC_RP_CLIENT_ID=build OIDC_RP_CLIENT_SECRET=build \
     python manage.py collectstatic --noinput
 USER itsm
 EXPOSE 8000

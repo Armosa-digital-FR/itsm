@@ -119,6 +119,18 @@ dl.facts dd { margin: 0; font-size: 14px; }
 .tag-muted { background: var(--linen); color: var(--ink-soft); }
 .tag-muted::before { background: var(--ink-muted); }
 
+/* ---------- Onglets (soulignés, règle Intercom du design system) ---------- */
+
+.tabs { display: flex; gap: var(--space-1); flex-wrap: wrap; border-bottom: 1px solid var(--hairline);
+  margin-bottom: var(--space-4); }
+.tabs a { font-family: var(--font-mono); font-size: 14px; font-weight: 500; letter-spacing: 0.7px;
+  text-transform: uppercase; text-decoration: none; color: var(--ink-soft);
+  padding: var(--space-3) var(--space-4); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--brand); }
+.tab-count { display: inline-block; min-width: 22px; text-align: center; margin-left: 6px; padding: 1px 7px;
+  border-radius: var(--radius-pill); background: var(--linen); color: var(--ink-soft); font-size: 12px; }
+.tabs a[aria-current="page"] .tab-count { background: var(--sage-150); color: var(--ink); }
+
 /* ---------- Tableaux ---------- */
 
 .table-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--hairline);
@@ -184,16 +196,39 @@ details.quoted summary { cursor: pointer; font-size: 14px; color: var(--ink-mute
 .event { font-size: 14px; color: var(--ink-soft); }
 .attachments { list-style: none; padding: 0; margin: var(--space-2) 0 0; display: flex; gap: var(--space-2); flex-wrap: wrap; }
 
+.person-card { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4); border: 1px solid var(--hairline); border-radius: var(--radius-md);
+  background: var(--sage-100); }
+.person-name { font-weight: 500; }
+.picker-results { list-style: none; margin: var(--space-2) 0 0; padding: 0; border: 1px solid var(--hairline);
+  border-radius: var(--radius-md); background: var(--paper); overflow: hidden; }
+.picker-results li + li { border-top: 1px solid var(--hairline); }
+.picker-results button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%;
+  text-align: left; background: none; border: none; padding: var(--space-3) var(--space-4); font: inherit;
+  color: var(--ink); cursor: pointer; }
+.picker-results button:hover, .picker-results button:focus-visible { background: var(--sage-100); }
+[hidden] { display: none !important; }
+
 .copy-field { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono);
   background: var(--linen); padding: 4px 4px 4px 10px; border-radius: var(--radius-pill); }
 
 .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--space-4); }
 .kpi { background: var(--paper); border: 1px solid var(--hairline); border-radius: var(--radius-lg); padding: var(--space-4); }
+.kpi-link { text-decoration: none; color: var(--ink); display: block; }
+.kpi-link:hover { border-color: var(--sage-500); color: var(--ink); }
+.kpi-danger { border-color: var(--danger); }
+.kpi-danger .value { color: var(--danger); }
+.stack-lg > * + * { margin-top: var(--space-7); }
+.dash-lists { margin-top: var(--space-4); }
 .kpi .value { font-family: var(--font-display); font-size: 40px; line-height: 1; margin-top: var(--space-2); }
 
 .login-shell { min-height: 100vh; display: grid; place-items: center; padding: var(--space-5); }
-.login-card { max-width: 440px; width: 100%; }
-.login-card img { height: 36px; width: auto; margin-bottom: var(--space-5); }
+.login-card { max-width: 440px; width: 100%; text-align: center; }
+.login-card img { display: block; height: 36px; width: auto; margin: 0 auto var(--space-5); }
+.login-card .btn { justify-content: center; }
+.login-dev { margin-top: var(--space-5); }
+.dev-banner { background: var(--warning-100); color: var(--warning); font-size: 14px; text-align: center;
+  padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--accent-200); }
 
 .htmx-indicator { opacity: 0; transition: opacity 150ms; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }

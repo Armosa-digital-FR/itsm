@@ -97,10 +97,28 @@ def test_anonyme_redirige_vers_la_connexion(client):
     assert response["Location"].startswith("/connexion/")
 
 
-def test_page_de_connexion(client):
-    response = client.get("/connexion/")
-    assert response.status_code == 200
-    assert "Se connecter avec Microsoft" in response.content.decode()
+def test_page_de_connexion_configuree(client, settings):
+    settings.OIDC_RP_CLIENT_ID, settings.OIDC_RP_CLIENT_SECRET = "id", "secret"
+    content = client.get("/connexion/").content.decode()
+    assert "Se connecter avec Microsoft" in content
+    assert "pas encore configurée" not in content
+    assert "compte de démonstration" not in content  # jamais hors mode debug
+
+
+def test_page_de_connexion_sans_application_entra(client, settings):
+    settings.OIDC_RP_CLIENT_ID = ""
+    content = client.get("/connexion/").content.decode()
+    assert "Se connecter avec Microsoft" not in content
+    assert "pas encore configurée" in content
+    assert "OIDC_RP_CLIENT_ID" not in content  # détail technique réservé au mode debug
+
+
+def test_mode_debug_bandeau_et_connexion_de_demonstration(client, settings):
+    settings.DEBUG, settings.DEV_LOGIN = True, True
+    content = client.get("/connexion/").content.decode()
+    assert "Mode développement" in content
+    assert "Connexion avec un compte de démonstration" in content
+    assert "OIDC_RP_CLIENT_ID" in content
 
 
 def test_connexion_dev_desactivee_hors_debug(client):

@@ -142,6 +142,7 @@ def create_from_email(
         requester=requester,
         requester_email=sender_email.lower(),
         subsidiary=requester.subsidiary if requester else None,
+        site=requester.site if requester else None,
         related_ticket=related_ticket,
     )
     ticket.save()
@@ -189,6 +190,7 @@ def create_manual(
         requester=requester,
         requester_email=(requester.email or "").lower(),
         subsidiary=requester.subsidiary,
+        site=requester.site,
         type=type or "",
         category=category,
         tool=tool,
@@ -218,6 +220,7 @@ QUALIFY_FIELDS = {
     "tool": TicketEvent.Kind.OUTIL,
     "priority": TicketEvent.Kind.PRIORITE,
     "subsidiary": TicketEvent.Kind.FILIALE,
+    "site": TicketEvent.Kind.SITE,
     "requester": TicketEvent.Kind.DEMANDEUR,
 }
 
@@ -249,6 +252,8 @@ def qualify(ticket: Ticket, actor, **fields) -> set[str]:
             ticket.requester_email = (value.email or ticket.requester_email).lower()
             if ticket.subsidiary_id is None and "subsidiary" not in fields:
                 ticket.subsidiary = value.subsidiary
+            if ticket.site_id is None and "site" not in fields:
+                ticket.site = value.site
         changed.add(name)
         record_event(ticket, QUALIFY_FIELDS[name], actor, old, _label(ticket, name))
     if changed:

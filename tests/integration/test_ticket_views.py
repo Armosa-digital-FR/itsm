@@ -226,8 +226,65 @@ def test_liste_et_filtres(technician_client, technician):
     assert "Écran noir" in filtered.content.decode() and "Clavier" not in filtered.content.decode()
     by_number = technician_client.get(url("ticket_list"), {"q": mine.reference}).content.decode()
     assert "Écran noir" in by_number and "Clavier" not in by_number
-    all_tickets = technician_client.get(url("ticket_list"), {"status": "tous"}).content.decode()
+    all_tickets = technician_client.get(url("ticket_list"), {"onglet": "tous"}).content.decode()
     assert "Ancien" in all_tickets
+
+
+def test_onglets_a_traiter_en_cours_traites(technician_client):
+    TicketFactory(title="Nouveau")
+    TicketFactory(title="Commencé", status=Ticket.Status.PRIS_EN_COMPTE)
+    TicketFactory(title="Bloqué", status=Ticket.Status.ATTENTE_REPONSE)
+    TicketFactory(title="Réglé", status=Ticket.Status.RESOLU, resolved_at=timezone.now())
+    TicketFactory(title="Archivé", status=Ticket.Status.FERME)
+
+    def titles(tab):
+        response = technician_client.get(url("ticket_list"), {"onglet": tab})
+        return {t.title for t in response.context["page"]}, response.context["tabs"]
+
+    a_traiter, tabs = titles("a_traiter")
+    assert a_traiter == {"Nouveau"}
+    assert {t["key"]: t["count"] for t in tabs} == {
+        "a_traiter": 1,
+        "en_cours": 2,
+        "traites": 2,
+        "tous": 5,
+    }
+    assert titles("en_cours")[0] == {"Commencé", "Bloqué"}
+    assert titles("traites")[0] == {"Réglé", "Archivé"}
+    assert titles("")[0] == {"Nouveau"}  # onglet par défaut : à traiter
+
+
+def test_compteurs_des_onglets_suivent_les_filtres(technician_client, technician):
+    TicketFactory(assignee=technician)
+    TicketFactory()
+    response = technician_client.get(url("ticket_list"), {"assignee": "moi"})
+    counts = {t["key"]: t["count"] for t in response.context["tabs"]}
+    assert counts["a_traiter"] == 1
+
+
+def test_entite_et_site_repris_du_demandeur(technician_client):
+    requester = DirectoryUserFactory()
+    technician_client.post(
+        url("ticket_new"),
+        {
+            "requester": requester.pk,
+            "title": "Souris",
+            "priority": "normale",
+        },
+    )
+    ticket = Ticket.objects.get()
+    assert (ticket.subsidiary, ticket.site) == (requester.subsidiary, requester.site)
+    content = technician_client.get(url("ticket_detail", ticket)).content.decode()
+    assert str(requester.site) in content and str(requester.subsidiary) in content
+    listing = technician_client.get(url("ticket_list")).content.decode()
+    assert str(requester.site) in listing
+
+
+def test_creation_preremplie_affiche_la_carte_du_demandeur(technician_client):
+    requester = DirectoryUserFactory(display_name="Sacha Durand")
+    content = technician_client.get(url("ticket_new"), {"requester": requester.pk}).content.decode()
+    assert "Sacha Durand" in content
+    assert 'class="picker-search" hidden' in content  # recherche masquée une fois choisi
 
 
 def test_filtre_par_categorie_inclut_les_sous_categories(technician_client):

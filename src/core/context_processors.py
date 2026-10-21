@@ -3,6 +3,7 @@
 from django.urls import NoReverseMatch, reverse
 
 NAV = [
+    ("Accueil", "core:home", "core", {"home"}),
     ("Tickets", "helpdesk:ticket_list", "helpdesk", {"ticket_list", "ticket_detail", "ticket_new"}),
     ("Suivi", "helpdesk:tracking", "helpdesk", {"tracking"}),
     ("Base de résolution", "helpdesk:knowledge", "helpdesk", {"knowledge"}),
@@ -22,9 +23,12 @@ NAV = [
 
 
 def navigation(request):
+    from django.conf import settings
+
+    dev_mode = {"dev_mode": settings.DEBUG}
     user = getattr(request, "user", None)
     if not (user and user.is_authenticated and getattr(user, "is_technician", False)):
-        return {"nav_items": []}
+        return {"nav_items": [], **dev_mode}
     match = getattr(request, "resolver_match", None)
     items = []
     for label, name, namespace, url_names in NAV:
@@ -36,4 +40,4 @@ def navigation(request):
         items.append({"label": label, "url": url, "active": active})
     if user.is_admin:
         items.append({"label": "Administration", "url": reverse("admin:index"), "active": False})
-    return {"nav_items": items}
+    return {"nav_items": items, **dev_mode}

@@ -10,7 +10,7 @@ from itertools import chain
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import F, Q
+from django.db.models import Count, F, Q
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -45,21 +45,34 @@ def is_htmx(request) -> bool:
 # --- Liste ------------------------------------------------------------------
 
 
-def filtered_tickets(request, form: TicketFilterForm):
+S = Ticket.Status
+# Onglets de la liste : à traiter / en cours / traités (retour MVP, FR-082).
+TABS = {
+    "a_traiter": [S.CREE],
+    "en_cours": [S.PRIS_EN_COMPTE, S.ATTENTE_REPONSE, S.EN_ATTENTE],
+    "traites": [S.RESOLU, S.FERME],
+    "tous": None,
+}
+DEFAULT_TAB = "a_traiter"
+
+
+def current_tab(form: TicketFilterForm) -> str:
+    tab = form.cleaned_data.get("onglet") if form.is_valid() else ""
+    return tab if tab in TABS else DEFAULT_TAB
+
+
+def base_tickets(request, form: TicketFilterForm):
+    """Tickets filtrés, hors onglet de statut."""
     qs = Ticket.objects.select_related(
         "requester",
         "subsidiary",
+        "site",
         "assignee__directory_user",
         "assigned_group",
         "category__parent__parent",
         "tool",
     )
     data = form.cleaned_data if form.is_valid() else {}
-    status = data.get("status") or "ouverts"
-    if status == "ouverts":
-        qs = qs.filter(status__in=Ticket.OPEN_STATUSES)
-    elif status != "tous":
-        qs = qs.filter(status=status)
     if data.get("priority"):
         qs = qs.filter(priority=data["priority"])
     assignee = data.get("assignee")
@@ -69,7 +82,7 @@ def filtered_tickets(request, form: TicketFilterForm):
         qs = qs.filter(assignee__isnull=True)
     elif assignee:
         qs = qs.filter(assignee_id=assignee)
-    for name in ("group", "subsidiary", "tool"):
+    for name in ("group", "subsidiary", "site", "tool"):
         if data.get(name):
             qs = qs.filter(**{"assigned_group" if name == "group" else name: data[name]})
     if data.get("category"):
@@ -87,17 +100,51 @@ def filtered_tickets(request, form: TicketFilterForm):
         if digits.isdigit():
             text |= Q(number=int(digits))
         qs = qs.filter(text)
+    return qs
+
+
+def tab_counts(qs) -> dict[str, int]:
+    aggregates = {
+        name: Count("pk", filter=Q(status__in=statuses)) if statuses else Count("pk")
+        for name, statuses in TABS.items()
+    }
+    return qs.order_by().aggregate(**aggregates)
+
+
+def filtered_tickets(request, form: TicketFilterForm):
+    tab = current_tab(form)
+    qs = base_tickets(request, form)
+    if TABS[tab]:
+        qs = qs.filter(status__in=TABS[tab])
+    if tab == "traites":
+        return qs.order_by(F("resolved_at").desc(nulls_last=True), "-created_at")
     return qs.order_by(F("ack_due_at").asc(nulls_last=True), "-created_at")
 
 
 @technician_required
 def ticket_list(request):
     form = TicketFilterForm(request.GET or None)
+    tab = current_tab(form)
     tickets = filtered_tickets(request, form)
     page = Paginator(tickets, PAGE_SIZE).get_page(request.GET.get("page"))
     query = request.GET.copy()
     query.pop("page", None)
-    context = {"form": form, "page": page, "query": query.urlencode(), "now": timezone.now()}
+    filters = query.copy()
+    filters.pop("onglet", None)
+    counts = tab_counts(base_tickets(request, form))
+    tabs = [
+        {"key": key, "label": label, "count": counts[key], "active": key == tab}
+        for key, label in TicketFilterForm.TAB_CHOICES
+    ]
+    context = {
+        "form": form,
+        "page": page,
+        "query": query.urlencode(),
+        "filters": filters.urlencode(),
+        "tabs": tabs,
+        "tab": tab,
+        "now": timezone.now(),
+    }
     template = (
         "helpdesk/partials/ticket_table.html" if is_htmx(request) else ("helpdesk/ticket_list.html")
     )
@@ -124,7 +171,8 @@ def ticket_export(request):
             "Outil",
             "Demandeur",
             "E-mail demandeur",
-            "Filiale",
+            "Entité",
+            "Site",
             "Assigné",
             "Groupe",
             "Canal",
@@ -153,6 +201,7 @@ def ticket_export(request):
                 t.requester or "",
                 t.requester_email,
                 t.subsidiary or "",
+                t.site or "",
                 t.assignee.display_name if t.assignee else "",
                 t.assigned_group or "",
                 t.get_channel_display(),
@@ -208,6 +257,7 @@ def _get_ticket(number: int) -> Ticket:
             "requester__subsidiary",
             "requester__site",
             "subsidiary",
+            "site",
             "assignee__directory_user",
             "assigned_group",
             "category__parent__parent",
@@ -266,6 +316,7 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
                 "tool": ticket.tool_id,
                 "priority": ticket.priority,
                 "subsidiary": ticket.subsidiary_id,
+                "site": ticket.site_id,
                 "requester": ticket.requester_id,
             }
         ),
@@ -321,7 +372,7 @@ def ticket_qualify(request, number: int):
     if not form.is_valid():
         return _error(request, ticket, "Qualification invalide.", qualify_form=form)
     data = form.cleaned_data
-    fields = {k: data[k] for k in ("type", "category", "tool", "priority", "subsidiary")}
+    fields = {k: data[k] for k in ("type", "category", "tool", "priority", "subsidiary", "site")}
     if data.get("requester"):
         fields["requester"] = data["requester"]
     try:

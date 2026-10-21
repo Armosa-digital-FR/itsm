@@ -1,9 +1,11 @@
 {% if query|length < 2 %}
 {% elif people %}
-<ul class="stack" style="list-style:none;padding:0;margin:var(--space-2) 0 0">
+<ul class="picker-results">
   {% for person in people %}
-  <li><button type="button" class="btn btn-small" data-pick-person="{{ person.pk }}" data-target="{{ target }}" data-label="{{ person }} · {{ person.email }}">
-    {{ person }} <span class="muted">· {{ person.email|default:"sans e-mail" }} · {{ person.subsidiary|default:"filiale ?" }}</span>
+  <li><button type="button" data-pick-person="{{ person.pk }}" data-target="{{ target }}"
+      data-name="{{ person }}" data-email="{{ person.email }}" data-entite="{{ person.subsidiary|default:'Entité non renseignée' }}" data-site="{{ person.site|default:'site non renseigné' }}">
+    <strong>{{ person }}</strong>
+    <span class="muted">{{ person.email|default:"sans e-mail" }} · {{ person.subsidiary|default:"entité ?" }} · {{ person.site|default:"site ?" }}</span>
   </button></li>
   {% endfor %}
 </ul>

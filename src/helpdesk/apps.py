@@ -8,6 +8,7 @@ class HelpdeskConfig(AppConfig):
 
     def ready(self):
         from core.alerts import register_sender
+        from core.dashboard import register_section
         from directory.registry import register_person_block
 
         from . import receivers  # noqa: F401
@@ -15,6 +16,9 @@ class HelpdeskConfig(AppConfig):
 
         register_sender(send_admin_alert)
         register_person_block("helpdesk/person_tickets.html", person_tickets, order=10)
+        from .dashboard import tickets_dashboard
+
+        register_section("tickets", "Tickets", "helpdesk/dashboard.html", tickets_dashboard, 10)
 
 
 def person_tickets(person) -> dict:

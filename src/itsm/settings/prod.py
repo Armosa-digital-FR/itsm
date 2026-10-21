@@ -8,6 +8,9 @@ from .base import SECRET_KEY, env
 
 if not SECRET_KEY:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY doit être défini en production.")
+for _name in ("AZURE_TENANT_ID", "OIDC_RP_CLIENT_ID", "OIDC_RP_CLIENT_SECRET"):
+    if not env(_name):
+        raise ImproperlyConfigured(f"{_name} doit être défini en production (connexion Entra).")
 
 DEBUG = False
 DEV_LOGIN = False

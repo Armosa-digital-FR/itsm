@@ -13,20 +13,38 @@ from django.views.decorators.http import require_http_methods
 
 from directory.models import Account, SyncRun
 
+from . import dashboard
+from .auth import technician_required
 
+
+@technician_required
 def home(request):
-    if request.user.is_authenticated and request.user.is_technician:
-        return redirect("helpdesk:ticket_list")
-    return redirect("core:login")
+    """Accueil : tableaux de bord des modules (tickets, parc…)."""
+    blocks = [
+        {"section": section, "context": section.context(request)}
+        for section in dashboard.ordered_sections()
+    ]
+    return render(request, "core/home.html", {"blocks": blocks})
 
 
 def login_page(request):
     if request.user.is_authenticated and request.user.is_technician:
-        return redirect(request.GET.get("next") or "helpdesk:ticket_list")
+        return redirect(request.GET.get("next") or "core:home")
     return render(
         request,
         "core/login.html",
-        {"next": request.GET.get("next", ""), "dev_login": _dev_login_enabled()},
+        {
+            "next": request.GET.get("next", ""),
+            "dev_login": _dev_login_enabled(),
+            "oidc_configured": oidc_configured(),
+        },
+    )
+
+
+def oidc_configured() -> bool:
+    """Vrai si l'application Entra est renseignée (sinon Entra renvoie AADSTS900144)."""
+    return bool(
+        settings.OIDC_RP_CLIENT_ID and settings.OIDC_RP_CLIENT_SECRET and settings.AZURE_TENANT_ID
     )
 
 
@@ -54,7 +72,7 @@ def dev_login(request):
         account = accounts.filter(pk=request.POST.get("account")).first()
         if account is not None:
             login(request, account, backend="django.contrib.auth.backends.ModelBackend")
-            return redirect(request.POST.get("next") or "helpdesk:ticket_list")
+            return redirect(request.POST.get("next") or "core:home")
     return render(request, "core/dev_login.html", {"accounts": accounts})
 
 
