@@ -1,0 +1,9 @@
+{% extends "admin/change_form.html" %}
+{% block object-tools-items %}
+  {% if original %}
+  <li><a href="{% url 'admin:gdpr_export' original.entra_id %}">Exporter ses données (RGPD)</a></li>
+  <li><a href="{% url 'admin:gdpr_anonymize' original.entra_id %}">Anonymiser (RGPD)</a></li>
+  <li><a href="{% url 'directory:person' original.entra_id %}">Fiche dans l'ITSM</a></li>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

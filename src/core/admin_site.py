@@ -48,6 +48,16 @@ class ITSMAdminSite(AdminSite):
                 self.admin_view(require_POST(self.run_sync_view)),
                 name="sync_run",
             ),
+            path(
+                "gdpr/<uuid:entra_id>/export/",
+                self.admin_view(self.gdpr_export_view),
+                name="gdpr_export",
+            ),
+            path(
+                "gdpr/<uuid:entra_id>/anonymize/",
+                self.admin_view(self.gdpr_anonymize_view),
+                name="gdpr_anonymize",
+            ),
         ]
         return extra + super().get_urls()
 
@@ -67,3 +77,61 @@ class ITSMAdminSite(AdminSite):
         else:
             messages.success(request, f"{runner.label} : synchronisation terminée.")
         return redirect("admin:directory_syncrun_changelist")
+
+    def gdpr_export_view(self, request, entra_id):
+        """Export JSON de toutes les données d'une personne (FR-075), audité."""
+        import json
+
+        from django.http import HttpResponse
+        from django.shortcuts import get_object_or_404
+
+        from core import audit, gdpr
+        from directory.models import DirectoryUser
+
+        person = get_object_or_404(DirectoryUser, entra_id=entra_id)
+        audit.record(request.user, "gdpr.export", person, request=request)
+        response = HttpResponse(
+            json.dumps(gdpr.export_person(person), ensure_ascii=False, indent=2),
+            content_type="application/json; charset=utf-8",
+        )
+        response["Content-Disposition"] = f'attachment; filename="donnees-{entra_id}.json"'
+        return response
+
+    def gdpr_anonymize_view(self, request, entra_id):
+        """Anonymisation anticipée sur demande, après confirmation (FR-075), auditée."""
+        from django.shortcuts import get_object_or_404
+        from django.template.response import TemplateResponse
+
+        from core import audit, gdpr
+        from directory.models import DirectoryUser
+        from helpdesk.models import Ticket
+
+        person = get_object_or_404(DirectoryUser, entra_id=entra_id)
+        change_url = "admin:directory_directoryuser_change"
+        if request.method == "POST" and request.POST.get("confirm") == "oui":
+            label = str(person)
+            try:
+                result = gdpr.anonymize_person(person)
+            except gdpr.AnonymizationRefused as exc:
+                messages.error(request, str(exc))
+                return redirect(change_url, person.pk)
+            audit.record(
+                request.user,
+                "gdpr.anonymize",
+                person,
+                {"personne": label, **result},
+                request=request,
+            )
+            messages.success(request, f"Données de {label} anonymisées.")
+            return redirect(change_url, person.pk)
+        context = {
+            **self.each_context(request),
+            "title": "Anonymiser une personne",
+            "person": person,
+            "tickets": Ticket.objects.filter(requester=person).count(),
+            "open_tickets": Ticket.objects.filter(
+                requester=person, status__in=Ticket.OPEN_STATUSES
+            ).count(),
+            "equipment": person.equipment.count(),
+        }
+        return TemplateResponse(request, "admin/gdpr_anonymize.html", context)
