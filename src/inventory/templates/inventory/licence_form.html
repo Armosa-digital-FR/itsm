@@ -18,7 +18,7 @@
   </form>
   {% if licence %}
   <aside class="stack">
-    <section class="card"><h3>Historique</h3>
+    <section class="card"><h2>Historique</h2>
       <ol class="timeline">{% for e in events %}<li class="event"><span class="muted">{{ e.at|date:"d/m/Y H:i" }}</span> · {{ e.get_kind_display }}{% if e.new_value %} : {{ e.new_value }}{% endif %}{% if e.actor %} <span class="muted">par {{ e.actor.display_name }}</span>{% endif %}</li>{% empty %}<li class="muted">Aucun événement.</li>{% endfor %}</ol>
     </section>
   </aside>

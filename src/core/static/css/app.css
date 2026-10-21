@@ -232,6 +232,9 @@ mark { background: var(--accent-200); color: var(--ink); padding: 0 2px; border-
 .login-card img { display: block; height: 36px; width: auto; margin: 0 auto var(--space-5); }
 .login-card .btn { justify-content: center; }
 .login-dev { margin-top: var(--space-5); }
+/* Texte secondaire sur fonds linen / sauge : ink-soft (ink-muted-strong < 4,5:1 sur sauge). */
+.band .muted, .band .help, .person-card .muted, .note-inbound .muted, .kpi .muted { color: var(--ink-soft); }
+.band h2 { font-size: 20px; line-height: 1.3; }
 .dev-banner { background: var(--warning-100); color: var(--warning); font-size: 14px; text-align: center;
   padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--accent-200); }
 

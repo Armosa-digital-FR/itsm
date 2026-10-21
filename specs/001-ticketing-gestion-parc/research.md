@@ -82,7 +82,7 @@ TeamViewer hors application, couleurs d'état, ordre de livraison).
     un instant donné) ;
   - Azure Blob Storage (pièces jointes, chiffrement au repos) ;
   - Azure Key Vault (secrets) ; **identité managée** pour accéder à Key Vault, Blob et Graph ;
-  - Application Insights / Azure Monitor (journaux et traces).
+  - Azure Monitor / Log Analytics (journaux JSON des conteneurs).
 - **Rationale** : le tenant Microsoft 365 existe déjà (Entra, Intune, Exchange) ; l'identité
   managée supprime tout secret pour Graph, Blob et Key Vault (principe II) ; hébergement UE
   et chiffrement au repos natifs (principe III). Le conteneur Docker garde la solution
