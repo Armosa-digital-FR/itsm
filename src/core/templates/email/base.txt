@@ -1,0 +1,5 @@
+{% block content %}{% endblock %}
+
+--
+Support informatique — Armosa Digital
+{% block footer %}Répondez directement à cet e-mail pour compléter votre demande, en conservant la référence entre crochets dans l'objet.{% endblock %}

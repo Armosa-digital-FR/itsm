@@ -1,0 +1,45 @@
+{% load helpdesk_tags %}
+<div class="table-wrap">
+<table class="list">
+  <thead><tr>
+    <th>N°</th><th>Titre</th><th>Statut</th><th>Priorité</th><th>Demandeur</th><th>Filiale</th><th>Assigné</th><th>Échéance</th>
+  </tr></thead>
+  <tbody>
+  {% for t in page %}
+    <tr>
+      <td class="num"><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a></td>
+      <td>
+        <a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.title }}</a>
+        <div class="row" style="margin-top:4px">
+          {% if t.has_unread_reply %}<span class="tag tag-info">Nouvelle réponse</span>{% endif %}
+          {% if t.is_unidentified %}<span class="tag tag-warning">Demandeur non identifié</span>{% endif %}
+          {% if t.assignee and not t.assignee.is_active %}<span class="tag tag-warning">À réaffecter</span>{% endif %}
+          {% if t.category %}<span class="muted">{{ t.category.full_path }}</span>{% endif %}
+        </div>
+      </td>
+      <td>{% status_tag t %}</td>
+      <td>{% priority_tag t %}</td>
+      <td>{{ t.requester|default:t.requester_email|default:"—" }}</td>
+      <td>{{ t.subsidiary|default:"—" }}</td>
+      <td>{% if t.assignee %}{{ t.assignee.display_name }}{% elif t.assigned_group %}<span class="muted">Groupe {{ t.assigned_group }}</span>{% else %}<span class="muted">Non affecté</span>{% endif %}</td>
+      <td class="num">
+        {% if t.ack_breached %}<span class="tag tag-danger">Dépassé</span>
+        {% elif t.ack_due_at and not t.acknowledged_at %}{{ t.ack_due_at|date:"d/m H:i" }}
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="8" class="empty">Aucun ticket ne correspond à ces filtres.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if page.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Pagination">
+  {% if page.has_previous %}<a class="btn btn-small" href="?{{ query }}&page={{ page.previous_page_number }}">Précédent</a>{% endif %}
+  <span>Page {{ page.number }} / {{ page.paginator.num_pages }} · {{ page.paginator.count }} tickets</span>
+  {% if page.has_next %}<a class="btn btn-small" href="?{{ query }}&page={{ page.next_page_number }}">Suivant</a>{% endif %}
+</nav>
+{% else %}
+<p class="muted" style="margin-top:var(--space-3)">{{ page.paginator.count }} ticket{{ page.paginator.count|pluralize }}</p>
+{% endif %}

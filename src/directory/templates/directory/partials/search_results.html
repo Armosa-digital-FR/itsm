@@ -1,0 +1,12 @@
+{% if query|length < 2 %}
+{% elif people %}
+<ul class="stack" style="list-style:none;padding:0;margin:var(--space-2) 0 0">
+  {% for person in people %}
+  <li><button type="button" class="btn btn-small" data-pick-person="{{ person.pk }}" data-target="{{ target }}" data-label="{{ person }} · {{ person.email }}">
+    {{ person }} <span class="muted">· {{ person.email|default:"sans e-mail" }} · {{ person.subsidiary|default:"filiale ?" }}</span>
+  </button></li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="muted">Aucun utilisateur actif ne correspond à « {{ query }} ».</p>
+{% endif %}

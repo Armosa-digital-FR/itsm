@@ -1,0 +1,8 @@
+{% extends "email/base.txt" %}{% block content %}Bonjour{% if ticket.requester.given_name %} {{ ticket.requester.given_name }}{% endif %},
+
+Rappel {{ extra.rank }}/{{ extra.total }} : pour avancer sur votre demande « {{ ticket.title }} » ({{ ticket.reference }}), le support a besoin de votre réponse.
+{% if extra.last_note %}
+Dernier message du support :
+{{ extra.last_note }}
+{% endif %}
+Sans réponse de votre part, la demande sera considérée comme résolue le {{ extra.auto_resolve_at|date:"l j F Y" }}.{% endblock %}

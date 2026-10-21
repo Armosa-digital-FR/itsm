@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Nouveau ticket{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Support · Création manuelle</div><h1>Nouveau ticket</h1></div>
+</div>
+<form method="post" enctype="multipart/form-data" class="grid-2">{% csrf_token %}
+  <div class="card">
+    {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="field">
+      <label for="requester-search">Demandeur</label>
+      <input id="requester-search" type="search" name="q" placeholder="Nom ou e-mail (2 caractères minimum)" autocomplete="off"
+             hx-get="{% url 'directory:search' %}" hx-trigger="keyup changed delay:300ms, search" hx-target="#requester-results" hx-include="this">
+      {{ form.requester }}
+      <div id="requester-selected" class="tag tag-plain" aria-live="polite">{% if selected %}{{ selected }} · {{ selected.email }}{% else %}Aucun demandeur choisi{% endif %}</div>
+      <div id="requester-results"></div>
+      {% if form.requester.errors %}<ul class="errorlist">{% for e in form.requester.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      <span class="help">Le demandeur recevra l'accusé de réception et les échanges par e-mail, comme pour une demande envoyée par e-mail.</span>
+    </div>
+    {% for field in form %}{% if field.name != "requester" %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endif %}{% endfor %}
+    <button class="btn btn-primary" type="submit">Créer le ticket</button>
+    <a class="btn" href="{% url 'helpdesk:ticket_list' %}">Annuler</a>
+  </div>
+  <aside class="band">
+    <h3>À savoir</h3>
+    <p class="muted">Le ticket est créé au nom du demandeur choisi, rattaché à sa filiale, et marqué « créé par » vous. Si vous renseignez un outil, il est affecté automatiquement selon les compétences.</p>
+  </aside>
+</form>
+{% endblock %}

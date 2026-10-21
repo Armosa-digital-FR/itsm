@@ -50,3 +50,47 @@ class AccountFactory(factory.django.DjangoModelFactory):
     class Params:
         admin = factory.Trait(roles=[Account.ROLE_ADMIN, Account.ROLE_TECHNICIAN])
         no_role = factory.Trait(roles=[])
+
+
+# --- Tickets ---------------------------------------------------------------
+
+from helpdesk.models import Category, TechnicianGroup, Ticket, Tool  # noqa: E402
+
+
+class CategoryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Category
+
+    name = factory.Sequence(lambda n: f"Catégorie {n}")
+
+
+class TechnicianGroupFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = TechnicianGroup
+
+    name = factory.Sequence(lambda n: f"Groupe {n}")
+
+
+class ToolFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Tool
+
+    name = factory.Sequence(lambda n: f"Outil {n}")
+
+
+class TicketFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Ticket
+
+    title = factory.Sequence(lambda n: f"Demande {n}")
+    description = "L'écran reste noir."
+    channel = Ticket.Channel.EMAIL
+    mailbox = "support@armosa.test"
+    requester = factory.SubFactory(DirectoryUserFactory)
+    requester_email = factory.LazyAttribute(lambda o: o.requester.email if o.requester else "")
+    subsidiary = factory.LazyAttribute(lambda o: o.requester.subsidiary if o.requester else None)
+
+    class Params:
+        qualified = factory.Trait(
+            type=Ticket.Type.INCIDENT, category=factory.SubFactory(CategoryFactory)
+        )

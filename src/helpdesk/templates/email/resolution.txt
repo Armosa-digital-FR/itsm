@@ -1,0 +1,7 @@
+{% extends "email/base.txt" %}{% block content %}Votre demande {{ ticket.reference }} est résolue.
+
+Objet : {{ ticket.title }}
+
+Résolution :
+{{ ticket.resolution }}{% endblock %}
+{% block footer %}Si le problème persiste, répondez à cet e-mail dans les {{ extra.reopen_days|default:5 }} jours ouvrés : votre demande sera rouverte. Passé ce délai, elle sera fermée.{% endblock %}

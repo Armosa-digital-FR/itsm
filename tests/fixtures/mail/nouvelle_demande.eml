@@ -1,0 +1,47 @@
+From: Camille Martin <camille.martin@armosa.test>
+To: support@armosa.test
+Subject: Imprimante du 2e étage en panne
+Date: Wed, 21 Oct 2026 09:12:00 +0200
+Message-ID: <demande-001@armosa.test>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="mixed"
+
+--mixed
+Content-Type: multipart/related; boundary="related"
+
+--related
+Content-Type: multipart/alternative; boundary="alt"
+
+--alt
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+Bonjour,
+
+L'imprimante du 2e étage affiche « bourrage papier » depuis ce matin.
+
+Merci,
+Camille
+--alt
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<p>Bonjour,</p><p>L'imprimante du 2e étage affiche « bourrage papier » depuis ce matin.</p><p><img src="cid:photo001@armosa.test" alt="photo"></p><p>Merci,<br>Camille</p>
+--alt--
+
+--related
+Content-Type: image/png
+Content-ID: <photo001@armosa.test>
+Content-Disposition: inline; filename="photo.png"
+Content-Transfer-Encoding: base64
+
+iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==
+--related--
+
+--mixed
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="message-erreur.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKJcOkw7zDtsOfCjEgMCBvYmoKPDwvVHlwZS9DYXRhbG9nPj4KZW5kb2JqCnRyYWlsZXIKPDwvUm9vdCAxIDAgUj4+CiUlRU9GCg==
+--mixed--

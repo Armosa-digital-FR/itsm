@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Tickets{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Support · Tickets</div>
+    <h1>Tickets</h1>
+  </div>
+  <div class="row">
+    <a class="btn" href="{% url 'helpdesk:ticket_export' %}?{{ query }}">Exporter (CSV)</a>
+    <a class="btn" href="{% url 'helpdesk:bulk_assign' %}">Réaffecter en masse</a>
+    <a class="btn btn-primary" href="{% url 'helpdesk:ticket_new' %}">Nouveau ticket</a>
+  </div>
+</div>
+<form class="filters" method="get" hx-get="{% url 'helpdesk:ticket_list' %}" hx-target="#ticket-table" hx-push-url="true" hx-trigger="change, keyup changed delay:400ms from:input[type=search], submit">
+  {% for field in form %}
+    {% if field.name == "breached" %}
+      <div class="field"><label>{{ field }} {{ field.label }}</label></div>
+    {% else %}
+      <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>
+    {% endif %}
+  {% endfor %}
+  <noscript><button class="btn" type="submit">Filtrer</button></noscript>
+</form>
+<div id="ticket-table">{% include "helpdesk/partials/ticket_table.html" %}</div>
+{% endblock %}

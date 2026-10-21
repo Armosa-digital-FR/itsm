@@ -122,6 +122,23 @@ class GraphClient:
             return {}
         return response.json()
 
+    def upload_large_file(self, upload_url: str, data: bytes, chunk_size: int = 10 * 327_680):
+        """Envoi en morceaux vers une session d'upload Graph (pièces jointes > 3 Mo).
+
+        L'URL de session est pré-authentifiée : aucun en-tête d'autorisation n'est envoyé.
+        """
+        total = len(data)
+        for start in range(0, total, chunk_size):
+            chunk = data[start : start + chunk_size]
+            end = start + len(chunk) - 1
+            response = self._http.put(
+                upload_url,
+                content=chunk,
+                headers={"Content-Range": f"bytes {start}-{end}/{total}"},
+            )
+            if response.status_code >= 400:
+                raise GraphError(f"Échec de l'envoi de la pièce jointe ({response.status_code}).")
+
 
 def _retry_after(response: httpx.Response) -> int:
     try:

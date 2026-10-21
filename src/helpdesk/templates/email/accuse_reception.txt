@@ -1,0 +1,7 @@
+{% extends "email/base.txt" %}{% block content %}Bonjour{% if ticket.requester.given_name %} {{ ticket.requester.given_name }}{% endif %},
+
+Nous avons bien reçu votre demande. Elle porte la référence {{ ticket.reference }} et sera traitée par l'équipe du support informatique.
+
+Objet : {{ ticket.title }}
+
+Pour ajouter une précision ou une pièce jointe, répondez simplement à cet e-mail.{% endblock %}

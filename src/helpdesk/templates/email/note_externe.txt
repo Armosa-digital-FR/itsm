@@ -1,0 +1,3 @@
+{% extends "email/base.txt" %}{% block content %}{{ note.body_text }}
+
+{{ note.author.directory_user.given_name|default:note.author.display_name }}, support informatique{% endblock %}

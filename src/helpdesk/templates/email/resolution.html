@@ -1,0 +1,10 @@
+{% extends "email/base.html" %}
+{% block eyebrow %}Demande {{ ticket.reference }} · résolue{% endblock %}
+{% block heading %}Votre demande est résolue{% endblock %}
+{% block content %}
+<p style="margin:0 0 4px 0;font-family:'IBM Plex Mono',Menlo,monospace;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#656f6a;">Objet</p>
+<p style="margin:0 0 16px 0;">{{ ticket.title }}</p>
+<p style="margin:0 0 4px 0;font-family:'IBM Plex Mono',Menlo,monospace;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#656f6a;">Résolution</p>
+<div style="margin:0 0 16px 0;white-space:pre-wrap;">{{ ticket.resolution }}</div>
+{% endblock %}
+{% block footer %}Si le problème persiste, répondez à cet e-mail dans les {{ extra.reopen_days|default:5 }} jours ouvrés : votre demande sera rouverte. Passé ce délai, elle sera fermée.{% endblock %}
