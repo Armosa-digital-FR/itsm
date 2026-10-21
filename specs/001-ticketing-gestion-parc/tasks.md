@@ -171,15 +171,15 @@ groupe.
 
 ### Tests for User Story 2
 
-- [ ] T060 [P] [US2] Écrire `tests/unit/test_assignment.py` : les 5 cas de la règle d'affectation de data-model.md (1 compétent → technicien ; groupe défini → groupe ; ≥ 2 sans groupe → moins de tickets ouverts puis affecté le moins récemment ; aucun → file de dispatch) ; non exécutée si `assignment_mode = manuel` ou statut ≠ `cree` ; techniciens inactifs exclus
-- [ ] T061 [P] [US2] Écrire `tests/integration/test_assignment_views.py` : qualification avec outil → affectation visible ; « Prendre » par un membre du groupe → assigné ; réaffectation manuelle → événement + plus d'affectation automatique ; vue dispatch ; audit `skill.change` / `group.change` lors des modifications en admin
+- [X] T060 [P] [US2] Écrire `tests/unit/test_assignment.py` : les 5 cas de la règle d'affectation de data-model.md (1 compétent → technicien ; groupe défini → groupe ; ≥ 2 sans groupe → moins de tickets ouverts puis affecté le moins récemment ; aucun → file de dispatch) ; non exécutée si `assignment_mode = manuel` ou statut ≠ `cree` ; techniciens inactifs exclus
+- [X] T061 [P] [US2] Écrire `tests/integration/test_assignment_views.py` : qualification avec outil → affectation visible ; « Prendre » par un membre du groupe → assigné ; réaffectation manuelle → événement + plus d'affectation automatique ; vue dispatch ; audit `skill.change` / `group.change` lors des modifications en admin
 
 ### Implementation for User Story 2
 
-- [ ] T062 [US2] Implémenter `src/helpdesk/services/assignment.py` : `auto_assign(ticket)` appliquant exactement les étapes 1 à 5 de data-model.md, `assignment_mode = auto`, événement `affectation` ; branché sur le signal `ticket_qualified` (T044) quand `tool` est renseigné ou modifié
-- [ ] T063 [US2] Ajouter la vue dispatch `GET /tickets/?view=dispatch` et un filtre « mes groupes » dans `src/helpdesk/views.py` et `ticket_list.html` ; afficher le groupe et le mode d'affectation sur la fiche ticket
-- [ ] T064 [US2] Compléter `src/helpdesk/admin.py` : `Skill` en inline sur `Tool` et sur `Account`, membres de `TechnicianGroup` limités aux comptes techniciens actifs ; journaliser chaque modification de compétences (`skill.change`) et de groupes (`group.change`) via `core.audit`
-- [ ] T065 [US2] Dans `src/helpdesk/receivers.py`, sur `directory_user_deactivated` : supprimer les compétences du technicien et le retirer de ses groupes (cas limite de la spec)
+- [X] T062 [US2] Implémenter `src/helpdesk/services/assignment.py` : `auto_assign(ticket)` appliquant exactement les étapes 1 à 5 de data-model.md, `assignment_mode = auto`, événement `affectation` ; branché sur le signal `ticket_qualified` (T044) quand `tool` est renseigné ou modifié
+- [X] T063 [US2] Ajouter la vue dispatch `GET /tickets/?view=dispatch` et un filtre « mes groupes » dans `src/helpdesk/views.py` et `ticket_list.html` ; afficher le groupe et le mode d'affectation sur la fiche ticket
+- [X] T064 [US2] Compléter `src/helpdesk/admin.py` : `Skill` en inline sur `Tool` et sur `Account`, membres de `TechnicianGroup` limités aux comptes techniciens actifs ; journaliser chaque modification de compétences (`skill.change`) et de groupes (`group.change`) via `core.audit`
+- [X] T065 [US2] Dans `src/helpdesk/receivers.py`, sur `directory_user_deactivated` : supprimer les compétences du technicien et le retirer de ses groupes (cas limite de la spec)
 
 **Checkpoint**: US2 fonctionne ; sans compétences déclarées, US1 reste utilisable manuellement.
 

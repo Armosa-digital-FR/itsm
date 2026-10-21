@@ -13,6 +13,7 @@ class HelpdeskConfig(AppConfig):
 
         from . import receivers  # noqa: F401
         from .mail.outbound import send_admin_alert
+        from .services import assignment  # noqa: F401  (récepteur d'affectation automatique)
 
         register_sender(send_admin_alert)
         register_person_block("helpdesk/person_tickets.html", person_tickets, order=10)

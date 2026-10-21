@@ -271,7 +271,14 @@ def take(ticket: Ticket, technician) -> Ticket:
         old = ticket.assignee.display_name if ticket.assignee_id else ""
         ticket.assignee = technician
         ticket.save(update_fields=["assignee", "updated_at"])
-        record_event(ticket, TicketEvent.Kind.AFFECTATION, technician, old, technician.display_name)
+        record_event(
+            ticket,
+            TicketEvent.Kind.AFFECTATION,
+            technician,
+            old,
+            technician.display_name,
+            assignee=technician.pk,
+        )
     if ticket.status == S.CREE:
         from helpdesk.services.lifecycle import missing_qualification
 
@@ -289,7 +296,14 @@ def assign(ticket: Ticket, actor, assignee=None, group: TechnicianGroup | None =
     ticket.assignment_mode = Ticket.AssignmentMode.MANUEL
     ticket.save(update_fields=["assignee", "assigned_group", "assignment_mode", "updated_at"])
     record_event(
-        ticket, TicketEvent.Kind.AFFECTATION, actor, old, _assignment_label(ticket), mode="manuel"
+        ticket,
+        TicketEvent.Kind.AFFECTATION,
+        actor,
+        old,
+        _assignment_label(ticket),
+        mode="manuel",
+        assignee=getattr(assignee, "pk", None),
+        group=getattr(group, "pk", None),
     )
     return ticket
 

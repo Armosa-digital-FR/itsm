@@ -27,6 +27,11 @@ def tickets_dashboard(request) -> dict:
         ),
         depasses=Count("pk", filter=open_q & Q(ack_breached=True)),
         mes_tickets=Count("pk", filter=open_q & Q(assignee=request.user)),
+        mes_groupes=Count(
+            "pk",
+            filter=open_q & Q(assignee__isnull=True, assigned_group__members=request.user),
+            distinct=True,
+        ),
         nouvelles_reponses=Count(
             "pk", filter=open_q & Q(assignee=request.user, has_unread_reply=True)
         ),
@@ -47,6 +52,12 @@ def tickets_dashboard(request) -> dict:
             "danger" if counts["depasses"] else "",
         ),
         ("Mes tickets ouverts", counts["mes_tickets"], f"{base}?onglet=tous&assignee=moi", ""),
+        (
+            "À prendre dans mes groupes",
+            counts["mes_groupes"],
+            f"{base}?onglet=tous&assignee=mes_groupes",
+            "",
+        ),
         ("Résolus cette semaine", counts["resolus_semaine"], f"{base}?onglet=traites", ""),
     ]
     upcoming = (

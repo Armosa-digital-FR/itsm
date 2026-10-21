@@ -96,7 +96,14 @@ def change_status(
         _acknowledge(ticket, now)
         if ticket.assignee_id is None and getattr(actor, "is_technician", False):
             ticket.assignee = actor
-            record_event(ticket, TicketEvent.Kind.AFFECTATION, actor, "", actor.display_name)
+            record_event(
+                ticket,
+                TicketEvent.Kind.AFFECTATION,
+                actor,
+                "",
+                actor.display_name,
+                assignee=actor.pk,
+            )
 
     if new_status == S.RESOLU:
         text = (resolution if resolution is not None else ticket.resolution).strip()

@@ -76,10 +76,14 @@ def base_tickets(request, form: TicketFilterForm):
     if data.get("priority"):
         qs = qs.filter(priority=data["priority"])
     assignee = data.get("assignee")
+    if request.GET.get("view") == "dispatch":  # contrat ui-routes : file de dispatch
+        assignee = "aucun"
     if assignee == "moi":
         qs = qs.filter(assignee=request.user)
+    elif assignee == "mes_groupes":
+        qs = qs.filter(assignee__isnull=True, assigned_group__members=request.user)
     elif assignee == "aucun":
-        qs = qs.filter(assignee__isnull=True)
+        qs = qs.filter(assignee__isnull=True, assigned_group__isnull=True)
     elif assignee:
         qs = qs.filter(assignee_id=assignee)
     for name in ("group", "subsidiary", "site", "tool"):

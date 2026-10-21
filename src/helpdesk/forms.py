@@ -108,7 +108,8 @@ class TicketFilterForm(ITSMForm):
         self.fields["assignee"].choices = [
             ("", "Tous"),
             ("moi", "Moi"),
-            ("aucun", "Non affecté"),
+            ("mes_groupes", "Mes groupes (à prendre)"),
+            ("aucun", "Non affecté (dispatch)"),
             *[(str(a.pk), a.display_name) for a in technicians()],
         ]
 

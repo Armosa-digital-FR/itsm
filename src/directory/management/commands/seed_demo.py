@@ -203,6 +203,14 @@ class Command(BaseCommand):
                 name=name, defaults={"default_group": group}
             )
 
+        from helpdesk.models import Skill
+
+        # Compétences : Outlook → Hugo seul ; Teams → Hugo et Zoé (le moins chargé) ;
+        # ERP, VPN, Imprimantes → groupe de l'outil.
+        for tool_name, people_names in [("Outlook", ["Hugo"]), ("Teams", ["Hugo", "Zoé"])]:
+            for given in people_names:
+                Skill.objects.get_or_create(technician=technicians[given], tool=tools[tool_name])
+
         if not Ticket.objects.exists():
             hugo = technicians["Hugo"]
             people = {p.given_name: p for p in DirectoryUser.objects.all()}
