@@ -3,10 +3,10 @@
 from functools import wraps
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.admin import AdminSite
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
-from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect, resolve_url
 from django.urls import path
