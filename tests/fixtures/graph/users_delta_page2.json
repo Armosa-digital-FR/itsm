@@ -1,0 +1,32 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(id,displayName)",
+  "@odata.deltaLink": "https://graph.microsoft.com/v1.0/users/delta?$deltatoken=jeton1",
+  "value": [
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "displayName": "Alex Petit",
+      "givenName": "Alex",
+      "surname": "Petit",
+      "mail": "alex.petit@armosa.test",
+      "userPrincipalName": "alex.petit@armosa.test",
+      "companyName": "Armosa Pest Control",
+      "officeLocation": "Lyon",
+      "department": "Technique",
+      "jobTitle": "Technicien",
+      "accountEnabled": true
+    },
+    {
+      "id": "44444444-4444-4444-4444-444444444444",
+      "displayName": "Compte Désactivé",
+      "givenName": "Compte",
+      "surname": "Désactivé",
+      "mail": "ancien@armosa.test",
+      "userPrincipalName": "ancien@armosa.test",
+      "companyName": "Armosa Pest Control",
+      "officeLocation": null,
+      "department": null,
+      "jobTitle": null,
+      "accountEnabled": false
+    }
+  ]
+}

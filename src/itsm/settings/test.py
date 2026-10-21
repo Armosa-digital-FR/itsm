@@ -18,3 +18,6 @@ STORAGES = {
 LOGGING = {"version": 1, "disable_existing_loggers": False}
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
+
+# Gabarits propres aux tests (blocs de démonstration).
+TEMPLATES[0]["DIRS"] = [REPO_DIR / "tests" / "templates"]  # noqa: F405

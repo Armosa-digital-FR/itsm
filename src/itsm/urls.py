@@ -7,6 +7,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("oidc/", include("mozilla_django_oidc.urls")),
     path("", include("core.urls")),
+    path("", include("directory.urls")),
 ]
 
 handler403 = "core.views.permission_denied"

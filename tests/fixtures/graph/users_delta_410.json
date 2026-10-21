@@ -1,0 +1,6 @@
+{
+  "error": {
+    "code": "SyncStateNotFound",
+    "message": "The sync state generation is too old."
+  }
+}
