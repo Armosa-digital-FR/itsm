@@ -1,0 +1,7 @@
+{
+  "value": [
+    {"id": "aaaaaaaa-0000-0000-0000-000000000004", "deviceName": "Galaxy-Terrain-07", "manufacturer": "samsung", "model": "SM-A556B", "serialNumber": "R58N", "operatingSystem": "Android", "osVersion": "14", "userId": null, "userPrincipalName": null, "lastSyncDateTime": "2026-10-21T05:00:00Z", "enrolledDateTime": "2025-06-10T09:00:00Z", "managedDeviceOwnerType": "company"},
+    {"id": "aaaaaaaa-0000-0000-0000-000000000005", "deviceName": "iPad-Accueil", "manufacturer": "Apple", "model": "iPad (10e génération)", "serialNumber": "DMPIPAD", "operatingSystem": "iPadOS", "osVersion": "18.0", "userId": null, "userPrincipalName": null, "lastSyncDateTime": "2026-10-19T05:00:00Z", "enrolledDateTime": "2025-02-10T09:00:00Z", "managedDeviceOwnerType": "company"},
+    {"id": "aaaaaaaa-0000-0000-0000-000000000006", "deviceName": "PC-ASSEMBLE", "manufacturer": "To Be Filled By O.E.M.", "model": "To Be Filled By O.E.M.", "serialNumber": "To Be Filled By O.E.M.", "operatingSystem": "Windows", "osVersion": "10.0.19045", "userId": null, "userPrincipalName": null, "lastSyncDateTime": "2026-10-18T05:00:00Z", "enrolledDateTime": "2024-02-10T09:00:00Z", "managedDeviceOwnerType": "company"}
+  ]
+}

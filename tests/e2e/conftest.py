@@ -26,6 +26,12 @@ def e2e_setup(transactional_db):
     level1 = CategoryFactory(name="Matériel")
     level2 = CategoryFactory(name="Impression", parent=level1)
     CategoryFactory(name="Bourrage", parent=level2)
+    # La base est vidée entre les tests e2e : les données des migrations sont recréées.
+    from inventory.models import EquipmentType
+
+    for name in ("PC", "Écran", "Imprimante", "Télévision", "Caméra", "Téléphone", "Tablette"):
+        EquipmentType.objects.get_or_create(name=name)
+
     return conf
 
 

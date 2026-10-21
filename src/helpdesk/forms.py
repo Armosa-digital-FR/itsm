@@ -4,6 +4,7 @@ from django import forms
 from django.utils import timezone
 
 from directory.models import Account, DirectoryUser, Site, Subsidiary
+from inventory.models import Equipment
 
 from .models import Category, TechnicianGroup, Ticket, TicketNote, Tool
 
@@ -134,6 +135,12 @@ class TicketCreateForm(ITSMForm):
         label="Priorité", choices=Ticket.Priority.choices, initial=Ticket.Priority.NORMALE
     )
     files = MultipleFileField(label="Pièces jointes")
+    equipment = forms.ModelMultipleChoiceField(
+        label="Équipements",
+        required=False,
+        widget=forms.MultipleHiddenInput,
+        queryset=Equipment.objects.all(),
+    )
 
 
 class QualifyForm(ITSMForm):
@@ -227,3 +234,8 @@ class TimeForm(forms.Form):
         if value > timezone.localdate():
             raise forms.ValidationError("La date ne peut pas être dans le futur.")
         return value
+
+
+class EquipmentLinkForm(forms.Form):
+    equipment = forms.ModelChoiceField(queryset=Equipment.objects.all())
+    action = forms.ChoiceField(choices=[("lier", "Lier"), ("delier", "Délier")])

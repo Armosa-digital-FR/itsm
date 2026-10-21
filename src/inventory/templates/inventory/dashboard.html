@@ -1,0 +1,23 @@
+<div class="kpis">
+  {% for label, value, href, tone in data.kpis %}
+  <a class="kpi kpi-link{% if tone %} kpi-{{ tone }}{% endif %}" href="{{ href }}"><div class="label">{{ label }}</div><div class="value">{{ value }}</div></a>
+  {% endfor %}
+</div>
+<div class="grid-2 dash-lists">
+  <div class="card">
+    <h3>Stock par site</h3>
+    {% if data.stock_by_site %}
+    <table class="list"><tbody>
+      {% for row in data.stock_by_site %}<tr><td>{{ row.site__name }}</td><td>{{ row.type__name }}</td><td class="num">{{ row.count }}</td></tr>{% endfor %}
+    </tbody></table>
+    {% else %}<p class="muted">Aucun équipement en stock.</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Licences à surveiller</h3>
+    {% for l in data.licence_alerts %}
+      <p><a href="{% url 'inventory:licence_detail' l.pk %}">{{ l.name }}</a>
+      {% if l.state.over %}<span class="tag tag-danger">{{ l.state.seats_used }}/{{ l.seats }} postes</span>{% endif %}
+      {% if l.state.expired %}<span class="tag tag-danger">Expirée</span>{% elif l.state.expiring %}<span class="tag tag-warning">Expire le {{ l.expires_at|date:"d/m" }}</span>{% endif %}</p>
+    {% empty %}<p class="muted">Aucune licence à échéance ni en dépassement.</p>{% endfor %}
+  </div>
+</div>

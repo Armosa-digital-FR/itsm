@@ -30,6 +30,7 @@ document.addEventListener("click", function (event) {
     var parts = pickerParts(pick.getAttribute("data-target") || "requester");
     if (!parts) return;
     parts.input.value = pick.getAttribute("data-pick-person");
+    parts.input.dispatchEvent(new Event("change", { bubbles: true }));
     ["name", "email", "entite", "site"].forEach(function (slot) {
       var el = parts.card.querySelector('[data-slot="' + slot + '"]');
       if (el) el.textContent = pick.getAttribute("data-" + slot) || "";
@@ -45,6 +46,7 @@ document.addEventListener("click", function (event) {
     var p = pickerParts(reset.getAttribute("data-picker-reset"));
     if (!p) return;
     p.input.value = "";
+    p.input.dispatchEvent(new Event("change", { bubbles: true }));
     p.card.hidden = true;
     p.search.hidden = false;
     p.query.focus();

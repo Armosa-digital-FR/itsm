@@ -9,6 +9,7 @@ urlpatterns = [
     path("", include("core.urls")),
     path("", include("directory.urls")),
     path("", include("helpdesk.urls")),
+    path("", include("inventory.urls")),
 ]
 
 handler403 = "core.views.permission_denied"

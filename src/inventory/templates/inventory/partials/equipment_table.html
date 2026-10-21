@@ -1,0 +1,27 @@
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Nom</th><th>Type</th><th>Statut</th><th>Entité · site</th><th>Affecté à</th><th>N° de série</th><th>Source</th></tr></thead>
+  <tbody>
+  {% for e in page %}
+    <tr>
+      <td><a href="{% url 'inventory:equipment_detail' e.pk %}">{{ e.name }}</a>{% if e.model %}<div class="muted">{{ e.manufacturer }} {{ e.model }}</div>{% endif %}</td>
+      <td>{{ e.type }}</td>
+      <td>{% if e.status == "stock" %}<span class="tag tag-info">En stock</span>{% else %}<span class="tag">En utilisation</span>{% endif %}</td>
+      <td>{{ e.site.subsidiary|default:"—" }}<div class="muted">{{ e.site }}</div></td>
+      <td>{% if e.assigned_to %}<a href="{% url 'directory:person' e.assigned_to.entra_id %}">{{ e.assigned_to }}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+      <td class="num">{{ e.serial_number|default:"—" }}</td>
+      <td>{{ e.get_source_display }}{% if e.intune_removed_at %} <span class="tag tag-danger">Retiré d'Intune</span>{% endif %}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="7" class="empty">Aucun équipement ne correspond à ces filtres.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if page.paginator.num_pages > 1 %}
+<nav class="pagination" aria-label="Pagination">
+  {% if page.has_previous %}<a class="btn btn-small" href="?{{ query }}&page={{ page.previous_page_number }}">Précédent</a>{% endif %}
+  <span>Page {{ page.number }} / {{ page.paginator.num_pages }} · {{ page.paginator.count }} équipements</span>
+  {% if page.has_next %}<a class="btn btn-small" href="?{{ query }}&page={{ page.next_page_number }}">Suivant</a>{% endif %}
+</nav>
+{% else %}<p class="muted" style="margin-top:var(--space-3)">{{ page.paginator.count }} équipement{{ page.paginator.count|pluralize }}</p>{% endif %}

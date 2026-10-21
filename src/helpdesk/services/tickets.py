@@ -180,6 +180,7 @@ def create_manual(
     tool=None,
     priority: str = Ticket.Priority.NORMALE,
     files=(),
+    equipment=(),
 ) -> Ticket:
     """Création par un technicien pour le compte d'un demandeur (FR-014, FR-014a)."""
     ticket = Ticket(
@@ -199,6 +200,8 @@ def create_manual(
     )
     ticket.save()
     save_files(ticket, files)
+    for item in equipment:
+        link_equipment(ticket, technician, item)
     record_event(
         ticket,
         TicketEvent.Kind.CREATION,
@@ -453,3 +456,29 @@ def auto_close_due(now=None) -> int:
             change_status(ticket, S.FERME)
             closed += 1
     return closed
+
+
+def link_equipment(ticket: Ticket, actor, equipment) -> bool:
+    """Lie un équipement du parc au ticket (FR-017) ; vrai si le lien est nouveau."""
+    if ticket.equipment.filter(pk=equipment.pk).exists():
+        return False
+    ticket.equipment.add(equipment)
+    record_event(
+        ticket, TicketEvent.Kind.EQUIPEMENT, actor, "", f"{equipment} lié", equipment=equipment.pk
+    )
+    return True
+
+
+def unlink_equipment(ticket: Ticket, actor, equipment) -> bool:
+    if not ticket.equipment.filter(pk=equipment.pk).exists():
+        return False
+    ticket.equipment.remove(equipment)
+    record_event(
+        ticket,
+        TicketEvent.Kind.EQUIPEMENT,
+        actor,
+        f"{equipment} lié",
+        "délié",
+        equipment=equipment.pk,
+    )
+    return True

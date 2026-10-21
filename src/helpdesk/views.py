@@ -24,6 +24,7 @@ from directory.models import Account
 from .forms import (
     AssignForm,
     BulkAssignForm,
+    EquipmentLinkForm,
     NoteForm,
     QualifyForm,
     StatusForm,
@@ -253,6 +254,7 @@ def ticket_new(request):
             tool=data["tool"],
             priority=data["priority"],
             files=data["files"],
+            equipment=data["equipment"],
         )
         messages.success(request, f"Ticket {ticket.reference} créé ; le demandeur est prévenu.")
         return redirect("helpdesk:ticket_detail", number=ticket.number)
@@ -322,6 +324,14 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "timeline": _timeline(ticket),
         "initial_attachments": ticket.attachments.filter(note__isnull=True),
         "time": svc.time_totals(ticket),
+        "equipment": ticket.equipment.select_related("type", "site"),
+        "requester_equipment": (
+            ticket.requester.equipment.exclude(pk__in=ticket.equipment.values("pk")).select_related(
+                "type"
+            )
+            if ticket.requester_id
+            else []
+        ),
         "targets": [Ticket.Status(s) for s in sorted(lifecycle.allowed_targets(ticket))],
         "missing": lifecycle.missing_qualification(ticket),
         "qualify_form": extra.pop("qualify_form", None)
@@ -472,6 +482,21 @@ def ticket_time(request, number: int):
     data = form.cleaned_data
     svc.add_time(ticket, request.user, data["date"], data["minutes"], data["comment"])
     return _done(request, ticket, f"{data['minutes']} min enregistrées.")
+
+
+@technician_required
+@require_POST
+def ticket_equipment(request, number: int):
+    ticket = _get_ticket(number)
+    form = EquipmentLinkForm(request.POST)
+    if not form.is_valid():
+        return _error(request, ticket, "Équipement inconnu.")
+    equipment = form.cleaned_data["equipment"]
+    if form.cleaned_data["action"] == "lier":
+        svc.link_equipment(ticket, request.user, equipment)
+        return _done(request, ticket, f"{equipment} lié au ticket.")
+    svc.unlink_equipment(ticket, request.user, equipment)
+    return _done(request, ticket, f"{equipment} délié du ticket.")
 
 
 @technician_required

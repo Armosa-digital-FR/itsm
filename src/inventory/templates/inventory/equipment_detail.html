@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ equipment }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">{{ equipment.type }} · {{ equipment.get_source_display }}{% if equipment.site.subsidiary %} · {{ equipment.site.subsidiary }}{% endif %} · {{ equipment.site }}</div>
+    <h1>{{ equipment.name }}</h1>
+    <div class="row">
+      {% if equipment.status == "stock" %}<span class="tag tag-info">En stock</span>{% else %}<span class="tag">En utilisation</span>{% endif %}
+      {% if equipment.intune_removed_at %}<span class="tag tag-danger">Retiré d'Intune le {{ equipment.intune_removed_at|date:"d/m/Y" }}</span>{% endif %}
+    </div>
+  </div>
+</div>
+<div class="grid-2">
+  <div class="stack">
+    {% if equipment.is_from_intune %}
+    <section class="card">
+      <h2>Données Intune</h2>
+      <p class="muted">Synchronisées depuis Intune, en lecture seule.</p>
+      <dl class="facts">
+        <dt>Nom</dt><dd>{{ equipment.name }}</dd>
+        <dt>Fabricant</dt><dd>{{ equipment.manufacturer|default:"—" }}</dd>
+        <dt>Modèle</dt><dd>{{ equipment.model|default:"—" }}</dd>
+        <dt>N° de série</dt><dd>{{ equipment.serial_number|default:"—" }}</dd>
+        <dt>Système</dt><dd>{{ equipment.os }} {{ equipment.os_version }}</dd>
+        <dt>Utilisateur Intune</dt><dd>{{ equipment.intune_primary_user|default:"—" }}</dd>
+        <dt>Dernière synchro</dt><dd>{{ equipment.intune_last_sync_at|date:"d/m/Y H:i"|default:"—" }}</dd>
+        <dt>Inscrit le</dt><dd>{{ equipment.intune_enrolled_at|date:"d/m/Y"|default:"—" }}</dd>
+      </dl>
+    </section>
+    {% endif %}
+    <section class="card">
+      <h2>{% if equipment.is_from_intune %}Informations ITSM{% else %}Informations{% endif %}</h2>
+      <form method="post">{% csrf_token %}
+        {% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+          {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}
+        <button class="btn btn-primary" type="submit">Enregistrer</button>
+      </form>
+    </section>
+    <section class="card">
+      <h2>Historique</h2>
+      <ol class="timeline">
+        {% for e in events %}<li class="event"><span class="muted">{{ e.at|date:"d/m/Y H:i" }}</span> · {{ e.get_kind_display }}{% if e.old_value %} : {{ e.old_value }} → {{ e.new_value|default:"—" }}{% elif e.new_value %} : {{ e.new_value }}{% endif %}{% if e.actor %} <span class="muted">par {{ e.actor.display_name }}</span>{% endif %}</li>
+        {% empty %}<li class="muted">Aucun événement.</li>{% endfor %}
+      </ol>
+    </section>
+  </div>
+  <aside class="stack">
+    <section class="card">
+      <h3>Affectation</h3>
+      <form method="post" action="{% url 'inventory:equipment_assign' equipment.pk %}">{% csrf_token %}
+        {% include "directory/partials/person_picker.html" with field=assign_form.assigned_to selected=equipment.assigned_to target="assigned_to" label="Rechercher l'utilisateur" %}
+        <label class="muted" style="display:block;margin:var(--space-2) 0">{{ assign_form.back_to_stock }} {{ assign_form.back_to_stock.label }}</label>
+        <button class="btn btn-small" type="submit">Enregistrer l'affectation</button>
+      </form>
+    </section>
+    <section class="card">
+      <h3>Tickets liés</h3>
+      {% for t in tickets %}<p><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a> {{ t.title }} <span class="muted">· {{ t.get_status_display|lower }}</span></p>
+      {% empty %}<p class="muted">Aucun ticket.</p>{% endfor %}
+    </section>
+    <section class="card">
+      <h3>Licences</h3>
+      {% for l in licences %}<p><a href="{% url 'inventory:licence_detail' l.pk %}">{{ l.name }}</a></p>{% empty %}<p class="muted">Aucune licence.</p>{% endfor %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

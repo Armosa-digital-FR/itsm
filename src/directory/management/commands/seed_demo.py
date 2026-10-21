@@ -102,6 +102,7 @@ class Command(BaseCommand):
         with transaction.atomic():
             self.seed_directory()
             self.seed_helpdesk()
+            self.seed_inventory()
         self.stdout.write(self.style.SUCCESS("Données de démonstration prêtes."))
 
     def seed_directory(self):
@@ -233,3 +234,71 @@ class Command(BaseCommand):
                     priority=priority,
                 )
         self.stdout.write("Tickets : catégories, outils, groupes et 5 tickets de démonstration.")
+
+    def seed_inventory(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from inventory.models import Equipment, EquipmentType, Licence
+        from inventory.services.equipment import create_manual
+
+        if Equipment.objects.exists():
+            return
+        types = {t.name: t for t in EquipmentType.objects.all()}
+        people = list(DirectoryUser.objects.order_by("display_name")[:20])
+        sites = {s.name: s for s in Site.objects.all()}
+        # 20 équipements en utilisation, affectés aux collaborateurs.
+        models = [
+            ("PC", "Dell", "Latitude 5440"),
+            ("Écran", "Dell", "P2723DE"),
+            ("Téléphone", "Apple", "iPhone 15"),
+            ("PC", "Lenovo", "ThinkPad T14"),
+        ]
+        for i, person in enumerate(people):
+            kind, maker, model = models[i % len(models)]
+            create_manual(
+                None,
+                type=types[kind],
+                site=person.site or sites["Rennes"],
+                name=f"{kind} {person.given_name}",
+                manufacturer=maker,
+                model=model,
+                serial_number=f"DEMO{i:04d}",
+                assigned_to=person,
+            )
+        # 10 équipements en stock.
+        stock = [
+            ("Écran", "Rennes"),
+            ("Écran", "Rennes"),
+            ("PC", "Rennes"),
+            ("Imprimante", "Paris"),
+            ("Caméra", "Paris"),
+            ("Télévision", "Lyon"),
+            ("Téléphone", "Lyon"),
+            ("Écran", "Lyon"),
+            ("PC", "Paris"),
+            ("Tablette", "Rennes"),
+        ]
+        for i, (kind, site) in enumerate(stock):
+            create_manual(
+                None,
+                type=types[kind],
+                site=sites[site],
+                name=f"{kind} stock {i + 1}",
+                serial_number=f"STOCK{i:04d}",
+            )
+        today = timezone.localdate()
+        office = Licence.objects.create(name="Microsoft 365 E3", vendor="Microsoft", seats=25)
+        office.assigned_users.set(people)
+        adobe = Licence.objects.create(
+            name="Adobe Acrobat Pro", vendor="Adobe", seats=2, expires_at=today + timedelta(days=20)
+        )
+        adobe.assigned_users.set(people[:3])
+        Licence.objects.create(
+            name="Antivirus serveurs",
+            vendor="ESET",
+            seats=5,
+            expires_at=today + timedelta(days=200),
+        )
+        self.stdout.write("Parc : 30 équipements (dont 10 en stock) et 3 licences.")

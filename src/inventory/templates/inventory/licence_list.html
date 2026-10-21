@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Licences{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Gestion de parc</div><h1>Licences</h1></div>
+  <a class="btn btn-primary" href="{% url 'inventory:licence_new' %}">Ajouter une licence</a>
+</div>
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Licence</th><th>Éditeur</th><th>Postes</th><th>Expiration</th><th>Entité</th></tr></thead>
+  <tbody>
+  {% for l in licences %}
+    <tr>
+      <td><a href="{% url 'inventory:licence_detail' l.pk %}">{{ l.name }}</a></td>
+      <td>{{ l.vendor|default:"—" }}</td>
+      <td class="num">{{ l.state.seats_used }} / {{ l.seats }}{% if l.state.over %} <span class="tag tag-danger">Dépassement</span>{% endif %}</td>
+      <td class="num">{% if l.state.expired %}<span class="tag tag-danger">Expirée {{ l.expires_at|date:"d/m/Y" }}</span>{% elif l.state.expiring %}<span class="tag tag-warning">Expire le {{ l.expires_at|date:"d/m/Y" }}</span>{% else %}{{ l.expires_at|date:"d/m/Y"|default:"Perpétuelle" }}{% endif %}</td>
+      <td>{{ l.subsidiary|default:"—" }}</td>
+    </tr>
+  {% empty %}
+    <tr><td colspan="5" class="empty">Aucune licence enregistrée.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

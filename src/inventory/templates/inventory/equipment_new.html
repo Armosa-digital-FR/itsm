@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Ajouter un équipement{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Gestion de parc</div><h1>Ajouter un équipement</h1></div></div>
+<form method="post" class="grid-2">{% csrf_token %}
+  <div class="card">
+    {% for field in form %}{% if field.name != "assigned_to" %}
+      <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>
+    {% endif %}{% endfor %}
+    <div class="field"><span class="field-label">Affecté à (facultatif)</span>
+      {% include "directory/partials/person_picker.html" with field=form.assigned_to selected=selected target="assigned_to" label="Rechercher l'utilisateur" %}
+      <span class="help">Un équipement affecté passe automatiquement « en utilisation ».</span></div>
+    <button class="btn btn-primary" type="submit">Ajouter au parc</button>
+    <a class="btn" href="{% url 'inventory:equipment_list' %}">Annuler</a>
+  </div>
+  <aside class="band"><h3>Et les appareils Intune ?</h3><p class="muted">Les PC, téléphones et tablettes gérés dans Intune arrivent automatiquement par la synchronisation horaire. Saisissez ici le matériel absent d'Intune : écrans, imprimantes, télévisions, caméras, matériel neuf en stock. Si un PC saisi ici est ensuite inscrit dans Intune avec le même numéro de série, les deux fiches sont fusionnées.</p></aside>
+</form>
+{% endblock %}

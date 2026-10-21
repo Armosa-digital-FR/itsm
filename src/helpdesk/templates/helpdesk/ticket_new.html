@@ -11,6 +11,7 @@
       <span class="field-label">Demandeur</span>
       {% include "directory/partials/person_picker.html" with field=form.requester selected=selected target="requester" label="Rechercher le demandeur" %}
       {% if form.requester.errors %}<ul class="errorlist">{% for e in form.requester.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      <div id="requester-equipment" hx-get="{% url 'inventory:person_equipment' %}" hx-trigger="load, change from:#id_requester" hx-include="#id_requester"></div>
       <span class="help">Le demandeur recevra l'accusé de réception et les échanges par e-mail, comme pour une demande envoyée par e-mail.</span>
     </div>
     {% for field in form %}{% if field.name != "requester" %}

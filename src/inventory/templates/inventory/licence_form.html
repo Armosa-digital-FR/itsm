@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{% if licence %}{{ licence }}{% else %}Ajouter une licence{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Gestion de parc · Licences</div><h1>{% if licence %}{{ licence }}{% else %}Ajouter une licence{% endif %}</h1>
+  {% if licence %}<div class="row"><span class="tag tag-plain">{{ licence.state.seats_used }} / {{ licence.seats }} postes</span>
+    {% if licence.state.over %}<span class="tag tag-danger">Dépassement</span>{% endif %}
+    {% if licence.state.expired %}<span class="tag tag-danger">Expirée</span>{% elif licence.state.expiring %}<span class="tag tag-warning">Expire bientôt</span>{% endif %}</div>{% endif %}
+  </div>
+</div>
+<div class="grid-2">
+  <form class="card" method="post">{% csrf_token %}
+    {% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+      {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+      {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}
+    <button class="btn btn-primary" type="submit">Enregistrer</button>
+    <a class="btn" href="{% url 'inventory:licence_list' %}">Retour</a>
+  </form>
+  {% if licence %}
+  <aside class="stack">
+    <section class="card"><h3>Historique</h3>
+      <ol class="timeline">{% for e in events %}<li class="event"><span class="muted">{{ e.at|date:"d/m/Y H:i" }}</span> · {{ e.get_kind_display }}{% if e.new_value %} : {{ e.new_value }}{% endif %}{% if e.actor %} <span class="muted">par {{ e.actor.display_name }}</span>{% endif %}</li>{% empty %}<li class="muted">Aucun événement.</li>{% endfor %}</ol>
+    </section>
+  </aside>
+  {% endif %}
+</div>
+{% endblock %}

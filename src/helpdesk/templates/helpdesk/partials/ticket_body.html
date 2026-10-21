@@ -104,6 +104,24 @@
       </section>
 
       <section class="card">
+        <h3>Équipements liés</h3>
+        {% for e in equipment %}
+          <div class="row" style="justify-content:space-between">
+            <span><a href="{% url 'inventory:equipment_detail' e.pk %}">{{ e.type }} · {{ e.name }}</a>{% if e.serial_number %} <span class="muted">{{ e.serial_number }}</span>{% endif %}</span>
+            <form hx-post="{% url 'helpdesk:ticket_equipment' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_equipment' ticket.number %}">{% csrf_token %}<input type="hidden" name="equipment" value="{{ e.pk }}"><input type="hidden" name="action" value="delier"><button class="btn-link" type="submit">Délier</button></form>
+          </div>
+        {% empty %}<p class="muted">Aucun équipement lié.</p>{% endfor %}
+        {% if requester_equipment %}
+        <form hx-post="{% url 'helpdesk:ticket_equipment' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_equipment' ticket.number %}" style="margin-top:var(--space-3)">{% csrf_token %}
+          <input type="hidden" name="action" value="lier">
+          <div class="field"><label for="link-equipment">Équipements du demandeur</label>
+            <select id="link-equipment" name="equipment">{% for e in requester_equipment %}<option value="{{ e.pk }}">{{ e.type }} · {{ e.name }}</option>{% endfor %}</select></div>
+          <button class="btn btn-small" type="submit">Lier</button>
+        </form>
+        {% endif %}
+      </section>
+
+      <section class="card">
         <h3>Qualification</h3>
         <form hx-post="{% url 'helpdesk:ticket_qualify' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_qualify' ticket.number %}">{% csrf_token %}
           {% for field in qualify_form %}

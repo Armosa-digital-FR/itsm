@@ -94,3 +94,26 @@ class TicketFactory(factory.django.DjangoModelFactory):
         qualified = factory.Trait(
             type=Ticket.Type.INCIDENT, category=factory.SubFactory(CategoryFactory)
         )
+
+
+# --- Parc ------------------------------------------------------------------------
+
+from inventory.models import Equipment, EquipmentType, Licence  # noqa: E402
+
+
+class EquipmentFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Equipment
+
+    type = factory.LazyFunction(lambda: EquipmentType.objects.get_or_create(name="Écran")[0])
+    name = factory.Sequence(lambda n: f"Équipement {n}")
+    site = factory.SubFactory(SiteFactory)
+    serial_number = factory.Sequence(lambda n: f"SN{n:06d}")
+
+
+class LicenceFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Licence
+
+    name = factory.Sequence(lambda n: f"Licence {n}")
+    seats = 5

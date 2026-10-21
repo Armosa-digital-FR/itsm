@@ -1,0 +1,8 @@
+{
+  "@odata.nextLink": "https://graph.microsoft.com/v1.0/deviceManagement/managedDevices?$skiptoken=p2",
+  "value": [
+    {"id": "aaaaaaaa-0000-0000-0000-000000000001", "deviceName": "PC-RENNES-014", "manufacturer": "Dell Inc.", "model": "Latitude 5440", "serialNumber": "abc 123", "operatingSystem": "Windows", "osVersion": "10.0.22631", "userId": "11111111-1111-1111-1111-111111111111", "userPrincipalName": "camille.martin@armosa.test", "lastSyncDateTime": "2026-10-21T07:00:00Z", "enrolledDateTime": "2025-03-02T09:00:00Z", "managedDeviceOwnerType": "company"},
+    {"id": "aaaaaaaa-0000-0000-0000-000000000002", "deviceName": "MAC-PARIS-002", "manufacturer": "Apple", "model": "MacBook Air", "serialNumber": "C02XYZ", "operatingSystem": "macOS", "osVersion": "15.1", "userId": null, "userPrincipalName": null, "lastSyncDateTime": "2026-10-20T07:00:00Z", "enrolledDateTime": "2025-05-02T09:00:00Z", "managedDeviceOwnerType": "company"},
+    {"id": "aaaaaaaa-0000-0000-0000-000000000003", "deviceName": "iPhone de Camille", "manufacturer": "Apple", "model": "iPhone 15", "serialNumber": "F2LIPHONE", "operatingSystem": "iOS", "osVersion": "18.1", "userId": "11111111-1111-1111-1111-111111111111", "userPrincipalName": "camille.martin@armosa.test", "lastSyncDateTime": "2026-10-21T06:00:00Z", "enrolledDateTime": "2025-01-10T09:00:00Z", "managedDeviceOwnerType": "company"}
+  ]
+}

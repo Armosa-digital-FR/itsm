@@ -227,6 +227,9 @@ class Ticket(models.Model):
         choices=AssignmentMode.choices,
         default=AssignmentMode.AUCUN,
     )
+    equipment = models.ManyToManyField(
+        "inventory.Equipment", blank=True, related_name="tickets", verbose_name="équipements liés"
+    )
     related_ticket = models.ForeignKey(
         "self",
         on_delete=models.SET_NULL,
