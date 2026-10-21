@@ -5,18 +5,20 @@ HTMX, elles redirigent vers la fiche. Une règle métier refusée renvoie 422 av
 """
 
 import csv
+from datetime import timedelta
 from itertools import chain
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Q, Sum
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from core.auth import technician_required
+from core.business_time import get_calendar
 from directory.models import Account
 
 from .forms import (
@@ -30,8 +32,8 @@ from .forms import (
     TimeForm,
 )
 from .mail.parsing import split_quoted
-from .models import Attachment, EmailMessage, Ticket, TicketEvent, TicketNote
-from .services import lifecycle
+from .models import Attachment, EmailMessage, Ticket, TicketEvent, TicketNote, TimeEntry
+from .services import lifecycle, sla
 from .services import tickets as svc
 
 PAGE_SIZE = 50
@@ -125,12 +127,21 @@ def filtered_tickets(request, form: TicketFilterForm):
     return qs.order_by(F("ack_due_at").asc(nulls_last=True), "-created_at")
 
 
+def annotate_deadlines(tickets) -> None:
+    """Ajoute `sla_state` (depasse / bientot / ok / « ») à chaque ticket affiché."""
+    now, cal, targets = timezone.now(), get_calendar(), sla.targets()
+    for ticket in tickets:
+        ticket.sla_state = sla.deadline_state(ticket, now, cal, targets)
+
+
 @technician_required
 def ticket_list(request):
     form = TicketFilterForm(request.GET or None)
     tab = current_tab(form)
     tickets = filtered_tickets(request, form)
+    tickets = tickets.annotate(total_minutes=Sum("time_entries__minutes"))
     page = Paginator(tickets, PAGE_SIZE).get_page(request.GET.get("page"))
+    annotate_deadlines(page.object_list)
     query = request.GET.copy()
     query.pop("page", None)
     filters = query.copy()
@@ -303,6 +314,7 @@ def _timeline(ticket: Ticket) -> list[dict]:
 
 def detail_context(request, ticket: Ticket, **extra) -> dict:
     main, quoted = split_quoted(ticket.description)
+    annotate_deadlines([ticket])
     return {
         "ticket": ticket,
         "description_main": main,
@@ -494,4 +506,70 @@ def attachment_download(request, pk: int):
         as_attachment=not inline,
         filename=attachment.filename,
         content_type=attachment.content_type or "application/octet-stream",
+    )
+
+
+# --- Suivi des délais et du temps (US3) ------------------------------------------
+
+TRACKING_PERIODS = {7: "7 jours", 30: "30 jours", 90: "90 jours"}
+
+
+@technician_required
+def tracking(request):
+    try:
+        days = int(request.GET.get("jours", 30))
+    except ValueError:
+        days = 30
+    days = days if days in TRACKING_PERIODS else 30
+    now = timezone.now()
+    since = now - timedelta(days=days)
+
+    pending = list(
+        Ticket.objects.filter(status=Ticket.Status.CREE)
+        .select_related(
+            "requester", "subsidiary", "site", "assignee__directory_user", "assigned_group"
+        )
+        .order_by(F("ack_due_at").asc(nulls_last=True), "created_at")
+    )
+    annotate_deadlines(pending)
+
+    measured = Ticket.objects.filter(created_at__gte=since, ack_due_at__isnull=False).filter(
+        Q(acknowledged_at__isnull=False) | Q(ack_breached=True)
+    )
+    rates = []
+    for priority, label in Ticket.Priority.choices:
+        row = measured.filter(priority=priority).aggregate(
+            total=Count("pk"), on_time=Count("pk", filter=Q(ack_breached=False))
+        )
+        rate = round(100 * row["on_time"] / row["total"]) if row["total"] else None
+        rates.append({"priority": priority, "label": label, **row, "rate": rate})
+
+    time_rows = (
+        TimeEntry.objects.filter(date__gte=timezone.localdate(since))
+        .values("technician")
+        .annotate(total=Sum("minutes"), tickets=Count("ticket", distinct=True))
+        .order_by("-total")
+    )
+    from directory.models import Account
+
+    names = {
+        a.pk: a.display_name
+        for a in Account.objects.filter(pk__in=[r["technician"] for r in time_rows]).select_related(
+            "directory_user"
+        )
+    }
+    time_per_technician = [
+        {"name": names.get(r["technician"], "?"), "total": r["total"], "tickets": r["tickets"]}
+        for r in time_rows
+    ]
+    return render(
+        request,
+        "helpdesk/tracking.html",
+        {
+            "pending": pending,
+            "rates": rates,
+            "time_per_technician": time_per_technician,
+            "days": days,
+            "periods": TRACKING_PERIODS,
+        },
     )

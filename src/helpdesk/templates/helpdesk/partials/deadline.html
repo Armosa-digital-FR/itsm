@@ -1,0 +1,4 @@
+{% if t.sla_state == "depasse" %}<span class="tag tag-danger">Dépassé</span>
+{% elif t.sla_state == "bientot" %}<span class="tag tag-warning">{{ t.ack_due_at|date:"d/m H:i" }}</span>
+{% elif t.sla_state == "ok" %}{{ t.ack_due_at|date:"d/m H:i" }}
+{% else %}—{% endif %}

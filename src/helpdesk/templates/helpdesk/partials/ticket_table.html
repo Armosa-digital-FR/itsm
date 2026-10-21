@@ -29,9 +29,8 @@
       <td>{% if t.assignee %}{{ t.assignee.display_name }}{% elif t.assigned_group %}<span class="muted">Groupe {{ t.assigned_group }}</span>{% else %}<span class="muted">Non affecté</span>{% endif %}</td>
       <td class="num">
         {% if tab == "traites" %}{{ t.resolved_at|date:"d/m H:i"|default:"—" }}
-        {% elif t.ack_breached %}<span class="tag tag-danger">Dépassé</span>
-        {% elif t.ack_due_at and not t.acknowledged_at %}{{ t.ack_due_at|date:"d/m H:i" }}
-        {% else %}—{% endif %}
+        {% else %}{% include "helpdesk/partials/deadline.html" %}{% endif %}
+        {% if t.total_minutes %}<div class="muted">{{ t.total_minutes|duration }} passées</div>{% endif %}
       </td>
     </tr>
   {% empty %}

@@ -7,7 +7,8 @@
       <div class="row">
         {% status_tag ticket %} {% priority_tag ticket %}
         {% if ticket.type %}<span class="tag tag-plain">{{ ticket.get_type_display }}</span>{% endif %}
-        {% if ticket.ack_breached %}<span class="tag tag-danger">Délai de prise en compte dépassé</span>{% endif %}
+        {% if ticket.sla_state == "depasse" %}<span class="tag tag-danger">Délai de prise en compte dépassé</span>
+        {% elif ticket.sla_state == "bientot" %}<span class="tag tag-warning">À prendre en compte avant {{ ticket.ack_due_at|date:"H:i" }}</span>{% endif %}
         {% if ticket.is_unidentified %}<span class="tag tag-warning">Demandeur non identifié</span>{% endif %}
       </div>
     </div>

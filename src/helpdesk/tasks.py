@@ -2,15 +2,19 @@
 
 import logging
 
+from django.utils import timezone
 from procrastinate import RetryStrategy
 from procrastinate.contrib.django import app
 
 from core.alerts import alert_admins
+from core.business_time import is_business_time
 from core.models import Settings
 from directory.models import SyncRun
 from directory.services.entra_sync import consecutive_failures
 from helpdesk.mail import inbound, outbound
 from helpdesk.models import EmailMessage
+from helpdesk.services.reminders import send_reminders as run_reminders
+from helpdesk.services.sla import check_ack_deadlines as run_deadline_check
 from helpdesk.services.tickets import auto_close_due
 
 logger = logging.getLogger(__name__)
@@ -53,3 +57,18 @@ def send_email(email_message_id: int) -> str:
 @app.task(name="helpdesk.auto_close", queueing_lock="helpdesk.auto_close")
 def auto_close(timestamp: int) -> int:
     return auto_close_due()
+
+
+@app.periodic(cron="*/5 * * * *")
+@app.task(name="helpdesk.check_ack_deadlines", queueing_lock="helpdesk.check_ack_deadlines")
+def check_ack_deadlines(timestamp: int) -> int:
+    return run_deadline_check()
+
+
+@app.periodic(cron="13 * * * *")
+@app.task(name="helpdesk.send_reminders", queueing_lock="helpdesk.send_reminders")
+def send_reminders(timestamp: int) -> dict:
+    """Toutes les heures, mais seulement en heures ouvrées (pas de rappel la nuit)."""
+    if not is_business_time(timezone.now()):
+        return {"ignore": "hors heures ouvrées"}
+    return run_reminders()

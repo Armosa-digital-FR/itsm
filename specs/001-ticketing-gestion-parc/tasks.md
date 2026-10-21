@@ -194,17 +194,17 @@ rappels automatiques, suivi du temps passé.
 
 ### Tests for User Story 3
 
-- [ ] T066 [P] [US3] Écrire `tests/unit/test_sla.py` : `ack_due_at` = création + cible (haute 60, normale 240, basse 540 minutes ouvrées) ; recalcul si la priorité change avant prise en compte, pas après ; ticket haute priorité vendredi 17:30 → échéance lundi 09:30 ; dépassement marqué et **une seule** alerte par ticket
-- [ ] T067 [P] [US3] Écrire `tests/unit/test_reminders.py` : rappels à 2, 4 et 6 jours ouvrés, résolution automatique `sans_reponse` 2 jours ouvrés après le 3e rappel avec e-mail `resolution` ; réponse du demandeur → compteur remis à zéro ; aucun rappel en `en_attente` ; aucun ticket en `attente_reponse` plus de 10 jours ouvrés (SC-007)
+- [X] T066 [P] [US3] Écrire `tests/unit/test_sla.py` : `ack_due_at` = création + cible (haute 60, normale 240, basse 540 minutes ouvrées) ; recalcul si la priorité change avant prise en compte, pas après ; ticket haute priorité vendredi 17:30 → échéance lundi 09:30 ; dépassement marqué et **une seule** alerte par ticket
+- [X] T067 [P] [US3] Écrire `tests/unit/test_reminders.py` : rappels à 2, 4 et 6 jours ouvrés, résolution automatique `sans_reponse` 2 jours ouvrés après le 3e rappel avec e-mail `resolution` ; réponse du demandeur → compteur remis à zéro ; aucun rappel en `en_attente` ; aucun ticket en `attente_reponse` plus de 10 jours ouvrés (SC-007)
 
 ### Implementation for User Story 3
 
-- [ ] T068 [US3] Implémenter `src/helpdesk/services/sla.py` : `compute_ack_due(ticket)` (branché sur la création et sur `ticket_qualified` quand la priorité change sans `acknowledged_at`), `check_ack_deadlines()` (marque `ack_breached`, alerte l'assigné, sinon `email` du groupe, sinon ses membres, sinon les administrateurs, une fois via `breach_alerted_at`)
-- [ ] T069 [US3] Implémenter `src/helpdesk/services/reminders.py` : `send_reminders()` (délai `Settings.reminder_delay_business_days` depuis `waiting_since` ou `last_reminder_at`, au plus `Settings.max_reminders`, événement `rappel`), puis résolution automatique « sans réponse du demandeur » via `lifecycle` (`resolution_kind = sans_reponse`)
-- [ ] T070 [P] [US3] Créer le gabarit `src/helpdesk/templates/email/rappel.html|.txt` (rang du rappel « 1/3… », dernière note externe, date de résolution automatique prévue)
-- [ ] T071 [US3] Déclarer dans `src/helpdesk/tasks.py` : `helpdesk.check_ack_deadlines` toutes les 5 minutes et `helpdesk.send_reminders` toutes les heures en heures ouvrées
-- [ ] T072 [US3] Créer la vue de suivi `GET /tracking/` (`src/helpdesk/views.py`, `src/helpdesk/templates/helpdesk/tracking.html`) : tickets non pris en compte triés par échéance avec badge `warning` sous 25 % du délai restant et `danger` en dépassement, taux de respect par priorité sur la période (SC-003), temps passé par technicien sur la période
-- [ ] T073 [US3] Afficher l'échéance, le badge de délai et le temps total dans `ticket_list.html` et `ticket_detail.html`
+- [X] T068 [US3] Implémenter `src/helpdesk/services/sla.py` : `compute_ack_due(ticket)` (branché sur la création et sur `ticket_qualified` quand la priorité change sans `acknowledged_at`), `check_ack_deadlines()` (marque `ack_breached`, alerte l'assigné, sinon `email` du groupe, sinon ses membres, sinon les administrateurs, une fois via `breach_alerted_at`)
+- [X] T069 [US3] Implémenter `src/helpdesk/services/reminders.py` : `send_reminders()` (délai `Settings.reminder_delay_business_days` depuis `waiting_since` ou `last_reminder_at`, au plus `Settings.max_reminders`, événement `rappel`), puis résolution automatique « sans réponse du demandeur » via `lifecycle` (`resolution_kind = sans_reponse`)
+- [X] T070 [P] [US3] Créer le gabarit `src/helpdesk/templates/email/rappel.html|.txt` (rang du rappel « 1/3… », dernière note externe, date de résolution automatique prévue)
+- [X] T071 [US3] Déclarer dans `src/helpdesk/tasks.py` : `helpdesk.check_ack_deadlines` toutes les 5 minutes et `helpdesk.send_reminders` toutes les heures en heures ouvrées
+- [X] T072 [US3] Créer la vue de suivi `GET /tracking/` (`src/helpdesk/views.py`, `src/helpdesk/templates/helpdesk/tracking.html`) : tickets non pris en compte triés par échéance avec badge `warning` sous 25 % du délai restant et `danger` en dépassement, taux de respect par priorité sur la période (SC-003), temps passé par technicien sur la période
+- [X] T073 [US3] Afficher l'échéance, le badge de délai et le temps total dans `ticket_list.html` et `ticket_detail.html`
 
 **Checkpoint**: US3 fonctionne au-dessus de US1.
 

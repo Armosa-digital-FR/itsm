@@ -118,8 +118,9 @@ def test_changement_d_outil_reaffecte_ou_rend_au_dispatch():
 def test_creation_manuelle_avec_outil(technician):
     tool = ToolFactory()
     tech = skilled(tool)
-    ticket = svc.create_manual(technician=technician, requester=TicketFactory().requester,
-                               title="ERP bloqué", tool=tool)
+    ticket = svc.create_manual(
+        technician=technician, requester=TicketFactory().requester, title="ERP bloqué", tool=tool
+    )
     ticket.refresh_from_db()
     assert ticket.assignee == tech
 

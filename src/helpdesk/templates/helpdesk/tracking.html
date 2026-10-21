@@ -1,0 +1,63 @@
+{% extends "base.html" %}{% load helpdesk_tags %}
+{% block title %}Suivi des délais{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Support · Suivi</div><h1>Délais et temps passé</h1></div>
+  <nav class="tabs" aria-label="Période" style="margin:0;border:none">
+    {% for value, label in periods.items %}<a href="?jours={{ value }}"{% if value == days %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+  </nav>
+</div>
+
+<section class="stack">
+  <h2>Respect du délai de prise en compte</h2>
+  <div class="kpis">
+    {% for r in rates %}
+    <div class="kpi">
+      <div class="label">Priorité {{ r.label|lower }}</div>
+      <div class="value">{% if r.rate is None %}—{% else %}{{ r.rate }} %{% endif %}</div>
+      <div class="muted">{{ r.on_time }} dans les délais sur {{ r.total }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="muted">Tickets créés sur les {{ days }} derniers jours, pris en compte ou en dépassement. Objectif SC-003 : 90 % des tickets de priorité haute dans les délais.</p>
+</section>
+
+<section class="stack" style="margin-top:var(--space-7)">
+  <h2>Tickets à prendre en compte</h2>
+  <div class="table-wrap">
+  <table class="list">
+    <thead><tr><th>N°</th><th>Titre</th><th>Priorité</th><th>Entité · site</th><th>Affectation</th><th>Échéance</th></tr></thead>
+    <tbody>
+    {% for t in pending %}
+      <tr>
+        <td class="num"><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a></td>
+        <td>{{ t.title }}<div class="muted">{{ t.requester|default:t.requester_email }}</div></td>
+        <td>{% priority_tag t %}</td>
+        <td>{{ t.subsidiary|default:"—" }}<div class="muted">{{ t.site|default:"" }}</div></td>
+        <td>{% if t.assignee %}{{ t.assignee.display_name }}{% elif t.assigned_group %}Groupe {{ t.assigned_group }}{% else %}<span class="muted">Non affecté</span>{% endif %}</td>
+        <td class="num">{% include "helpdesk/partials/deadline.html" %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="empty">Aucun ticket en attente de prise en compte.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="stack" style="margin-top:var(--space-7)">
+  <h2>Temps passé par technicien</h2>
+  <div class="table-wrap">
+  <table class="list">
+    <thead><tr><th>Technicien</th><th>Temps</th><th>Tickets</th></tr></thead>
+    <tbody>
+    {% for row in time_per_technician %}
+      <tr><td>{{ row.name }}</td><td class="num">{{ row.total|duration }}</td><td class="num">{{ row.tickets }}</td></tr>
+    {% empty %}
+      <tr><td colspan="3" class="empty">Aucun temps saisi sur la période.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

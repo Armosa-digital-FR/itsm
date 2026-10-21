@@ -19,10 +19,17 @@ HX = {"HTTP_HX_REQUEST": "true"}
 
 
 def qualify(client, ticket, tool):
-    return client.post(reverse("helpdesk:ticket_qualify", args=[ticket.number]), {
-        "type": "incident", "category": CategoryFactory().pk, "tool": tool.pk,
-        "priority": "normale", "subsidiary": ticket.subsidiary.pk,
-    }, **HX)
+    return client.post(
+        reverse("helpdesk:ticket_qualify", args=[ticket.number]),
+        {
+            "type": "incident",
+            "category": CategoryFactory().pk,
+            "tool": tool.pk,
+            "priority": "normale",
+            "subsidiary": ticket.subsidiary.pk,
+        },
+        **HX,
+    )
 
 
 def test_qualification_avec_outil_affecte_et_l_affiche(technician_client):
@@ -58,8 +65,9 @@ def test_reaffectation_manuelle_bloque_l_affectation_automatique(technician_clie
     tool = ToolFactory()
     Skill.objects.create(technician=AccountFactory(), tool=tool)
     ticket = TicketFactory()
-    technician_client.post(reverse("helpdesk:ticket_assign", args=[ticket.number]),
-                           {"assignee": technician.pk})
+    technician_client.post(
+        reverse("helpdesk:ticket_assign", args=[ticket.number]), {"assignee": technician.pk}
+    )
     qualify(technician_client, ticket, tool)
     ticket.refresh_from_db()
     assert ticket.assignee == technician
@@ -79,12 +87,21 @@ def test_file_de_dispatch(technician_client):
 def test_admin_competences_auditees(admin_client_itsm):
     tool = ToolFactory(name="VPN")
     tech = AccountFactory(directory_user__display_name="Nathan Dupont")
-    response = admin_client_itsm.post(reverse("admin:helpdesk_tool_change", args=[tool.pk]), {
-        "name": "VPN", "description": "", "is_active": "on",
-        "skills-TOTAL_FORMS": "1", "skills-INITIAL_FORMS": "0",
-        "skills-MIN_NUM_FORMS": "0", "skills-MAX_NUM_FORMS": "1000",
-        "skills-0-technician": tech.pk, "skills-0-id": "", "skills-0-tool": tool.pk,
-    })
+    response = admin_client_itsm.post(
+        reverse("admin:helpdesk_tool_change", args=[tool.pk]),
+        {
+            "name": "VPN",
+            "description": "",
+            "is_active": "on",
+            "skills-TOTAL_FORMS": "1",
+            "skills-INITIAL_FORMS": "0",
+            "skills-MIN_NUM_FORMS": "0",
+            "skills-MAX_NUM_FORMS": "1000",
+            "skills-0-technician": tech.pk,
+            "skills-0-id": "",
+            "skills-0-tool": tool.pk,
+        },
+    )
     assert response.status_code == 302, response.content.decode()[:2000]
     assert Skill.objects.filter(tool=tool, technician=tech).exists()
     entry = AuditEntry.objects.get(action="skill.change")
