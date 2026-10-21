@@ -123,3 +123,15 @@ def test_mode_debug_bandeau_et_connexion_de_demonstration(client, settings):
 
 def test_connexion_dev_desactivee_hors_debug(client):
     assert client.get("/connexion/dev/").status_code == 404
+
+
+def test_jeton_sans_identifiant_objet_refuse(backend):
+    payload = claims(["ITSM.Technicien"])
+    payload.pop("oid")
+    with pytest.raises(SuspiciousOperation):
+        backend.get_or_create_user("a", "i", payload)
+
+
+def test_jeton_d_identite_utilise_comme_userinfo(backend):
+    payload = claims(["ITSM.Technicien"])
+    assert backend.get_userinfo("access", "id", payload) is payload

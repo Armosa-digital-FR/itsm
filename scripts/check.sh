@@ -32,7 +32,7 @@ echo "==> tests et couverture"
 uv run pytest --cov=src --cov-report=term-missing:skip-covered -m "not e2e and not perf"
 
 echo "==> vulnérabilités des dépendances"
-uv export --frozen --no-hashes --format requirements-txt > /tmp/itsm-requirements.txt
+uv export --frozen --format requirements-txt > /tmp/itsm-requirements.txt
 uv run pip-audit --strict -r /tmp/itsm-requirements.txt --disable-pip
 
 echo "OK : tous les contrôles passent."

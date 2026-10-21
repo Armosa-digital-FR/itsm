@@ -38,6 +38,8 @@ uv run python manage.py inject_email tests/fixtures/mail/nouvelle_demande.eml
 uv run pytest                       # unitaires + intégration (Graph simulé par respx, horloge figée)
 uv run playwright install chromium  # une fois ; Chromium requiert libnss3, libnspr4, libasound2t64
 uv run pytest -m e2e                # parcours Playwright
+uv run pytest -m perf -s            # volumétrie doublée (SC-009), temps et requêtes par page
+scripts/check.sh                    # contrôle complet : ruff, migrations, tests, pip-audit
 uv run ruff check . && uv run ruff format --check .
 uv run pip-audit                    # vulnérabilités des dépendances
 ```

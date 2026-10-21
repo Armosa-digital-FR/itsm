@@ -3,7 +3,6 @@
 import logging
 from functools import wraps
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -80,12 +79,11 @@ def apply_roles(account: Account, new_roles: list[str], request=None) -> Account
     return account
 
 
-def _check(request, *, admin: bool):
+def _check(request):
     user = request.user
     if not user.is_authenticated:
         return redirect_to_login(request.get_full_path())
-    allowed = user.is_admin if admin else user.is_technician
-    if not allowed:
+    if not user.is_technician:
         raise PermissionDenied("Accès réservé aux techniciens de l'ITSM.")
     return None
 
@@ -93,24 +91,6 @@ def _check(request, *, admin: bool):
 def technician_required(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
-        return _check(request, admin=False) or view(request, *args, **kwargs)
+        return _check(request) or view(request, *args, **kwargs)
 
     return wrapper
-
-
-def admin_required(view):
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        return _check(request, admin=True) or view(request, *args, **kwargs)
-
-    return wrapper
-
-
-class TechnicianRequiredMixin(LoginRequiredMixin):
-    def dispatch(self, request, *args, **kwargs):
-        return _check(request, admin=False) or super().dispatch(request, *args, **kwargs)
-
-
-class AdminRequiredMixin(LoginRequiredMixin):
-    def dispatch(self, request, *args, **kwargs):
-        return _check(request, admin=True) or super().dispatch(request, *args, **kwargs)
