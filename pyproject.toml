@@ -1,0 +1,66 @@
+[project]
+name = "itsm"
+version = "0.1.0"
+description = "ITSM interne Armosa Digital : ticketing et gestion de parc"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "django~=5.2",
+    "psycopg[binary]~=3.2",
+    "procrastinate[django]>=3.0",
+    "mozilla-django-oidc>=4.0",
+    "azure-identity>=1.19",
+    "httpx>=0.28",
+    "django-storages[azure]>=1.14",
+    "nh3>=0.2",
+    "holidays>=0.60",
+    "gunicorn>=23.0",
+    "whitenoise>=6.8",
+    "dj-database-url>=2.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "pytest-cov>=6.0",
+    "factory-boy>=3.3",
+    "respx>=0.22",
+    "time-machine>=2.16",
+    "pytest-playwright>=0.6",
+    "ruff>=0.8",
+    "pip-audit>=2.7",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+extend-exclude = ["src/*/migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DJ", "S", "SIM"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["itsm", "core", "directory", "helpdesk", "inventory"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "itsm.settings.test"
+pythonpath = ["src", "."]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers -m 'not e2e and not perf'"
+markers = [
+    "e2e: parcours de bout en bout Playwright",
+    "perf: vérifications de volume et de performance (SC-009)",
+]
+filterwarnings = ["ignore::DeprecationWarning:mozilla_django_oidc.*"]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/*/migrations/*", "src/itsm/settings/*", "src/*/management/commands/seed_*.py"]

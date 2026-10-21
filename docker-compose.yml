@@ -1,0 +1,15 @@
+# PostgreSQL 16 pour le développement local (alternative à une installation système).
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: itsm
+      POSTGRES_USER: itsm
+      POSTGRES_PASSWORD: itsm
+    ports:
+      - "5432:5432"
+    volumes:
+      - itsm-db:/var/lib/postgresql/data
+
+volumes:
+  itsm-db:

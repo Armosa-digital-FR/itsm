@@ -1,0 +1,40 @@
+{% load static %}<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ITSM{% endblock %} · Armosa Digital</title>
+  <link rel="icon" href="{% static 'img/logo.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
+  {% if user.is_authenticated %}
+  <header class="site-header">
+    <a class="logo" href="{% url 'core:home' %}"><img src="{% static 'img/logo.svg' %}" alt="Armosa Digital — ITSM"></a>
+    <nav class="site-nav" aria-label="Navigation principale">
+      {% for item in nav_items %}
+        <a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="site-user">
+      <span>{{ user.display_name }}</span>
+      <form method="post" action="{% url 'core:logout' %}">{% csrf_token %}
+        <button class="btn-link" type="submit">Se déconnecter</button>
+      </form>
+    </div>
+  </header>
+  {% endif %}
+  <main id="contenu">
+    {% if messages %}
+    <ul class="messages" role="status">
+      {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

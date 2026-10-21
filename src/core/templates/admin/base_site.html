@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}{% load static %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | ITSM Armosa Digital{% endblock %}
+{% block extrastyle %}{{ block.super }}
+<link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+<style>
+  /* Thème Armosa de l'admin : variables CSS de l'admin Django mappées sur les tokens. */
+  html[data-theme="light"], :root {
+    --primary: var(--brand);
+    --secondary: var(--ink);
+    --accent: var(--sage-150);
+    --primary-fg: var(--canvas);
+    --body-fg: var(--ink);
+    --body-bg: var(--canvas);
+    --body-quiet-color: var(--ink-muted-strong);
+    --body-loud-color: var(--ink);
+    --header-color: var(--ink);
+    --header-branding-color: var(--ink);
+    --header-bg: var(--paper);
+    --header-link-color: var(--ink);
+    --breadcrumbs-fg: var(--ink-soft);
+    --breadcrumbs-link-fg: var(--ink);
+    --breadcrumbs-bg: var(--linen);
+    --link-fg: var(--brand);
+    --link-hover-color: var(--ink);
+    --link-selected-fg: var(--ink);
+    --hairline-color: var(--hairline);
+    --border-color: var(--hairline);
+    --error-fg: var(--danger);
+    --message-success-bg: var(--success-100);
+    --message-warning-bg: var(--warning-100);
+    --message-error-bg: var(--danger-100);
+    --darkened-bg: var(--linen);
+    --selected-bg: var(--sage-100);
+    --selected-row: var(--sage-100);
+    --button-fg: var(--action-text);
+    --button-bg: var(--action);
+    --button-hover-bg: #313e38;
+    --default-button-bg: var(--action);
+    --default-button-hover-bg: #313e38;
+    --close-button-bg: var(--ink-soft);
+    --close-button-hover-bg: var(--ink);
+    --delete-button-bg: var(--danger);
+    --delete-button-hover-bg: #7f2a20;
+    --object-tools-fg: var(--canvas);
+    --object-tools-bg: var(--ink-soft);
+    --object-tools-hover-bg: var(--ink);
+    --font-family-primary: "IBM Plex Sans", Arial, sans-serif;
+    --font-family-monospace: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  #header { border-bottom: 1px solid var(--hairline); }
+  #branding h1 { font-family: "EB Garamond", Georgia, serif; font-weight: 500; }
+  #branding img { height: 26px; vertical-align: middle; margin-right: 10px; }
+  .module h2, .module caption, .inline-group h2 { background: var(--sage-100); color: var(--ink); }
+</style>
+{% endblock %}
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'img/logo.svg' %}" alt="">Administration de l'ITSM</a></div>
+{% endblock %}
+{% block userlinks %}<a href="{% url 'core:home' %}">Retour à l'ITSM</a> / {{ block.super }}{% endblock %}

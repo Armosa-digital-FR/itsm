@@ -1,0 +1,16 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}Connexion{% endblock %}
+{% block content %}
+<div class="login-shell">
+  <div class="card login-card">
+    <img src="{% static 'img/logo.svg' %}" alt="Armosa Digital">
+    <div class="eyebrow">ITSM · Support informatique</div>
+    <h1>Connexion</h1>
+    <p class="muted">Accès réservé aux techniciens et administrateurs du support, avec votre compte Microsoft de l'entreprise.</p>
+    <a class="btn btn-primary" href="{% url 'oidc_authentication_init' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Se connecter avec Microsoft</a>
+    {% if dev_login %}
+      <p class="muted" style="margin-top: var(--space-5)">Développement : <a href="{% url 'core:dev_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">connexion avec un compte de démonstration</a></p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
