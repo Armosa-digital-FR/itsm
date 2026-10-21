@@ -2,6 +2,8 @@
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVector, SearchVectorField
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models
@@ -258,6 +260,13 @@ class Ticket(models.Model):
     closed_at = models.DateTimeField("fermé le", null=True, blank=True)
     has_unread_reply = models.BooleanField("nouvelle réponse", default=False)
     anonymized_at = models.DateTimeField("anonymisé le", null=True, blank=True)
+    # Calculée par PostgreSQL (migration 0005) : titre (A), résolution (B), description (C),
+    # configuration « french_unaccent ». Jamais écrite par l'application.
+    search_vector = models.GeneratedField(
+        expression=SearchVector("title", "resolution", "description"),
+        output_field=SearchVectorField(),
+        db_persist=True,
+    )
     created_at = models.DateTimeField("créé le", default=timezone.now, db_index=True)
     updated_at = models.DateTimeField("modifié le", auto_now=True)
 
@@ -272,6 +281,7 @@ class Ticket(models.Model):
             models.Index(fields=["waiting_since"], name="ticket_waiting_since"),
             models.Index(fields=["resolved_at"], name="ticket_resolved_at"),
             models.Index(fields=["closed_at"], name="ticket_closed_at"),
+            GinIndex(fields=["search_vector"], name="ticket_search_vector"),
         ]
 
     def __str__(self) -> str:

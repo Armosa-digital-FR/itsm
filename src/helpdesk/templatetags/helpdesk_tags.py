@@ -1,7 +1,8 @@
 """Filtres d'affichage des tickets (badges toujours accompagnés d'un libellé)."""
 
 from django import template
-from django.utils.html import format_html
+from django.utils.html import escape, format_html
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -43,4 +44,15 @@ def priority_tag(ticket):
         '<span class="tag {}">Priorité {}</span>',
         PRIORITY_CLASSES.get(ticket.priority, ""),
         ticket.get_priority_display().lower(),
+    )
+
+
+@register.filter
+def highlight(text) -> str:
+    """Extrait de recherche : texte échappé, seuls les marqueurs deviennent <mark>."""
+    from helpdesk.services.knowledge import MARK_START, MARK_STOP
+
+    escaped = str(escape(text or ""))
+    return mark_safe(  # noqa: S308 - tout le texte est échappé avant l'ajout des balises
+        escaped.replace(MARK_START, "<mark>").replace(MARK_STOP, "</mark>")
     )

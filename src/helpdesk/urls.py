@@ -18,5 +18,7 @@ urlpatterns = [
     path("tickets/<int:number>/time/", views.ticket_time, name="ticket_time"),
     path("tickets/<int:number>/equipment/", views.ticket_equipment, name="ticket_equipment"),
     path("tracking/", views.tracking, name="tracking"),
+    path("knowledge/", views.knowledge_search, name="knowledge"),
+    path("tickets/<int:number>/suggestions/", views.ticket_suggestions, name="ticket_suggestions"),
     path("attachments/<int:pk>/", views.attachment_download, name="attachment"),
 ]

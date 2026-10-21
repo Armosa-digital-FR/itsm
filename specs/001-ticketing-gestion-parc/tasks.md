@@ -249,13 +249,13 @@ suggestions sur les tickets en cours.
 
 ### Tests for User Story 6
 
-- [ ] T087 [P] [US6] Écrire `tests/integration/test_knowledge.py` : recherche « imprimante bourrage » trouvant « Imprimante : bourrage papier » (accents et casse ignorés, racinisation française) ; filtres catégorie, outil, filiale, période ; seuls les tickets `ferme` sont renvoyés ; suggestions sur un ticket ouvert = tickets fermés de même catégorie ou même outil, classés par pertinence
+- [X] T087 [P] [US6] Écrire `tests/integration/test_knowledge.py` : recherche « imprimante bourrage » trouvant « Imprimante : bourrage papier » (accents et casse ignorés, racinisation française) ; filtres catégorie, outil, filiale, période ; seuls les tickets `ferme` sont renvoyés ; suggestions sur un ticket ouvert = tickets fermés de même catégorie ou même outil, classés par pertinence
 
 ### Implementation for User Story 6
 
-- [ ] T088 [US6] Créer une migration dans `src/helpdesk/migrations/` (extensions `unaccent` et `pg_trgm` déjà créées par T014) : configuration de recherche `french_unaccent`, colonne générée `Ticket.search_vector` (titre poids A, résolution poids B, description poids C) et index GIN ; migration réversible
-- [ ] T089 [US6] Implémenter `src/helpdesk/services/knowledge.py` : `search(query, category=None, tool=None, subsidiary=None, date_from=None, date_to=None)` classé par `ts_rank` sur les tickets fermés ; `suggestions(ticket, limit=5)`
-- [ ] T090 [US6] Créer la vue `GET /knowledge/` (`src/helpdesk/templates/helpdesk/knowledge.html`) et le panneau « Résolutions similaires » chargé en HTMX sur `ticket_detail.html` (FR-042) ; vérifier que le fil de la fiche affiche chaque `TicketEvent` avec date, auteur, ancienne et nouvelle valeur (US6-1)
+- [X] T088 [US6] Créer une migration dans `src/helpdesk/migrations/` (extensions `unaccent` et `pg_trgm` déjà créées par T014) : configuration de recherche `french_unaccent`, colonne générée `Ticket.search_vector` (titre poids A, résolution poids B, description poids C) et index GIN ; migration réversible
+- [X] T089 [US6] Implémenter `src/helpdesk/services/knowledge.py` : `search(query, category=None, tool=None, subsidiary=None, date_from=None, date_to=None)` classé par `ts_rank` sur les tickets fermés ; `suggestions(ticket, limit=5)`
+- [X] T090 [US6] Créer la vue `GET /knowledge/` (`src/helpdesk/templates/helpdesk/knowledge.html`) et le panneau « Résolutions similaires » chargé en HTMX sur `ticket_detail.html` (FR-042) ; vérifier que le fil de la fiche affiche chaque `TicketEvent` avec date, auteur, ancienne et nouvelle valeur (US6-1)
 
 **Checkpoint**: US6 fonctionne avec les tickets fermés de US1.
 

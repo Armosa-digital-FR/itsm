@@ -1,0 +1,9 @@
+<h3>Résolutions similaires</h3>
+{% for t in suggestions %}
+  <details class="suggestion">
+    <summary><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a> {{ t.title }}</summary>
+    <div class="note-body">{{ t.resolution }}</div>
+  </details>
+{% empty %}
+  <p class="muted">{% if ticket.category or ticket.tool %}Aucun ticket fermé de même catégorie ou même outil.{% else %}Qualifiez le ticket (catégorie, outil) pour voir les résolutions similaires.{% endif %}</p>
+{% endfor %}

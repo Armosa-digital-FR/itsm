@@ -239,3 +239,30 @@ class TimeForm(forms.Form):
 class EquipmentLinkForm(forms.Form):
     equipment = forms.ModelChoiceField(queryset=Equipment.objects.all())
     action = forms.ChoiceField(choices=[("lier", "Lier"), ("delier", "Délier")])
+
+
+class KnowledgeSearchForm(ITSMForm):
+    q = forms.CharField(
+        label="Recherche",
+        required=False,
+        widget=forms.TextInput(
+            attrs={"type": "search", "placeholder": "Ex. : imprimante bourrage, VPN certificat…"}
+        ),
+    )
+    category = CategoryChoiceField(label="Catégorie", required=False)
+    tool = forms.ModelChoiceField(
+        label="Outil", required=False, empty_label="Tous", queryset=Tool.objects.all()
+    )
+    subsidiary = forms.ModelChoiceField(
+        label="Entité", required=False, empty_label="Toutes", queryset=Subsidiary.objects.all()
+    )
+    date_from = forms.DateField(
+        label="Fermé depuis le",
+        required=False,
+        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+    )
+    date_to = forms.DateField(
+        label="Jusqu'au",
+        required=False,
+        widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+    )

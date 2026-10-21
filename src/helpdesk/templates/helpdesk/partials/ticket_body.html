@@ -90,6 +90,12 @@
         {% endif %}
       </section>
 
+      {% if ticket.is_open %}
+      <section class="card" hx-get="{% url 'helpdesk:ticket_suggestions' ticket.number %}" hx-trigger="load" hx-swap="innerHTML" hx-target="this">
+        <h3>Résolutions similaires</h3><p class="muted">Recherche…</p>
+      </section>
+      {% endif %}
+
       <section class="card">
         <h3>Demandeur</h3>
         {% if ticket.requester %}

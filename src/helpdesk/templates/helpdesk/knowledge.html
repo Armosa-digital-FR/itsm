@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% load helpdesk_tags %}
+{% block title %}Base de résolution{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Support · Capitalisation</div><h1>Base de résolution</h1></div></div>
+<form class="filters" method="get">
+  {% for field in form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+  <div class="field"><button class="btn btn-primary" type="submit">Rechercher</button></div>
+</form>
+{% if results is None %}
+  <p class="muted">Recherchez dans les résolutions des tickets fermés : la recherche ignore les accents et la casse, et retrouve les variantes d'un mot (pluriels, conjugaisons).</p>
+{% else %}
+  <ol class="timeline">
+  {% for t in results %}
+    <li>
+      <div class="meta"><a href="{% url 'helpdesk:ticket_detail' t.number %}"><strong>{{ t.reference }}</strong></a> <strong>{{ t.title }}</strong>
+        <span>{{ t.category.full_path|default:"" }}</span>{% if t.tool %}<span class="tag tag-plain">{{ t.tool }}</span>{% endif %}
+        <span>fermé le {{ t.closed_at|date:"d/m/Y" }}</span></div>
+      <div class="note"><div class="label">Résolution</div><div class="note-body">{% if t.excerpt %}{{ t.excerpt|highlight }}{% else %}{{ t.resolution|truncatewords:60 }}{% endif %}</div></div>
+    </li>
+  {% empty %}
+    <li class="empty">Aucune résolution ne correspond.</li>
+  {% endfor %}
+  </ol>
+  {% if results.paginator.num_pages > 1 %}
+  <nav class="pagination">{% if results.has_previous %}<a class="btn btn-small" href="?{{ query }}&page={{ results.previous_page_number }}">Précédent</a>{% endif %}
+    <span>Page {{ results.number }} / {{ results.paginator.num_pages }}</span>
+    {% if results.has_next %}<a class="btn btn-small" href="?{{ query }}&page={{ results.next_page_number }}">Suivant</a>{% endif %}</nav>
+  {% endif %}
+{% endif %}
+{% endblock %}

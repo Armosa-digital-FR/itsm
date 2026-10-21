@@ -209,6 +209,11 @@ details.quoted summary { cursor: pointer; font-size: 14px; color: var(--ink-mute
 .picker-results button:hover, .picker-results button:focus-visible { background: var(--sage-100); }
 [hidden] { display: none !important; }
 
+details.suggestion { padding: var(--space-2) 0; border-top: 1px solid var(--hairline); font-size: 14px; }
+details.suggestion:first-of-type { border-top: none; }
+details.suggestion summary { cursor: pointer; }
+mark { background: var(--accent-200); color: var(--ink); padding: 0 2px; border-radius: 2px; }
+
 .copy-field { display: inline-flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono);
   background: var(--linen); padding: 4px 4px 4px 10px; border-radius: var(--radius-pill); }
 

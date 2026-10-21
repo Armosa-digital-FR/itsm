@@ -25,6 +25,7 @@ from .forms import (
     AssignForm,
     BulkAssignForm,
     EquipmentLinkForm,
+    KnowledgeSearchForm,
     NoteForm,
     QualifyForm,
     StatusForm,
@@ -34,7 +35,7 @@ from .forms import (
 )
 from .mail.parsing import split_quoted
 from .models import Attachment, EmailMessage, Ticket, TicketEvent, TicketNote, TimeEntry
-from .services import lifecycle, sla
+from .services import knowledge, lifecycle, sla
 from .services import tickets as svc
 
 PAGE_SIZE = 50
@@ -597,4 +598,43 @@ def tracking(request):
             "days": days,
             "periods": TRACKING_PERIODS,
         },
+    )
+
+
+# --- Base de résolution (US6) ------------------------------------------------------
+
+
+@technician_required
+def knowledge_search(request):
+    form = KnowledgeSearchForm(request.GET or None)
+    results = None
+    if form.is_valid() and any(form.cleaned_data.values()):
+        data = form.cleaned_data
+        results = Paginator(
+            knowledge.search(
+                data["q"],
+                category=data["category"],
+                tool=data["tool"],
+                subsidiary=data["subsidiary"],
+                date_from=data["date_from"],
+                date_to=data["date_to"],
+            ),
+            25,
+        ).get_page(request.GET.get("page"))
+    query = request.GET.copy()
+    query.pop("page", None)
+    return render(
+        request,
+        "helpdesk/knowledge.html",
+        {"form": form, "results": results, "query": query.urlencode()},
+    )
+
+
+@technician_required
+def ticket_suggestions(request, number: int):
+    ticket = _get_ticket(number)
+    return render(
+        request,
+        "helpdesk/partials/suggestions.html",
+        {"suggestions": knowledge.suggestions(ticket), "ticket": ticket},
     )
