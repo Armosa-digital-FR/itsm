@@ -36,6 +36,9 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   créé par e-mail (accusé de réception, échanges par e-mail avec le demandeur).
 - Q: Quelle identité visuelle pour l'interface ? → A: Celle d'Armosa Digital : logo fourni à la
   racine du dépôt et design system « Armosa ».
+- Q: Quel outil de prise en main à distance, et comment l'intégrer ? → A: TeamViewer, utilisé en
+  dehors de l'application (pas d'intégration ni de lancement depuis l'ITSM) ; l'ITSM conserve
+  l'identifiant TeamViewer des appareils et la trace des interventions déclarées.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -217,25 +220,28 @@ ouvrir un nouveau ticket de cette catégorie et vérifier les suggestions propos
 
 ---
 
-### User Story 7 - Prise en main à distance depuis un ticket (Priority: P3)
+### User Story 7 - Prise en main à distance avec TeamViewer (Priority: P3)
 
-Depuis un ticket ou la fiche d'un appareil, le technicien lance une session de prise en main à
-distance sur le poste concerné, et la session est tracée dans le ticket.
+Les interventions à distance se font avec TeamViewer, en dehors de l'application. Depuis un
+ticket ou la fiche d'un appareil, le technicien retrouve l'identifiant TeamViewer du poste
+concerné, puis déclare dans le ticket l'intervention réalisée, qui reste ainsi tracée.
 
 **Why this priority**: fonctionnalité très utilisée sous Atera, mais pouvant être assurée
 temporairement par l'outil existant en dehors de l'ITSM.
 
-**Independent Test**: depuis un ticket lié à un poste, lancer une session de prise en main et
-vérifier sa traçabilité dans l'historique.
+**Independent Test**: renseigner l'identifiant TeamViewer d'un poste, l'afficher depuis un
+ticket lié, déclarer une intervention et vérifier sa présence dans l'historique.
 
 **Acceptance Scenarios**:
 
-1. **Given** un ticket lié à un appareil, **When** le technicien clique sur « prise en main »,
-   **Then** une session est lancée vers cet appareil via l'outil de prise en main à distance
-   tiers déjà utilisé par l'équipe (type TeamViewer, AnyDesk, Splashtop), sans ressaisie de
-   l'identifiant de l'appareil.
-2. **Given** une session de prise en main lancée, **When** elle se termine, **Then** le ticket
-   conserve la trace de la session (technicien, appareil, date de début et de fin).
+1. **Given** un ticket lié à un appareil dont l'identifiant TeamViewer est renseigné, **When**
+   le technicien consulte le ticket, **Then** l'identifiant TeamViewer est affiché et copiable
+   en un clic, sans avoir à ouvrir la fiche de l'appareil.
+2. **Given** une intervention TeamViewer réalisée, **When** le technicien la déclare dans le
+   ticket (appareil, début, fin), **Then** le ticket conserve la trace de l'intervention
+   (technicien, appareil, date de début et de fin) et elle apparaît dans l'historique.
+3. **Given** l'application, **When** on cherche à lancer TeamViewer depuis l'ITSM, **Then**
+   aucun lancement n'est proposé : TeamViewer reste un outil externe.
 
 ---
 
@@ -360,9 +366,10 @@ vérifier sa traçabilité dans l'historique.
 
 **Prise en main à distance**
 
-- **FR-050**: Les techniciens DOIVENT pouvoir lancer une session de prise en main à distance
-  depuis un ticket ou une fiche d'appareil, et chaque session DOIT être tracée (technicien,
-  appareil, ticket, horodatage).
+- **FR-050**: Chaque équipement DOIT pouvoir porter un identifiant TeamViewer, affiché et
+  copiable depuis sa fiche et depuis les tickets qui lui sont liés. Les techniciens DOIVENT
+  pouvoir déclarer dans un ticket une intervention à distance réalisée (appareil, début, fin),
+  tracée avec le technicien et l'horodatage. L'application ne lance ni ne pilote TeamViewer.
 
 **Gestion de parc**
 
@@ -385,7 +392,7 @@ vérifier sa traçabilité dans l'historique.
 
 - **FR-070**: L'accès à l'application DOIT se faire par authentification unique avec les
   comptes de l'entreprise ; les rôles minimaux sont technicien et administrateur.
-- **FR-071**: Les actions sensibles (prise en main à distance, changement de droits,
+- **FR-071**: Les actions sensibles (déclaration de prise en main à distance, changement de droits,
   modification des compétences, suppression) DOIVENT être journalisées dans un journal d'audit.
 - **FR-072**: Les tickets fermés et leurs données personnelles DOIVENT être conservés selon une
   durée de 3 ans après fermeture (paramétrable), puis anonymisés ; la base de résolution
@@ -424,7 +431,8 @@ vérifier sa traçabilité dans l'historique.
 - **Équipement** : élément du parc (PC, écran, imprimante, télévision, caméra, téléphone…),
   source (Intune ou manuel), numéro de série, site, statut, utilisateur affecté.
 - **Licence** : droit d'usage logiciel avec nombre de postes, expiration et consommateurs.
-- **Session de prise en main** : trace d'une intervention à distance sur un appareil.
+- **Session de prise en main** : intervention TeamViewer déclarée par un technicien sur un
+  appareil (début, fin, ticket).
 
 ## Success Criteria *(mandatory)*
 
@@ -457,9 +465,9 @@ vérifier sa traçabilité dans l'historique.
 - Les demandeurs sont les collaborateurs de l'entreprise et de ses filiales présents dans
   Entra ; le ticket est « affecté à un utilisateur et une filiale » au sens du demandeur et de
   sa filiale, l'affectation au support se faisant vers un technicien ou un groupe.
-- La prise en main à distance s'appuie sur un outil tiers existant, déjà utilisé par l'équipe ;
-  l'ITSM lance la session et la trace, sans fournir lui-même la technologie de prise en main.
-  Le choix précis de l'outil sera confirmé lors de la planification.
+- La prise en main à distance se fait avec TeamViewer, en dehors de l'application : l'ITSM
+  stocke l'identifiant TeamViewer des appareils et la trace des interventions déclarées, sans
+  intégration ni lancement. Une intégration pourra faire l'objet d'une fonctionnalité ultérieure.
 - Aucun portail demandeur n'est prévu : les collaborateurs créent et suivent leurs tickets par
   e-mail uniquement (un portail pourra faire l'objet d'une fonctionnalité ultérieure).
 - Les techniciens forment une équipe IT interne unique et transverse (voir FR-073).

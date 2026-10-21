@@ -13,10 +13,9 @@ périodiques sont verrouillées (une seule instance à la fois).
 | `helpdesk.check_ack_deadlines` | toutes les 5 min | FR-037, US3-1 | marque `ack_breached` ; alerte une fois par ticket |
 | `helpdesk.send_reminders` | toutes les heures, en heures ouvrées | FR-034, US3-2, US3-3 | rappels et résolution automatique « sans réponse » |
 | `helpdesk.auto_close` | toutes les heures | FR-033 | `resolu` → `ferme` après 5 jours ouvrés |
-| `helpdesk.close_stale_remote_sessions` | toutes les heures | US7-2 | sessions ouvertes depuis plus de 8 h → fin automatique |
 | `inventory.licence_digest` | lundi 08:00 | FR-064 | récapitulatif des licences à échéance ou en dépassement |
 | `core.gdpr_retention` | chaque jour à 03:00 | FR-072, constitution III | anonymisation des tickets fermés depuis plus de 3 ans, des utilisateurs inactifs depuis plus de 3 ans non référencés ; purge de l'audit de plus de 3 ans |
 
 Toutes les durées « ouvrées » utilisent le calendrier de `core.business_time` (plages
 paramétrées, fériés français, jours de fermeture). Les valeurs (2 jours, 3 rappels, 5 jours,
-8 h, 3 ans, 30 jours) proviennent de `Settings` et non du code.
+3 ans, 30 jours) proviennent de `Settings` et non du code.

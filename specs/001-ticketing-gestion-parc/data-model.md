@@ -262,15 +262,17 @@ En ajout seul ; affiché dans l'ordre chronologique (FR-040, US6-1).
 
 ### Session de prise en main (`RemoteSession`)
 
+Intervention TeamViewer **déclarée** par le technicien après coup ; l'ITSM ne lance pas
+TeamViewer (R13).
+
 | Champ | Type | Règles |
 |---|---|---|
-| `technician` | → Account | |
-| `equipment` | → Equipment | doit être un équipement avec identifiant de prise en main ou source Intune |
-| `ticket` | → Ticket | optionnel (lancement depuis une fiche d'équipement) |
-| `started_at` | date-heure | |
-| `ended_at` | date-heure | saisi par le technicien, ou fermeture auto après 8 h |
-| `end_kind` | énum {`technicien`, `automatique`} | |
-| `launch_url` | texte | URL générée (sans secret) |
+| `technician` | → Account | technicien déclarant |
+| `equipment` | → Equipment | obligatoire ; de préférence un équipement lié au ticket |
+| `ticket` | → Ticket | obligatoire |
+| `started_at` | date-heure | obligatoire, ≤ maintenant |
+| `ended_at` | date-heure | obligatoire, > `started_at` |
+| `comment` | texte | optionnel |
 
 ---
 
@@ -300,14 +302,14 @@ En ajout seul ; affiché dans l'ordre chronologique (FR-040, US6-1).
 | `site` | → Site | **obligatoire** (FR-061) ; « À définir » par défaut pour un appareil Intune sans site déduit |
 | `status` | énum {`stock`, `en_utilisation`} | obligatoire (FR-061) |
 | `assigned_to` | → DirectoryUser | optionnel |
-| `remote_id` | texte | identifiant pour l'outil de prise en main |
+| `teamviewer_id` | texte | identifiant TeamViewer (9 à 10 chiffres, espaces ignorés) ; optionnel |
 | `purchase_date`, `warranty_end` | date | optionnels |
 | `notes` | texte | |
 
 **Règles** :
 - Si `source = intune` : `name`, `manufacturer`, `model`, `serial_number`, `os`, `os_version`,
   `intune_*` sont en lecture seule dans l'interface (FR-062) ; `site`, `status`,
-  `assigned_to`, `remote_id`, `notes` restent modifiables.
+  `assigned_to`, `teamviewer_id`, `notes` restent modifiables.
 - Affecter un équipement en `stock` à un utilisateur le passe en `en_utilisation` ; retirer
   l'affectation propose de le repasser en `stock` (US4-4).
 - À sa création par la synchro, `assigned_to` = `intune_primary_user` ; ensuite la synchro ne
@@ -355,7 +357,6 @@ utilisent la même table avec une référence vers la licence.
 | `retention_years` | 3 | FR-072 |
 | `support_mailboxes` | liste | FR-010 |
 | `internal_domains` | liste | accusé de réception des inconnus (R10) |
-| `remote_url_template` | vide | FR-050 |
 | `licence_expiry_warning_days` | 30 | FR-064 |
 
 ### Jour de fermeture (`ClosureDay`)
@@ -371,7 +372,7 @@ utilisent la même table avec une référence vers la licence.
 |---|---|---|
 | `at` | date-heure | |
 | `actor` | → Account | vide = système |
-| `action` | texte | ex. `remote_session.start`, `skill.change`, `group.change`, `role.change`, `equipment.delete`, `gdpr.export`, `gdpr.anonymize`, `settings.change` |
+| `action` | texte | ex. `remote_session.declare`, `skill.change`, `group.change`, `role.change`, `equipment.delete`, `gdpr.export`, `gdpr.anonymize`, `settings.change` |
 | `target_type`, `target_id` | texte | |
 | `details` | JSON | sans secret |
 | `ip_address` | texte | |

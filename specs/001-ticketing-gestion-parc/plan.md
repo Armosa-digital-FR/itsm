@@ -11,7 +11,8 @@ e-mail ou par un technicien, qualifiés (type, catégorie à 3 niveaux, outil, p
 automatiquement selon les compétences, suivis en délai de prise en compte (heures ouvrées),
 relancés automatiquement, résolus puis fermés ; base de résolution consultable ; parc
 synchronisé depuis Intune et complété à la main (équipements, licences, sites, statut) ;
-annuaire synchronisé depuis Entra ; prise en main à distance lancée depuis l'ITSM.
+annuaire synchronisé depuis Entra ; interventions TeamViewer (outil externe) tracées dans les
+tickets.
 
 Approche technique ([research.md](./research.md)) : **monolithe modulaire Django 5.2 LTS**
 (Python 3.12) rendu côté serveur avec HTMX, **PostgreSQL 16** comme unique stockage
@@ -58,7 +59,7 @@ techniciens simultanés, croissance ×2 sans changement d'architecture ; ~20 éc
 
 | Principe / section | Vérification | Statut |
 |---|---|---|
-| **I. Simplicité (YAGNI)** | Monolithe modulaire, un dépôt, une image. Pas de SPA, pas de broker, pas de moteur de recherche : PostgreSQL couvre données, recherche et file de tâches. Référentiels gérés par l'admin Django. Prise en main par modèle d'URL plutôt qu'intégration d'API éditeur. Seul le reporting strictement demandé est inclus. Écarts justifiés dans *Complexity Tracking*. | ✅ |
+| **I. Simplicité (YAGNI)** | Monolithe modulaire, un dépôt, une image. Pas de SPA, pas de broker, pas de moteur de recherche : PostgreSQL couvre données, recherche et file de tâches. Référentiels gérés par l'admin Django. TeamViewer reste externe (identifiant stocké, interventions déclarées), sans intégration. Seul le reporting strictement demandé est inclus. Écarts justifiés dans *Complexity Tracking*. | ✅ |
 | **II. Sécurité par conception** | OIDC Entra + rôles d'application vérifiés côté serveur sur chaque vue (matrice testée) ; MFA par accès conditionnel ; aucun secret dans le code (identité managée, Key Vault) ; permissions Graph minimales, messagerie restreinte aux boîtes support ; journal d'audit en ajout seul (déclencheur PostgreSQL) pour prise en main, droits, compétences, paramètres, suppressions et RGPD ; HTML entrant assaini (nh3), CSRF, limites de taille des pièces jointes ; `pip-audit` en CI. | ✅ |
 | **III. RGPD** | Minimisation : seuls les attributs Entra utiles sont lus ; rétention 3 ans puis anonymisation automatique (FR-072) ; export et anonymisation à la demande depuis l'admin (droits des personnes sans accès base) ; hébergement France Central, TLS, chiffrement au repos ; données, finalité et durée documentées (research R15) pour le registre ; polices auto-hébergées (pas d'IP transmise à Google). | ✅ |
 | **IV. IA assistive** | Aucune fonctionnalité d'IA dans cette feature (qualification manuelle). La base de résolution et l'historique structuré préparent les futures fonctionnalités, qui devront repasser ce contrôle. | ✅ (N/A) |
@@ -70,10 +71,8 @@ techniciens simultanés, croissance ×2 sans changement d'architecture ; ~20 éc
 contrats) : aucun nouvel écart ; le seul ajout par rapport à la spec est l'export/anonymisation
 RGPD à la demande et les exports CSV, exigés directement par la constitution (III et V).
 
-**Décisions prises par défaut, à confirmer par l'équipe** (réversibles, sans impact sur la
-spec) : pile Python/Django (R1), hébergement Azure (R5), outil de prise en main à distance (R13 :
-lanceur générique ; l'outil réel reste à nommer — si c'est le Splashtop intégré à Atera, prévoir
-un remplaçant avant la bascule).
+**Décisions validées par l'équipe le 2026-10-21** : pile Python/Django (R1), hébergement Azure
+(R5), TeamViewer hors application (R13), couleurs d'état Armosa (R16), ordre de livraison.
 
 ## Project Structure
 

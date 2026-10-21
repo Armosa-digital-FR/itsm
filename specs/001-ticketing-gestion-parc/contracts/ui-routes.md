@@ -34,8 +34,7 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | POST | `/tickets/<number>/notes/` | T | FR-031 | corps : `visibility`, `body`, pièces jointes ; note externe → e-mail au demandeur |
 | POST | `/tickets/<number>/time/` | T | FR-035 | corps : `date`, `minutes`, `comment` |
 | POST | `/tickets/<number>/equipment/` | T | FR-017 | lier / délier un équipement |
-| POST | `/tickets/<number>/remote/` | T | FR-050 | corps : `equipment` ; crée la session, audit, renvoie l'URL de lancement |
-| POST | `/remote-sessions/<id>/end/` | T | US7-2 | clôture de la session |
+| POST | `/tickets/<number>/remote/` | T | FR-050 | corps : `equipment`, `started_at`, `ended_at`, `comment` ; déclare une intervention TeamViewer réalisée, événement + audit (aucun lancement de TeamViewer) |
 | GET | `/attachments/<id>/` | T | | téléchargement via URL signée courte durée du stockage |
 
 ## Suivi des délais et du temps (US3)
@@ -57,7 +56,7 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | GET | `/inventory/` | T | FR-065 | liste filtrable : type, site, statut, filiale, utilisateur, source, « retiré d'Intune » |
 | GET | `/inventory/export.csv` | T | principe V | export CSV |
 | GET/POST | `/inventory/new/` | T | FR-060, FR-061 | création manuelle (type, site, statut obligatoires) |
-| GET | `/inventory/<id>/` | T | US4-2 | fiche ; champs Intune affichés en lecture seule ; historique ; tickets liés ; bouton « Prise en main » |
+| GET | `/inventory/<id>/` | T | US4-2 | fiche ; champs Intune affichés en lecture seule ; historique ; tickets liés ; identifiant TeamViewer avec bouton de copie |
 | POST | `/inventory/<id>/` | T | FR-062 | modification des seuls champs ITSM ; champs Intune ignorés côté serveur |
 | POST | `/inventory/<id>/assign/` | T | US4-4 | affectation / désaffectation à un utilisateur |
 | GET | `/licences/` · `/licences/<id>/` | T | FR-064 | liste avec badges d'expiration et de dépassement ; fiche avec consommateurs |

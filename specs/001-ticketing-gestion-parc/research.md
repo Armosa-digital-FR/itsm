@@ -7,12 +7,12 @@ ouverte : les choix ci-dessous sont faits au regard des principes I (simplicité
 (sécurité), du contexte Microsoft 365 existant (Entra, Intune, Exchange Online) et de la
 volumétrie clarifiée (500 utilisateurs, 1 000 équipements, 300 tickets/mois, ≤ 10 techniciens).
 
-Les décisions marquées **[À CONFIRMER]** ont été prises par défaut, sans validation explicite
-de l'équipe ; elles sont réversibles à ce stade et doivent être confirmées avant `/speckit-tasks`.
+Toutes les décisions ont été validées par l'équipe le 2026-10-21 (pile, hébergement,
+TeamViewer hors application, couleurs d'état, ordre de livraison).
 
 ---
 
-## R1. Langage et framework applicatif — [À CONFIRMER]
+## R1. Langage et framework applicatif — validé le 2026-10-21
 
 - **Decision** : Python 3.12 + Django 5.2 LTS, en monolithe modulaire (un dépôt, un déployable).
 - **Rationale** :
@@ -73,7 +73,7 @@ de l'équipe ; elles sont réversibles à ce stade et doivent être confirmées 
     envois d'e-mails, et pas de cron natif en conteneur PaaS ; rejeté.
   - *Framework de tâches de Django 6* : backends de production encore immatures ; à réévaluer.
 
-## R5. Hébergement — [À CONFIRMER]
+## R5. Hébergement — validé le 2026-10-21
 
 - **Decision** : Microsoft Azure, région **France Central** :
   - Azure Container Apps : une application `web` (gunicorn) et une application `worker`
@@ -220,22 +220,20 @@ de l'équipe ; elles sont réversibles à ce stade et doivent être confirmées 
   tests obligatoires sur le calcul des délais) ; aucune bibliothèque de calendrier ouvré ne
   couvre proprement fuseau + plages + fériés.
 
-## R13. Prise en main à distance (FR-050, US7) — [À CONFIRMER]
+## R13. Prise en main à distance (FR-050, US7) — décidé le 2026-10-21
 
-- **Decision** : lanceur générique paramétrable. L'administrateur saisit un **modèle d'URL**
-  pour l'outil retenu, avec les variables `{remote_id}`, `{device_name}`, `{serial}`,
-  `{intune_id}` (exemples : `anydesk:{remote_id}`, `https://start.teamviewer.com/{remote_id}`,
-  lien Intune Remote Help vers `{intune_id}`). Chaque équipement porte un champ
-  « identifiant de prise en main » optionnel. Le clic « Prise en main » crée une session
-  tracée (technicien, appareil, ticket, début), journalisée dans l'audit, puis ouvre l'URL ;
-  le technicien clôture la session depuis le ticket (fin). Une session non clôturée est
-  fermée automatiquement après 8 heures, avec une fin marquée « non renseignée ».
-- **Rationale** : la spécification impose un outil tiers existant sans le nommer ; le lanceur
-  générique ne couple pas l'ITSM à un éditeur et évite d'intégrer une API propriétaire
-  (principe I). Attention : si l'outil actuel est le Splashtop intégré à Atera, il disparaîtra
-  avec Atera ; un abonnement autonome ou un autre outil devra être prévu avant la bascule.
-- **Alternatives considered** : intégration API d'un éditeur (rejetée tant que l'outil n'est pas
-  choisi) ; Intune Remote Help imposé (dépend d'une licence non confirmée).
+- **Decision** : **TeamViewer, hors application** (choix de l'équipe). L'ITSM ne lance ni ne
+  pilote TeamViewer et n'appelle aucune API TeamViewer. Il stocke un champ « identifiant
+  TeamViewer » par équipement, l'affiche avec un bouton de copie sur la fiche de l'appareil et
+  sur les tickets liés, et permet au technicien de **déclarer** une intervention réalisée
+  (appareil, début, fin) dans le ticket. La déclaration crée un événement de ticket et une
+  entrée d'audit `remote_session.declare`.
+- **Rationale** : respecte le choix « non intégré » tout en conservant la traçabilité exigée
+  par US7 et FR-071 ; aucun secret ni connecteur éditeur à gérer (principes I et II). Les
+  journaux de connexion détaillés restent ceux de la console TeamViewer.
+- **Alternatives considered** : lien de lancement `https://start.teamviewer.com/<id>` (écarté :
+  l'équipe ne veut pas d'intégration pour l'instant ; ajout trivial plus tard) ; API TeamViewer
+  pour récupérer automatiquement les sessions (écartée : intégration, compte API à gérer).
 
 ## R14. Historique, audit et intégrité
 

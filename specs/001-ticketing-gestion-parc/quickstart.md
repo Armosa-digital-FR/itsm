@@ -120,10 +120,11 @@ ni casse exacte) les trouve.
 
 ### S8 — Prise en main à distance (US7, P3)
 
-Paramétrer un modèle d'URL (ex. `anydesk:{remote_id}`), renseigner `remote_id` sur un PC lié au
-ticket, cliquer « Prise en main » puis « Terminer la session ».
-**Attendu** : l'URL s'ouvre ; session tracée sur le ticket (technicien, appareil, début, fin) et
-entrée d'audit `remote_session.start`.
+Renseigner l'identifiant TeamViewer d'un PC, le lier à un ticket, puis déclarer une intervention
+(début, fin) depuis le ticket.
+**Attendu** : l'identifiant TeamViewer est affiché et copiable sur le ticket ; aucun bouton de
+lancement ; intervention visible dans l'historique (technicien, appareil, début, fin) et entrée
+d'audit `remote_session.declare`.
 
 ### S9 — Sécurité et RGPD
 
