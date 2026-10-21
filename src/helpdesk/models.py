@@ -257,6 +257,9 @@ class Ticket(models.Model):
         "type de résolution", max_length=20, choices=ResolutionKind.choices, blank=True
     )
     resolved_at = models.DateTimeField("résolu le", null=True, blank=True)
+    resolution_business_minutes = models.PositiveIntegerField(
+        "délai de résolution (minutes ouvrées)", null=True, blank=True
+    )
     closed_at = models.DateTimeField("fermé le", null=True, blank=True)
     has_unread_reply = models.BooleanField("nouvelle réponse", default=False)
     anonymized_at = models.DateTimeField("anonymisé le", null=True, blank=True)
@@ -435,7 +438,14 @@ class Attachment(models.Model):
 
 
 class TimeEntry(models.Model):
+    class Source(models.TextChoices):
+        MANUEL = "manuel", "Saisie"
+        CHRONO = "chrono", "Chronomètre"
+
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="time_entries")
+    source = models.CharField(
+        "origine", max_length=10, choices=Source.choices, default=Source.MANUEL
+    )
     technician = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -562,3 +572,23 @@ class RemoteSession(models.Model):
             errors["ended_at"] = "La fin doit être postérieure au début."
         if errors:
             raise ValidationError(errors)
+
+
+class RunningTimer(models.Model):
+    """Chronomètre en cours (FR-035a) : un seul par technicien, transformé en saisie à l'arrêt."""
+
+    technician = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="running_timer",
+        verbose_name="technicien",
+    )
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="running_timers")
+    started_at = models.DateTimeField("démarré le", default=timezone.now)
+
+    class Meta:
+        verbose_name = "chronomètre en cours"
+        verbose_name_plural = "chronomètres en cours"
+
+    def __str__(self) -> str:
+        return f"{self.technician} · {self.ticket.reference}"

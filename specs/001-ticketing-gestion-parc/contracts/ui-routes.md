@@ -40,6 +40,8 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | POST | `/tickets/bulk-assign/` | T | cas limite | réaffectation en masse des tickets d'un technicien vers un autre/groupe |
 | POST | `/tickets/<number>/notes/` | T | FR-031 | corps : `visibility`, `body`, pièces jointes ; note externe → e-mail au demandeur |
 | POST | `/tickets/<number>/time/` | T | FR-035 | corps : `date`, `minutes`, `comment` |
+| POST | `/tickets/<number>/timer/start/` · `/timer/stop/` | T | FR-035a | démarre (en arrêtant et enregistrant tout autre chronomètre du technicien) ou arrête son chronomètre |
+| POST | `/time-entries/<id>/` · `/time-entries/<id>/delete/` | T (auteur) | FR-035a | correction ou suppression d'une saisie ; 403 pour un autre technicien |
 | POST | `/tickets/<number>/equipment/` | T | FR-017 | lier / délier un équipement |
 | POST | `/tickets/<number>/remote/` | T | FR-050 | corps : `equipment`, `started_at`, `ended_at`, `comment` ; déclare une intervention TeamViewer réalisée, événement + audit (aucun lancement de TeamViewer) |
 | GET | `/attachments/<id>/` | T | | téléchargement via URL signée courte durée du stockage |

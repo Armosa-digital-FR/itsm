@@ -65,7 +65,7 @@ def test_liste_affiche_echeance_proche_et_temps_passe(technician_client):
     shown = response.context["page"].object_list[0]
     assert shown.total_minutes == 45
     assert shown.sla_state in {"bientot", "depasse", "ok"}
-    assert "45 min passées" in response.content.decode()
+    assert "0 min / 45 min" in response.content.decode()
 
 
 def test_suivi_refuse_sans_role(no_role_client):

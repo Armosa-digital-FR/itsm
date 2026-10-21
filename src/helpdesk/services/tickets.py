@@ -355,23 +355,37 @@ def add_note(ticket: Ticket, actor, visibility: str, body: str, files=()) -> Tic
     return note
 
 
-def add_time(ticket: Ticket, technician, day: date, minutes: int, comment: str = "") -> TimeEntry:
+def add_time(
+    ticket: Ticket,
+    technician,
+    day: date,
+    minutes: int,
+    comment: str = "",
+    source: str = TimeEntry.Source.MANUEL,
+) -> TimeEntry:
     entry = TimeEntry(
         ticket=ticket,
         technician=technician,
         date=day,
         minutes=minutes,
         comment=(comment or "")[:500],
+        source=source,
     )
     entry.full_clean()
     entry.save()
     record_event(
-        ticket, TicketEvent.Kind.TEMPS, technician, "", f"{minutes} min", date=day.isoformat()
+        ticket,
+        TicketEvent.Kind.TEMPS,
+        technician,
+        "",
+        f"{minutes} min" + (" (chronomètre)" if source == TimeEntry.Source.CHRONO else ""),
+        date=day.isoformat(),
+        entry=entry.pk,
     )
     return entry
 
 
-def time_totals(ticket: Ticket) -> dict:
+def time_totals(ticket: Ticket, user=None) -> dict:
     per_tech = list(
         ticket.time_entries.values("technician").annotate(total=Sum("minutes")).order_by("-total")
     )
@@ -383,8 +397,12 @@ def time_totals(ticket: Ticket) -> dict:
             pk__in=[row["technician"] for row in per_tech]
         ).select_related("directory_user")
     }
+    mine = next(
+        (row["total"] for row in per_tech if row["technician"] == getattr(user, "pk", 0)), 0
+    )
     return {
         "total": sum(row["total"] for row in per_tech),
+        "mine": mine,
         "per_technician": [(names.get(row["technician"], "?"), row["total"]) for row in per_tech],
     }
 

@@ -11,7 +11,7 @@ from itertools import chain
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Avg, Count, Exists, F, OuterRef, Q, Subquery, Sum
 from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from core.auth import technician_required
 from core.business_time import get_calendar
+from core.models import Settings
 from directory.models import Account
 
 from .forms import (
@@ -32,11 +33,19 @@ from .forms import (
     StatusForm,
     TicketCreateForm,
     TicketFilterForm,
+    TimeEntryEditForm,
     TimeForm,
 )
 from .mail.parsing import split_quoted
-from .models import Attachment, EmailMessage, Ticket, TicketEvent, TicketNote, TimeEntry
-from .services import knowledge, lifecycle, remote, sla
+from .models import (
+    Attachment,
+    EmailMessage,
+    Ticket,
+    TicketEvent,
+    TicketNote,
+    TimeEntry,
+)
+from .services import knowledge, lifecycle, remote, sla, timers
 from .services import tickets as svc
 
 PAGE_SIZE = 50
@@ -99,6 +108,10 @@ def base_tickets(request, form: TicketFilterForm):
         qs = qs.filter(Q(category=cat) | Q(category__parent=cat) | Q(category__parent__parent=cat))
     if data.get("breached"):
         qs = qs.filter(ack_breached=True)
+    if data.get("mon_temps"):
+        qs = qs.filter(
+            Exists(TimeEntry.objects.filter(ticket=OuterRef("pk"), technician=request.user))
+        )
     if query := (data.get("q") or "").strip():
         text = (
             Q(title__icontains=query)
@@ -137,12 +150,30 @@ def annotate_deadlines(tickets) -> None:
         ticket.sla_state = sla.deadline_state(ticket, now, cal, targets)
 
 
+def _minutes_subquery(**filters):
+    return Subquery(
+        TimeEntry.objects.filter(ticket=OuterRef("pk"), **filters)
+        .order_by()
+        .values("ticket")
+        .annotate(total=Sum("minutes"))
+        .values("total")[:1]
+    )
+
+
+def with_time(queryset, user):
+    """Annote `total_minutes` et `my_minutes` (sous-requêtes : pas de doublons de jointure)."""
+    return queryset.annotate(
+        total_minutes=_minutes_subquery(),
+        my_minutes=_minutes_subquery(technician=user),
+    )
+
+
 @technician_required
 def ticket_list(request):
     form = TicketFilterForm(request.GET or None)
     tab = current_tab(form)
     tickets = filtered_tickets(request, form)
-    tickets = tickets.annotate(total_minutes=Sum("time_entries__minutes"))
+    tickets = with_time(tickets, request.user)
     page = Paginator(tickets, PAGE_SIZE).get_page(request.GET.get("page"))
     annotate_deadlines(page.object_list)
     query = request.GET.copy()
@@ -160,6 +191,7 @@ def ticket_list(request):
         "query": query.urlencode(),
         "filters": filters.urlencode(),
         "tabs": tabs,
+        "day_minutes": Settings.load().business_day_minutes,
         "tab": tab,
         "now": timezone.now(),
     }
@@ -200,13 +232,16 @@ def ticket_export(request):
             "Délai dépassé",
             "Résolu le",
             "Fermé le",
+            "Délai de résolution (h ouvrées)",
+            "Temps total (min)",
+            "Mon temps (min)",
         ]
     )
 
     def fmt(value):
         return timezone.localtime(value).strftime("%d/%m/%Y %H:%M") if value else ""
 
-    for t in filtered_tickets(request, form).iterator(chunk_size=500):
+    for t in with_time(filtered_tickets(request, form), request.user).iterator(chunk_size=500):
         writer.writerow(
             [
                 t.reference,
@@ -229,6 +264,13 @@ def ticket_export(request):
                 "oui" if t.ack_breached else "non",
                 fmt(t.resolved_at),
                 fmt(t.closed_at),
+                (
+                    f"{t.resolution_business_minutes / 60:.1f}".replace(".", ",")
+                    if t.resolution_business_minutes is not None
+                    else ""
+                ),
+                t.total_minutes or 0,
+                t.my_minutes or 0,
             ]
         )
     return response
@@ -325,7 +367,13 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "description_quoted": quoted,
         "timeline": _timeline(ticket),
         "initial_attachments": ticket.attachments.filter(note__isnull=True),
-        "time": svc.time_totals(ticket),
+        "htmx": is_htmx(request),
+        "time": svc.time_totals(ticket, request.user),
+        "time_entries": ticket.time_entries.select_related("technician__directory_user").order_by(
+            "-date", "-created_at"
+        ),
+        "running_here": timers.running_timer(request.user),
+        "day_minutes": Settings.load().business_day_minutes,
         "equipment": ticket.equipment.select_related("type", "site"),
         "requester_equipment": (
             ticket.requester.equipment.exclude(pk__in=ticket.equipment.values("pk")).select_related(
@@ -531,6 +579,61 @@ def ticket_remote(request, number: int):
 
 
 @technician_required
+@require_POST
+def timer_start(request, number: int):
+    ticket = _get_ticket(number)
+    _, previous = timers.start(ticket, request.user)
+    message = "Chronomètre démarré."
+    if previous is not None:
+        message += (
+            f" Celui de {previous.entry.ticket.reference} a été arrêté "
+            f"({previous.entry.minutes} min enregistrées)."
+        )
+    return _done(request, ticket, message)
+
+
+@technician_required
+@require_POST
+def timer_stop(request, number: int):
+    ticket = _get_ticket(number)
+    stopped = timers.stop(request.user)
+    if stopped is None:
+        return _done(request, ticket, "Aucun chronomètre en cours.")
+    message = f"{stopped.entry.minutes} min enregistrées sur {stopped.entry.ticket.reference}."
+    if stopped.capped:
+        message += " Le chronomètre est resté actif plus de 24 h : vérifiez la durée."
+    if not is_htmx(request) and request.POST.get("next", "").startswith("/"):
+        messages.success(request, message)
+        return redirect(request.POST["next"])
+    return _done(request, stopped.entry.ticket if is_htmx(request) else ticket, message)
+
+
+@technician_required
+@require_POST
+def time_entry_edit(request, pk: int):
+    entry = get_object_or_404(TimeEntry.objects.select_related("ticket"), pk=pk)
+    ticket = _get_ticket(entry.ticket.number)
+    form = TimeEntryEditForm(request.POST)
+    if not form.is_valid():
+        errors = [e for errs in form.errors.values() for e in errs]
+        return _error(request, ticket, ValidationError(errors))
+    data = form.cleaned_data
+    timers.edit_time(
+        entry, request.user, minutes=data["minutes"], comment=data["comment"], day=data["date"]
+    )
+    return _done(request, ticket, "Saisie de temps corrigée.")
+
+
+@technician_required
+@require_POST
+def time_entry_delete(request, pk: int):
+    entry = get_object_or_404(TimeEntry.objects.select_related("ticket"), pk=pk)
+    ticket = _get_ticket(entry.ticket.number)
+    timers.delete_time(entry, request.user)
+    return _done(request, ticket, "Saisie de temps supprimée.")
+
+
+@technician_required
 def bulk_assign(request):
     form = BulkAssignForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -598,7 +701,19 @@ def tracking(request):
             total=Count("pk"), on_time=Count("pk", filter=Q(ack_breached=False))
         )
         rate = round(100 * row["on_time"] / row["total"]) if row["total"] else None
-        rates.append({"priority": priority, "label": label, **row, "rate": rate})
+        resolved = Ticket.objects.filter(
+            priority=priority, resolved_at__gte=since, resolution_business_minutes__isnull=False
+        ).aggregate(avg=Avg("resolution_business_minutes"), count=Count("pk"))
+        rates.append(
+            {
+                "priority": priority,
+                "label": label,
+                **row,
+                "rate": rate,
+                "avg_resolution": round(resolved["avg"]) if resolved["avg"] is not None else None,
+                "resolved_count": resolved["count"],
+            }
+        )
 
     time_rows = (
         TimeEntry.objects.filter(date__gte=timezone.localdate(since))
@@ -627,6 +742,7 @@ def tracking(request):
             "time_per_technician": time_per_technician,
             "days": days,
             "periods": TRACKING_PERIODS,
+            "day_minutes": Settings.load().business_day_minutes,
         },
     )
 

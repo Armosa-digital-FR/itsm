@@ -103,6 +103,7 @@ class TicketFilterForm(ITSMForm):
         empty_label="Tous",
     )
     breached = forms.BooleanField(label="Délai dépassé", required=False)
+    mon_temps = forms.BooleanField(label="J'y ai passé du temps", required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -295,3 +296,7 @@ class RemoteSessionForm(forms.Form):
         self.fields["equipment"].label_from_instance = lambda e: (
             f"{e.type} · {e.name}" + (f" (TeamViewer {e.teamviewer_id})" if e.teamviewer_id else "")
         )
+
+
+class TimeEntryEditForm(TimeForm):
+    """Correction d'une saisie de temps par son auteur (FR-035a)."""

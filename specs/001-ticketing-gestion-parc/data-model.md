@@ -149,6 +149,7 @@ Unicité (`technician`, `tool`). Supprimée automatiquement quand le technicien 
 | `resolution` | texte | obligatoire pour `resolu` (FR-032) |
 | `resolution_kind` | énum {`technicien`, `sans_reponse`} | |
 | `resolved_at`, `closed_at` | date-heure | |
+| `resolution_business_minutes` | entier | délai de résolution en minutes ouvrées (création → résolution, FR-037a) ; effacé à la réouverture |
 | `has_unread_reply` | booléen | réponse du demandeur non lue par le technicien |
 | `search_vector` | tsvector (colonne générée) | titre + description + résolution, config `french` + `unaccent` |
 | `anonymized_at` | date-heure | |
@@ -250,6 +251,19 @@ Exécutée quand `tool` est renseigné ou modifié **et** que le ticket est en `
 
 Agrégats affichés : total du ticket ; total par technicien sur le ticket ; total par technicien
 sur une période (vue de suivi).
+
+### Chronomètre (`RunningTimer`)
+
+| Champ | Type | Règles |
+|---|---|---|
+| `technician` | → Account | **unique** : un seul chronomètre actif par technicien |
+| `ticket` | → Ticket | |
+| `started_at` | date-heure | |
+
+L'arrêt supprime le chronomètre et crée une `TimeEntry` (`source = chrono`, `date` = jour de
+démarrage, `minutes` = durée arrondie à la minute supérieure, bornée à 1–1 440).
+`TimeEntry` gagne `source` ∈ {`manuel`, `chrono`} ; une saisie est modifiable et supprimable
+par son auteur (événement `temps`).
 
 ### Événement de ticket (`TicketEvent`)
 

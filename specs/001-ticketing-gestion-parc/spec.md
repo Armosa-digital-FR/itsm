@@ -54,6 +54,14 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
 - Q: La connexion de démonstration est-elle acceptable ? → A: Uniquement en mode
   développement, jamais en production ; un bandeau signale ce mode.
 
+### Session 2026-10-21 (temps passé par ticket)
+
+- Q: Comment mesurer le temps passé sur un ticket ? → A: En plus de la saisie manuelle, un
+  chronomètre Démarrer/Arrêter sur la fiche ; l'arrêt crée une saisie de temps corrigeable.
+- Q: Quelle information afficher par ticket ? → A: « Mon temps » et le temps total, sur la
+  fiche, dans la liste et dans l'export, et le délai de résolution (création → résolution, en
+  heures ouvrées).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Créer et traiter un ticket de bout en bout (Priority: P1)
@@ -361,11 +369,24 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   être paramétrables.
 - **FR-035**: Les techniciens DOIVENT pouvoir saisir le temps passé sur un ticket (durée,
   date, technicien) ; le système DOIT afficher le cumul par ticket et par technicien.
+- **FR-035a**: Chaque technicien DOIT pouvoir chronométrer son travail sur un ticket
+  (Démarrer/Arrêter) : un seul chronomètre actif par technicien (en démarrer un autre arrête
+  et enregistre le précédent), visible sur toutes les pages, arrêté automatiquement quand ce
+  technicien résout le ticket. L'arrêt crée une saisie de temps (au moins 1 minute,
+  24 heures au plus) que son auteur peut modifier ou supprimer, avec historique.
+- **FR-035b**: Pour chaque ticket, le système DOIT afficher le temps que le technicien
+  connecté y a passé et le temps total, sur la fiche, dans la liste (colonne dédiée, tous les
+  onglets) et dans l'export CSV ; la liste DOIT pouvoir être filtrée sur les tickets où le
+  technicien a saisi du temps.
 - **FR-036**: Le système DOIT enregistrer la date de prise en compte et calculer le délai de
   prise en compte en heures ouvrées.
 - **FR-037**: Le système DOIT permettre de définir un délai cible de prise en compte par
   priorité, en heures ouvrées : haute 1 h, normale 4 h, basse 1 jour ouvré (valeurs
   paramétrables), signaler les tickets en dépassement et alerter le technicien ou le groupe affecté.
+- **FR-037a**: Le système DOIT calculer le délai de résolution de chaque ticket (de la création
+  à la résolution, en heures ouvrées), le recalculer si le ticket est rouvert puis résolu à
+  nouveau, et l'afficher sur la fiche, dans l'onglet « Traités », dans l'export et en moyenne
+  par priorité sur la vue de suivi.
 - **FR-038**: Le demandeur NE DOIT recevoir d'e-mail que dans les cas suivants : accusé de
   réception à la création, note externe, rappel en attente de réponse, résolution (y compris
   résolution automatique « sans réponse du demandeur »). Les autres changements de statut

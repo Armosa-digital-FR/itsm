@@ -52,3 +52,17 @@ document.addEventListener("click", function (event) {
     p.query.focus();
   }
 });
+
+// Chronomètres en cours : affichage du temps écoulé (hh:mm:ss), y compris après un échange HTMX.
+function tickTimers() {
+  document.querySelectorAll("[data-timer-start]").forEach(function (el) {
+    var start = Date.parse(el.getAttribute("data-timer-start"));
+    if (isNaN(start)) return;
+    var s = Math.max(0, Math.floor((Date.now() - start) / 1000));
+    var pad = function (n) { return String(n).padStart(2, "0"); };
+    el.textContent = pad(Math.floor(s / 3600)) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60);
+  });
+}
+setInterval(tickTimers, 1000);
+document.addEventListener("DOMContentLoaded", tickTimers);
+document.addEventListener("htmx:afterSwap", tickTimers);

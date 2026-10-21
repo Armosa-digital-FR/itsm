@@ -9,13 +9,14 @@
 </div>
 
 <section class="stack">
-  <h2>Respect du délai de prise en compte</h2>
+  <h2>Délais de prise en compte et de résolution</h2>
   <div class="kpis">
     {% for r in rates %}
     <div class="kpi">
       <div class="label">Priorité {{ r.label|lower }}</div>
       <div class="value">{% if r.rate is None %}—{% else %}{{ r.rate }} %{% endif %}</div>
       <div class="muted">{{ r.on_time }} dans les délais sur {{ r.total }}</div>
+      <div class="muted">Résolution moyenne : {% if r.avg_resolution is None %}—{% else %}{{ r.avg_resolution|business_duration:day_minutes }} ouvrées ({{ r.resolved_count }}){% endif %}</div>
     </div>
     {% endfor %}
   </div>

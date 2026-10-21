@@ -162,6 +162,20 @@ MVP », FR-019, FR-081 à FR-083).
 
 ---
 
+## Suivi du temps par ticket (2026-10-21)
+
+**Purpose**: chronomètre, « mon temps / total » et délai de résolution (FR-035a, FR-035b,
+FR-037a).
+
+- [X] T112 [US3] Ajouter `RunningTimer` (un par technicien), `TimeEntry.source` (`manuel`/`chrono`) et `Ticket.resolution_business_minutes` dans `src/helpdesk/models.py` avec migrations (reprise du délai pour les tickets déjà résolus)
+- [X] T113 [US3] Implémenter `src/helpdesk/services/timers.py` : `start` (arrête et enregistre le chronomètre actif d'un autre ticket), `stop` (durée arrondie à la minute supérieure, 1 à 1 440 min), arrêt automatique à la résolution par le technicien ; correction et suppression d'une saisie par son auteur (`edit_time`, `delete_time`, événements)
+- [X] T114 [US3] Calculer le délai de résolution dans `src/helpdesk/services/lifecycle.py` (à la résolution, effacé à la réouverture)
+- [X] T115 [US3] Routes et vues : `/tickets/<n>/timer/start|stop/`, `/time-entries/<id>/` (modifier), `/time-entries/<id>/delete/` ; chronomètre actif dans l'en-tête de toutes les pages (processeur de contexte, compteur en direct)
+- [X] T116 [US3] Affichage : en-tête de la fiche « Mon temps · Total · Délai de résolution », bloc temps avec saisies modifiables ; colonne « Temps » (mon temps / total) dans la liste, délai de résolution dans l'onglet « Traités », filtre « J'y ai passé du temps », colonnes dans l'export CSV ; délai moyen de résolution par priorité sur `/tracking/`
+- [X] T117 [US3] Tests : `tests/unit/test_timers.py` (démarrage, bascule, arrêt, arrondi, bornes, arrêt à la résolution, correction/suppression réservées à l'auteur), `tests/integration/test_time_views.py` (routes, en-tête, colonnes, filtre, export, délai de résolution et moyenne)
+
+---
+
 ## Phase 5: User Story 2 - Affectation automatique selon les compétences (Priority: P2)
 
 **Goal**: un ticket qualifié avec un outil est affecté automatiquement au bon technicien ou

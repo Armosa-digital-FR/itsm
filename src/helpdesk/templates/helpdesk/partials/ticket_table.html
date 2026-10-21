@@ -7,7 +7,7 @@
 <div class="table-wrap">
 <table class="list">
   <thead><tr>
-    <th>N°</th><th>Titre</th><th>Statut</th><th>Priorité</th><th>Demandeur</th><th>Entité · site</th><th>Assigné</th><th>{% if tab == "traites" %}Résolu le{% else %}Échéance{% endif %}</th>
+    <th>N°</th><th>Titre</th><th>Statut</th><th>Priorité</th><th>Demandeur</th><th>Entité · site</th><th>Assigné</th><th>{% if tab == "traites" %}Résolu{% else %}Échéance{% endif %}</th><th>Temps <span class="visually-hidden">(le mien / total)</span></th>
   </tr></thead>
   <tbody>
   {% for t in page %}
@@ -29,12 +29,14 @@
       <td>{% if t.assignee %}{{ t.assignee.display_name }}{% elif t.assigned_group %}<span class="muted">Groupe {{ t.assigned_group }}</span>{% else %}<span class="muted">Non affecté</span>{% endif %}</td>
       <td class="num">
         {% if tab == "traites" %}{{ t.resolved_at|date:"d/m H:i"|default:"—" }}
+          {% if t.resolution_business_minutes is not None %}<div class="muted">en {{ t.resolution_business_minutes|business_duration:day_minutes }} ouvrées</div>{% endif %}
         {% else %}{% include "helpdesk/partials/deadline.html" %}{% endif %}
-        {% if t.total_minutes %}<div class="muted">{{ t.total_minutes|duration }} passées</div>{% endif %}
+      </td>
+      <td class="num">{% if t.total_minutes %}<span title="Mon temps / temps total">{{ t.my_minutes|default:0|duration }} / {{ t.total_minutes|duration }}</span>{% else %}—{% endif %}
       </td>
     </tr>
   {% empty %}
-    <tr><td colspan="8" class="empty">{% if tab == "a_traiter" %}Aucun ticket à traiter.{% elif tab == "en_cours" %}Aucun ticket en cours.{% elif tab == "traites" %}Aucun ticket traité.{% else %}Aucun ticket ne correspond à ces filtres.{% endif %}</td></tr>
+    <tr><td colspan="9" class="empty">{% if tab == "a_traiter" %}Aucun ticket à traiter.{% elif tab == "en_cours" %}Aucun ticket en cours.{% elif tab == "traites" %}Aucun ticket traité.{% else %}Aucun ticket ne correspond à ces filtres.{% endif %}</td></tr>
   {% endfor %}
   </tbody>
 </table>

@@ -113,6 +113,7 @@ def change_status(
         ticket.resolution = text
         ticket.resolution_kind = resolution_kind
         ticket.resolved_at = now
+        ticket.resolution_business_minutes = business_minutes_between(ticket.created_at, now)
 
     if new_status == S.ATTENTE_REPONSE:
         ticket.waiting_since = now
@@ -126,6 +127,7 @@ def change_status(
     if old_status == S.RESOLU and new_status == S.PRIS_EN_COMPTE:
         ticket.resolved_at = None
         ticket.resolution_kind = ""
+        ticket.resolution_business_minutes = None
 
     if new_status == S.FERME:
         ticket.closed_at = now

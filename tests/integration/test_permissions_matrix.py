@@ -8,8 +8,9 @@ import pytest
 from django.core.files.base import ContentFile
 from django.test import Client
 from django.urls import URLPattern, URLResolver, get_resolver, reverse
+from django.utils import timezone
 
-from helpdesk.models import Attachment
+from helpdesk.models import Attachment, TimeEntry
 from tests.factories import (
     AccountFactory,
     DirectoryUserFactory,
@@ -46,6 +47,12 @@ def objects():
     ticket = TicketFactory()
     attachment = Attachment(ticket=ticket, filename="a.txt", size=1)
     attachment.file.save("a.txt", ContentFile(b"a"), save=True)
+
+    def entry():
+        return TimeEntry.objects.create(
+            ticket=ticket, technician=AccountFactory(), date=timezone.localdate(), minutes=5
+        ).pk
+
     return {
         "number": ticket.number,
         "entra_id": DirectoryUserFactory().entra_id,
@@ -54,6 +61,8 @@ def objects():
             "inventory:equipment_detail": EquipmentFactory().pk,
             "inventory:equipment_assign": EquipmentFactory().pk,
             "inventory:licence_detail": LicenceFactory().pk,
+            "helpdesk:time_entry_edit": entry(),
+            "helpdesk:time_entry_delete": entry(),
         },
     }
 
@@ -107,7 +116,9 @@ def test_sans_role_refuse(name, pattern, objects):
 def test_technicien_et_administrateur_acceptes(name, pattern, objects, traits):
     response = logged(**traits).get(url_for(name, pattern, objects))
     # 405 : route en POST seul ; 302 : redirection applicative (jamais vers la connexion).
-    assert response.status_code in (200, 302, 405), name
+    # 403 n'est admis que pour les corrections de temps : réservées à l'auteur de la saisie.
+    allowed = (200, 302, 405, 403) if name.startswith("helpdesk:time_entry") else (200, 302, 405)
+    assert response.status_code in allowed, name
     if response.status_code == 302:
         assert not response["Location"].startswith("/connexion/"), name
 

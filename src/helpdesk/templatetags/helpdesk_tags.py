@@ -29,6 +29,18 @@ def duration(minutes) -> str:
     return f"{hours} h {rest:02d}" if rest else f"{hours} h"
 
 
+@register.filter
+def business_duration(minutes, day_minutes=540) -> str:
+    """Durée ouvrée : 1 230 min avec des journées de 540 min → « 2 j 2 h 30 »."""
+    if minutes in (None, ""):
+        return "—"
+    minutes, day = int(minutes), int(day_minutes or 540)
+    days, rest = divmod(minutes, day)
+    if not days:
+        return duration(rest)
+    return f"{days} j {duration(rest)}" if rest else f"{days} j"
+
+
 @register.simple_tag
 def status_tag(ticket):
     return format_html(

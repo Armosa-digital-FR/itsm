@@ -58,6 +58,15 @@ p { margin: 0 0 var(--space-3); }
   padding: var(--space-2) var(--space-3); border-bottom: 2px solid transparent;
 }
 .site-nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--brand); }
+.time-entries { list-style: none; padding: 0; margin: var(--space-3) 0 0; font-size: 14px; }
+.time-entries li { padding: var(--space-2) 0; border-top: 1px solid var(--hairline); }
+.entry-edit summary { cursor: pointer; color: var(--ink-soft); font-size: 13px; }
+.entry-edit form { margin-top: var(--space-2); }
+.timer-chip { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: 14px;
+  background: var(--sage-100); border-radius: var(--radius-pill); padding: 4px 4px 4px var(--space-3); }
+.timer-chip .mono { min-width: 64px; }
+.time-summary { display: flex; flex-wrap: wrap; gap: var(--space-5); margin-top: var(--space-3); font-size: 14px; }
+.time-summary strong { font-family: var(--font-mono); font-weight: 500; }
 .site-user { display: flex; align-items: center; gap: var(--space-3); font-size: 14px; }
 .site-user form { margin: 0; }
 
