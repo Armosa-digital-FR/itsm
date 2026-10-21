@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Django
+/staticfiles/
+/media/
+*.sqlite3
+
+# Secrets et environnement local
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+
+# Playwright
+test-results/
+playwright-report/
+
+# Éditeurs et système
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
