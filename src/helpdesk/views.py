@@ -172,7 +172,11 @@ def ticket_export(request):
 
 @technician_required
 def ticket_new(request):
-    form = TicketCreateForm(request.POST or None, request.FILES or None)
+    form = TicketCreateForm(
+        request.POST or None,
+        request.FILES or None,
+        initial={"requester": request.GET.get("requester")},
+    )
     if request.method == "POST" and form.is_valid():
         data = form.cleaned_data
         ticket = svc.create_manual(

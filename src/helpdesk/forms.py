@@ -193,7 +193,10 @@ class NoteForm(forms.Form):
 
 
 class TimeForm(forms.Form):
-    date = forms.DateField(label="Date", widget=forms.DateInput(attrs={"type": "date"}))
+    # Format ISO imposé : un <input type="date"> ignore une valeur « 21/10/2026 ».
+    date = forms.DateField(
+        label="Date", widget=forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"})
+    )
     minutes = forms.IntegerField(label="Durée (minutes)", min_value=1, max_value=1440)
     comment = forms.CharField(label="Commentaire", required=False, max_length=500)
 

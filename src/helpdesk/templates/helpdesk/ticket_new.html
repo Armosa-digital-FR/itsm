@@ -10,7 +10,7 @@
     <div class="field">
       <label for="requester-search">Demandeur</label>
       <input id="requester-search" type="search" name="q" placeholder="Nom ou e-mail (2 caractères minimum)" autocomplete="off"
-             hx-get="{% url 'directory:search' %}" hx-trigger="keyup changed delay:300ms, search" hx-target="#requester-results" hx-include="this">
+             hx-get="{% url 'directory:search' %}" hx-trigger="input changed delay:300ms, search" hx-target="#requester-results" hx-include="this">
       {{ form.requester }}
       <div id="requester-selected" class="tag tag-plain" aria-live="polite">{% if selected %}{{ selected }} · {{ selected.email }}{% else %}Aucun demandeur choisi{% endif %}</div>
       <div id="requester-results"></div>

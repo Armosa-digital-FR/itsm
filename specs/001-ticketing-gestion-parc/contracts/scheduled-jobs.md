@@ -7,7 +7,7 @@ périodiques sont verrouillées (une seule instance à la fois).
 | Tâche | Planification | Exigences | Effet |
 |---|---|---|---|
 | `mail.poll_mailboxes` | chaque minute | FR-010 à FR-013, SC-001 | relève de chaque boîte support selon [email.md](./email.md) ; un `SyncRun` par boîte |
-| `mail.send` | à la demande, 3 tentatives (1, 5, 15 min) | FR-012, FR-031, FR-034, FR-038 | envoi d'un `EmailMessage` sortant ; statut `envoye` ou `echec` |
+| `mail.send` | à la demande, 3 tentatives (environ 1, 5 et 9 min) | FR-012, FR-031, FR-034, FR-038 | envoi d'un `EmailMessage` sortant ; statut `envoye` ou `echec` |
 | `directory.sync_entra` | toutes les 30 min ; complète à 02:00 | FR-001, US5 | synchro delta des utilisateurs ; effets de désactivation (compétences, groupes, alertes) |
 | `inventory.sync_intune` | toutes les heures | FR-002, FR-003, US4 | synchro complète des appareils et rapprochement |
 | `helpdesk.check_ack_deadlines` | toutes les 5 min | FR-037, US3-1 | marque `ack_breached` ; alerte une fois par ticket |

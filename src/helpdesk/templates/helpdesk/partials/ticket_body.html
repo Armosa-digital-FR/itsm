@@ -105,7 +105,7 @@
             {% if field.name == "requester" %}
               {% if not ticket.requester %}
               <div class="field"><label for="requester-search">Identifier le demandeur</label>
-                <input id="requester-search" type="search" name="q" placeholder="Nom ou e-mail" hx-get="{% url 'directory:search' %}" hx-trigger="keyup changed delay:300ms" hx-target="#requester-results" hx-include="this" hx-swap="innerHTML">
+                <input id="requester-search" type="search" name="q" placeholder="Nom ou e-mail" hx-get="{% url 'directory:search' %}" hx-trigger="input changed delay:300ms" hx-target="#requester-results" hx-include="this" hx-swap="innerHTML">
                 {{ field }}<div id="requester-selected" class="muted"></div><div id="requester-results"></div></div>
               {% else %}{{ field.as_hidden }}{% endif %}
             {% else %}

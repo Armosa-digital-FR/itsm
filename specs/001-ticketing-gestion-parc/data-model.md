@@ -122,6 +122,7 @@ Unicité (`technician`, `tool`). Supprimée automatiquement quand le technicien 
 | `title` | texte (≤ 255) | obligatoire ; objet de l'e-mail ou saisi |
 | `description` | texte | corps texte ; `description_html` assaini en parallèle |
 | `channel` | énum {`email`, `app`} | canal de création (FR-014a) |
+| `mailbox` | e-mail | boîte support d'origine (expéditeur des réponses) ; boîte par défaut si création dans l'application |
 | `created_by` | → Account | renseigné si `channel = app` |
 | `requester` | → DirectoryUser | vide si expéditeur non identifié ou anonymisé |
 | `requester_email` | e-mail | adresse d'origine, conservée pour les réponses ; vidée à l'anonymisation |
@@ -230,7 +231,9 @@ Exécutée quand `tool` est renseigné ou modifié **et** que le ticket est en `
 | `in_reply_to`, `references` | texte | en-têtes du message entrant |
 | `ticket` | → Ticket | vide si ignoré |
 | `kind` | énum {`accuse_reception`, `note_externe`, `rappel`, `resolution`, `alerte_technicien`, `entrant`} | liste fermée (FR-038) |
-| `processing` | énum {`ticket_cree`, `note_ajoutee`, `ignore_automatique`, `ignore_boucle`, `ignore_limite`, `envoye`, `echec`} | |
+| `processing` | énum {`ticket_cree`, `note_ajoutee`, `ignore_automatique`, `ignore_boucle`, `ignore_limite`, `a_envoyer`, `envoye`, `simule`, `echec`} | `simule` : Graph désactivé (développement) |
+| `subject`, `from_address`, `to_addresses` | texte | objet, expéditeur, destinataires |
+| `body_html`, `body_text` | texte | corps rendu des e-mails sortants (les corps entrants sont dans les notes) |
 | `sent_at` / `received_at` | date-heure | |
 | `error` | texte | |
 
@@ -254,7 +257,7 @@ sur une période (vue de suivi).
 | `ticket` | → Ticket | |
 | `at` | date-heure | |
 | `actor` | → Account | vide = système |
-| `kind` | énum {`creation`, `statut`, `priorite`, `categorie`, `type`, `outil`, `affectation`, `filiale`, `note`, `temps`, `resolution`, `equipement`, `rappel`, `alerte_delai`, `prise_en_main`, `fusion_reponse`} | |
+| `kind` | énum {`creation`, `statut`, `priorite`, `categorie`, `type`, `outil`, `affectation`, `filiale`, `demandeur`, `note`, `temps`, `resolution`, `equipement`, `rappel`, `alerte_delai`, `prise_en_main`, `fusion_reponse`} | |
 | `old_value`, `new_value` | texte | libellés lisibles |
 | `data` | JSON | détails complémentaires |
 

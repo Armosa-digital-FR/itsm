@@ -101,6 +101,7 @@ class Command(BaseCommand):
             raise CommandError("seed_demo est réservée au développement (DEBUG=True).")
         with transaction.atomic():
             self.seed_directory()
+            self.seed_helpdesk()
         self.stdout.write(self.style.SUCCESS("Données de démonstration prêtes."))
 
     def seed_directory(self):
@@ -148,3 +149,79 @@ class Command(BaseCommand):
                 pk=manager.pk
             ).update(manager=manager)
         self.stdout.write(f"Annuaire : {len(PEOPLE)} personnes, dont 4 comptes ITSM.")
+
+    def seed_helpdesk(self):
+        from core.models import Settings
+        from helpdesk.models import Category, TechnicianGroup, Ticket, Tool
+        from helpdesk.services.tickets import create_manual
+
+        conf = Settings.load()
+        conf.support_mailboxes = conf.support_mailboxes or ["support@armosa.test"]
+        conf.internal_domains = conf.internal_domains or ["armosa.test"]
+        conf.save()
+
+        tree = {
+            "Matériel": {
+                "Poste de travail": ["Écran", "Clavier et souris", "Lenteurs"],
+                "Impression": ["Bourrage", "Pilote", "Scan"],
+            },
+            "Logiciels": {"Messagerie": ["Outlook", "Teams"], "Métier": ["ERP", "Paie"]},
+            "Comptes et accès": {
+                "Mot de passe": ["Réinitialisation"],
+                "Droits": ["Dossier partagé", "Application"],
+            },
+        }
+        leaves = {}
+        for i, (root, children) in enumerate(tree.items()):
+            level1, _ = Category.objects.get_or_create(
+                name=root, parent=None, defaults={"position": i}
+            )
+            for child, grandchildren in children.items():
+                level2, _ = Category.objects.get_or_create(name=child, parent=level1)
+                for leaf in grandchildren:
+                    leaves[leaf], _ = Category.objects.get_or_create(name=leaf, parent=level2)
+
+        technicians = {
+            a.directory_user.given_name: a
+            for a in Account.objects.exclude(roles=[]).select_related("directory_user")
+        }
+        poste, reseau = (
+            TechnicianGroup.objects.get_or_create(name=name)[0]
+            for name in ("Poste de travail", "Réseau et sécurité")
+        )
+        poste.members.set([technicians["Hugo"], technicians["Zoé"]])
+        reseau.members.set([technicians["Nathan"], technicians["Valentine"]])
+        tools = {}
+        for name, group in [
+            ("Outlook", None),
+            ("Teams", None),
+            ("ERP", poste),
+            ("VPN", reseau),
+            ("Imprimantes", poste),
+        ]:
+            tools[name], _ = Tool.objects.get_or_create(
+                name=name, defaults={"default_group": group}
+            )
+
+        if not Ticket.objects.exists():
+            hugo = technicians["Hugo"]
+            people = {p.given_name: p for p in DirectoryUser.objects.all()}
+            samples = [
+                ("Camille", "Imprimante du 2e étage en panne", "Bourrage", "Imprimantes", "haute"),
+                ("Sacha", "Outlook ne se synchronise plus", "Outlook", "Outlook", "normale"),
+                ("Alex", "Accès VPN refusé depuis le terrain", "Application", "VPN", "haute"),
+                ("Noa", "Demande d'un second écran", "Écran", None, "basse"),
+                ("Inès", "Mot de passe expiré", "Réinitialisation", None, "normale"),
+            ]
+            for given, title, leaf, tool, priority in samples:
+                create_manual(
+                    technician=hugo,
+                    requester=people[given],
+                    title=title,
+                    description="Ticket de démonstration.",
+                    type="incident",
+                    category=leaves[leaf],
+                    tool=tools.get(tool),
+                    priority=priority,
+                )
+        self.stdout.write("Tickets : catégories, outils, groupes et 5 tickets de démonstration.")

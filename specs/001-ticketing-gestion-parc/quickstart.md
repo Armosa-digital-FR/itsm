@@ -8,7 +8,7 @@ de données dans [data-model.md](./data-model.md).
 
 ## Prérequis
 
-- Python 3.12, [`uv`](https://docs.astral.sh/uv/), Docker (PostgreSQL 16 local).
+- Python 3.12, [`uv`](https://docs.astral.sh/uv/), PostgreSQL 16 ou plus (paquet système ou `docker compose up -d db`), avec un rôle `itsm` (mot de passe `itsm`, droit `CREATEDB`).
 - Pour la recette « réelle » : un tenant Microsoft 365 de test (ou le tenant de production
   avec des comptes de test), une boîte support de test, l'application Entra « ITSM » et les
   permissions décrites dans [contracts/graph-integration.md](./contracts/graph-integration.md).
@@ -17,12 +17,11 @@ de données dans [data-model.md](./data-model.md).
 
 ```bash
 uv sync                                   # dépendances verrouillées
-docker compose up -d db                   # PostgreSQL 16
 cp .env.example .env                      # ITSM_GRAPH_ENABLED=false par défaut
 uv run python manage.py migrate
 uv run python manage.py seed_demo         # filiales, sites, utilisateurs, catégories, outils, équipements fictifs
 uv run python manage.py runserver         # interface : http://localhost:8000
-uv run procrastinate --app=itsm.worker.app worker   # second terminal : tâches planifiées
+uv run python manage.py procrastinate worker    # second terminal : tâches planifiées
 ```
 
 Avec `ITSM_GRAPH_ENABLED=false` : la connexion se fait par un compte local de développement
@@ -37,7 +36,8 @@ uv run python manage.py inject_email tests/fixtures/mail/nouvelle_demande.eml
 
 ```bash
 uv run pytest                       # unitaires + intégration (Graph simulé par respx, horloge figée)
-uv run pytest -m e2e                # 3 parcours Playwright
+uv run playwright install chromium  # une fois ; Chromium requiert libnss3, libnspr4, libasound2t64
+uv run pytest -m e2e                # parcours Playwright
 uv run ruff check . && uv run ruff format --check .
 uv run pip-audit                    # vulnérabilités des dépendances
 ```
