@@ -59,7 +59,10 @@ markers = [
     "e2e: parcours de bout en bout Playwright",
     "perf: vérifications de volume et de performance (SC-009)",
 ]
-filterwarnings = ["ignore::DeprecationWarning:mozilla_django_oidc.*"]
+filterwarnings = [
+    "ignore::DeprecationWarning:mozilla_django_oidc.*",
+    "ignore:No directory at:UserWarning",
+]
 
 [tool.coverage.run]
 source = ["src"]

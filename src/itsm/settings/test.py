@@ -16,3 +16,5 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 LOGGING = {"version": 1, "disable_existing_loggers": False}
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True

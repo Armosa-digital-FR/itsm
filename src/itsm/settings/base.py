@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "directory",
     "helpdesk",
     "inventory",
-    "django.contrib.admin",
+    "core.apps.ITSMAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

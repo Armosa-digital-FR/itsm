@@ -1,27 +1,7 @@
-from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth.views import redirect_to_login
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import redirect, resolve_url
 
 from . import audit
 from .models import AuditEntry, ClosureDay, Settings
-
-admin.site.site_header = "Administration de l'ITSM"
-admin.site.site_title = "ITSM Armosa Digital"
-admin.site.index_title = "Référentiels et paramètres"
-
-
-def admin_login(request, extra_context=None):
-    """L'admin n'a pas de connexion propre : connexion Entra, rôle administrateur exigé."""
-    if not request.user.is_authenticated:
-        return redirect_to_login(request.get_full_path(), resolve_url(settings.LOGIN_URL))
-    if not request.user.is_admin:
-        raise PermissionDenied("L'administration est réservée au rôle administrateur.")
-    return redirect(request.GET.get("next") or "admin:index")
-
-
-admin.site.login = admin_login
 
 
 @admin.register(Settings)

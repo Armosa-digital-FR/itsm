@@ -10,3 +10,6 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "[::1]"]
 # Connexion locale par compte de démonstration (désactivée hors DEBUG, voir core.views).
 DEV_LOGIN = env_bool("DEV_LOGIN", True)
 AUTHENTICATION_BACKENDS = [*AUTHENTICATION_BACKENDS, "django.contrib.auth.backends.ModelBackend"]
+
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True

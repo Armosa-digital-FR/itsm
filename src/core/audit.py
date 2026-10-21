@@ -39,8 +39,12 @@ def purge_before(cutoff) -> int:
 
     Seul chemin autorisé par le déclencheur : la variable de session `itsm.audit_purge`.
     """
-    with transaction.atomic():
-        with connection.cursor() as cursor:
-            cursor.execute("SET LOCAL itsm.audit_purge = 'on'")
-        deleted, _ = AuditEntry.objects.filter(at__lt=cutoff).delete()
+    with transaction.atomic(), connection.cursor() as cursor:
+        cursor.execute("SELECT set_config('itsm.audit_purge', 'on', true)")
+        try:
+            deleted, _ = AuditEntry.objects.filter(at__lt=cutoff).delete()
+        finally:
+            # Remise à zéro immédiate : la purge peut s'exécuter dans une transaction plus
+            # large, la protection ne doit pas rester levée jusqu'à son terme.
+            cursor.execute("SELECT set_config('itsm.audit_purge', 'off', true)")
     return deleted
