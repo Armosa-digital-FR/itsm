@@ -552,8 +552,8 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 - Les heures ouvrées sont du lundi au vendredi, 9 h – 18 h, heure de Paris, hors jours fériés
   français ; elles sont paramétrables.
 - L'identité visuelle s'appuie sur le design system « Armosa »
-  (https://claude.ai/artifact/TpiLP3RLTVE5tpVmBcxAsG) et sur le logo Armosa Digital déposé à la
-  racine du dépôt. Ce design system ne définit pas encore de couleurs d'état (erreur,
+  (https://claude.ai/artifact/TpiLP3RLTVE5tpVmBcxAsG) et sur le logo Armosa Digital rangé dans
+  `src/core/static/img/`. Ce design system ne définit pas encore de couleurs d'état (erreur,
   avertissement, succès) ni de thème sombre : les couleurs d'état nécessaires à l'ITSM
   (priorités, dépassements de délai, échecs de synchronisation) seront à y ajouter lors de la
   conception de l'interface.

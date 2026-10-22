@@ -59,7 +59,7 @@ priorité) n'envoie d'e-mail au demandeur. Un test automatisé vérifie que l'en
 - Expéditeur : la boîte support qui a reçu le ticket (sinon la première boîte paramétrée).
 - HTML aux styles en ligne conforme au design system Armosa (fond `canvas`, texte `ink`,
   titres EB Garamond avec repli Georgia, aucun bouton coloré `brand`) + partie texte.
-- Logo : `LOGO ARMOSA DIGITAL OK 2.png` (824×113) en pièce jointe inline `cid:logo`, affiché à
+- Logo : `src/core/static/img/logo.png` (824×113) en pièce jointe inline `cid:logo`, affiché à
   200 px de large, texte alternatif « Armosa Digital ».
 - Les notes internes, le nom des groupes et les informations d'autres demandeurs ne figurent
   jamais dans un e-mail au demandeur.

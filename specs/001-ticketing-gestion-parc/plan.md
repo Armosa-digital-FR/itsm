@@ -137,7 +137,7 @@ deploy/                       # définition Azure Container Apps (web, worker), 
 **Structure Decision**: un seul projet Django à la racine, découpé en quatre applications par
 domaine (`core`, `directory`, `helpdesk`, `inventory`) qui correspondent aux modules du
 [data-model.md](./data-model.md). La logique métier vit dans des modules `services/` testables
-sans HTTP ; les vues restent minces. Le logo est copié depuis la racine du dépôt vers
+sans HTTP ; les vues restent minces. Le logo se trouve dans
 `src/core/static/img/` (SVG recadré, PNG pour les e-mails).
 
 ## Ordre de livraison recommandé
