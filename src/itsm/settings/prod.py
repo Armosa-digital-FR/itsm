@@ -15,6 +15,11 @@ for _name in ("AZURE_TENANT_ID", "OIDC_RP_CLIENT_ID", "OIDC_RP_CLIENT_SECRET"):
 DEBUG = False
 DEV_LOGIN = False
 
+# Render fournit le nom d'hôte public du service.
+if _render_host := env("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, _render_host]  # noqa: F405
+    CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, f"https://{_render_host}"]  # noqa: F405
+
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
 SECURE_HSTS_SECONDS = 31536000

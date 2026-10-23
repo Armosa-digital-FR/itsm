@@ -1,0 +1,65 @@
+# Blueprint Render — environnement de recette (Francfort, UE). Voir deploy/render.md.
+# Les valeurs `sync: false` sont demandées dans le tableau de bord à la création du blueprint.
+databases:
+  - name: itsm-db
+    region: frankfurt
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+    databaseName: itsm
+    user: itsm
+    ipAllowList: []  # accès réseau interne Render uniquement
+
+envVarGroups:
+  - name: itsm-config
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ITSM_BASE_URL
+        sync: false  # https://<service>.onrender.com
+      # Connexion des techniciens (application Entra « ITSM »)
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: OIDC_RP_CLIENT_ID
+        sync: false
+      - key: OIDC_RP_CLIENT_SECRET
+        sync: false
+      # Microsoft Graph et Blob Storage : identité à certificat (fichier secret Render)
+      - key: ITSM_GRAPH_ENABLED
+        value: "true"
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_CERTIFICATE_PATH
+        value: /etc/secrets/itsm-graph.pem
+      - key: AZURE_STORAGE_ACCOUNT_NAME
+        sync: false
+      - key: AZURE_STORAGE_CONTAINER
+        value: attachments
+
+services:
+  - type: web
+    name: itsm-web
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    preDeployCommand: python manage.py migrate --noinput
+    envVars:
+      - fromGroup: itsm-config
+      - key: DATABASE_URL
+        fromDatabase:
+          name: itsm-db
+          property: connectionString
+
+  - type: worker
+    name: itsm-worker
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: python manage.py procrastinate worker
+    envVars:
+      - fromGroup: itsm-config
+      - key: DATABASE_URL
+        fromDatabase:
+          name: itsm-db
+          property: connectionString
