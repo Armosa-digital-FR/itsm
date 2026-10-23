@@ -11,8 +11,9 @@ d'application avec **certificat**, fourni à Render comme fichier secret.
 ## 1. Côté Azure / Entra
 
 1. **Connexion des techniciens** : application « ITSM » selon
-   [`docs/configuration-entra.md`](../docs/configuration-entra.md), avec l'URI de redirection
-   `https://<service>.onrender.com/oidc/callback/`.
+   [`docs/configuration-entra.md`](../docs/configuration-entra.md). L'URI de redirection
+   `https://<service>.onrender.com/oidc/callback/` s'ajoute **après** le premier déploiement,
+   une fois l'adresse Render connue : seuls l'ID et le secret sont nécessaires pour déployer.
 2. **Identité Graph** : une inscription d'application « ITSM recette – Graph » avec un
    certificat (clé privée + certificat dans un seul fichier PEM). Lui accorder les permissions
    applicatives de [README.md §4](./README.md#4-autoriser-lidentité-managée-sur-microsoft-graph)
