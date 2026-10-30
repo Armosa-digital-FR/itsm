@@ -130,3 +130,19 @@ class AuditEntry(models.Model):
 
     def __str__(self) -> str:
         return f"{self.at:%d/%m/%Y %H:%M} {self.action}"
+
+
+class StoredFile(models.Model):
+    """Contenu d'un fichier enregistré par `core.storage.DatabaseStorage`."""
+
+    name = models.CharField("nom", max_length=500, unique=True)
+    content = models.BinaryField("contenu")
+    size = models.PositiveBigIntegerField("taille")
+    created_at = models.DateTimeField("créé le", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "fichier stocké"
+        verbose_name_plural = "fichiers stockés"
+
+    def __str__(self) -> str:
+        return self.name

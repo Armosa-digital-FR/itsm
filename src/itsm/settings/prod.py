@@ -1,6 +1,5 @@
 """Réglages de production (Azure Container Apps, France Central)."""
 
-from azure.identity import DefaultAzureCredential
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
@@ -29,9 +28,17 @@ SECURE_REFERRER_POLICY = "same-origin"
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
-# Pièces jointes dans Azure Blob Storage, accès par identité managée (pas de clé).
 STORAGES = {
-    "default": {
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+if env("ITSM_ATTACHMENT_STORAGE", "azure") == "database":
+    # Pièces jointes dans PostgreSQL (Render : pas de stockage objet partagé web/worker).
+    STORAGES["default"] = {"BACKEND": "core.storage.DatabaseStorage"}
+else:
+    # Pièces jointes dans Azure Blob Storage, accès par identité managée (pas de clé).
+    from azure.identity import DefaultAzureCredential
+
+    STORAGES["default"] = {
         "BACKEND": "storages.backends.azure_storage.AzureStorage",
         "OPTIONS": {
             "account_name": env("AZURE_STORAGE_ACCOUNT_NAME"),
@@ -40,6 +47,4 @@ STORAGES = {
             "expiration_secs": 300,  # URL signées de courte durée
             "overwrite_files": False,
         },
-    },
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
-}
+    }

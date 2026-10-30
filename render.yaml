@@ -24,17 +24,16 @@ envVarGroups:
         sync: false
       - key: OIDC_RP_CLIENT_SECRET
         sync: false
-      # Microsoft Graph et Blob Storage : identité à certificat (fichier secret Render)
+      # Microsoft Graph : identité à certificat (fichier secret Render)
       - key: ITSM_GRAPH_ENABLED
         value: "true"
       - key: AZURE_CLIENT_ID
         sync: false
       - key: AZURE_CLIENT_CERTIFICATE_PATH
         value: /etc/secrets/itsm-graph.pem
-      - key: AZURE_STORAGE_ACCOUNT_NAME
-        sync: false
-      - key: AZURE_STORAGE_CONTAINER
-        value: attachments
+      # Pièces jointes dans PostgreSQL, partagées par le web et le worker
+      - key: ITSM_ATTACHMENT_STORAGE
+        value: database
 
 services:
   - type: web
