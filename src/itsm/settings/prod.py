@@ -3,13 +3,17 @@
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F403
-from .base import SECRET_KEY, env
+from .base import SECRET_KEY, env, env_bool
 
 if not SECRET_KEY:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY doit être défini en production.")
 for _name in ("AZURE_TENANT_ID", "OIDC_RP_CLIENT_ID", "OIDC_RP_CLIENT_SECRET"):
     if not env(_name):
         raise ImproperlyConfigured(f"{_name} doit être défini en production (connexion Entra).")
+if env_bool("ITSM_GRAPH_ENABLED") and not env_bool("ITSM_USE_MANAGED_IDENTITY"):
+    for _name in ("AZURE_CLIENT_ID", "AZURE_CLIENT_CERTIFICATE_PATH"):
+        if not env(_name):
+            raise ImproperlyConfigured(f"{_name} doit être défini (identité Graph à certificat).")
 
 DEBUG = False
 DEV_LOGIN = False
