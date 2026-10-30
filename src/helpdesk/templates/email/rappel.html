@@ -4,6 +4,6 @@
 {% block content %}
 <p style="margin:0 0 16px 0;">Bonjour{% if ticket.requester.given_name %} {{ ticket.requester.given_name }}{% endif %},</p>
 <p style="margin:0 0 16px 0;">Pour avancer sur votre demande « {{ ticket.title }} », le support a besoin de votre réponse.</p>
-{% if extra.last_note %}<div style="margin:0 0 16px 0;padding:16px;background:#f1eee9;border-radius:8px;white-space:pre-wrap;">{{ extra.last_note }}</div>{% endif %}
+{% if extra.last_note %}<div style="margin:0 0 16px 0;padding:16px;background:#e6e6e6;white-space:pre-wrap;">{{ extra.last_note }}</div>{% endif %}
 <p style="margin:0;">Sans réponse de votre part, la demande sera considérée comme résolue le {{ extra.auto_resolve_at|date:"l j F Y" }}.</p>
 {% endblock %}

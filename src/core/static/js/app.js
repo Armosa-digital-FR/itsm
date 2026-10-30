@@ -155,3 +155,30 @@ function richInit(root) {
 }
 document.addEventListener("DOMContentLoaded", function () { richInit(document); });
 document.addEventListener("htmx:load", function (event) { richInit(event.target); });
+
+// Panneau dépliable (ex. formulaire de résolution de la fiche ticket).
+document.addEventListener("click", function (event) {
+  var toggle = event.target.closest("[data-toggle-panel]");
+  if (!toggle) return;
+  var panel = document.getElementById(toggle.getAttribute("data-toggle-panel"));
+  if (!panel) return;
+  panel.hidden = !panel.hidden;
+  document.querySelectorAll('[aria-controls="' + panel.id + '"]').forEach(function (b) {
+    b.setAttribute("aria-expanded", String(!panel.hidden));
+  });
+  if (!panel.hidden) {
+    var first = panel.querySelector("textarea, input:not([type=hidden]), select");
+    if (first) first.focus();
+  }
+});
+
+// Zone de réponse : l'aide et le libellé du bouton suivent le choix réponse / note interne.
+document.addEventListener("change", function (event) {
+  var radio = event.target.closest("[data-composer] input[type=radio]");
+  if (!radio) return;
+  var form = radio.closest("[data-composer]");
+  var choice = radio.parentElement.querySelector("[data-hint]");
+  if (!choice) return;
+  form.querySelector("[data-composer-hint]").textContent = choice.getAttribute("data-hint");
+  form.querySelector("[data-composer-submit]").textContent = choice.getAttribute("data-submit");
+});

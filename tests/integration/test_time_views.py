@@ -53,8 +53,8 @@ def test_mon_temps_et_total_sur_la_fiche(technician_client, technician):
     response = technician_client.get(url("ticket_detail", ticket))
     assert response.context["time"]["mine"] == 80 and response.context["time"]["total"] == 125
     content = response.content.decode()
-    assert "Mon temps <strong>1 h 20</strong>" in content
-    assert "Temps total <strong>2 h 05</strong>" in content
+    assert '<span class="value">1 h 20</span>' in content
+    assert "Total : 2 h 05" in content
 
 
 def test_correction_d_une_saisie_par_son_auteur_seulement(client, technician_client, technician):
@@ -128,7 +128,7 @@ def test_delai_de_resolution(technician_client, technician):
         change_status(ticket, Ticket.Status.RESOLU, technician, resolution="Fait.")
     assert ticket.resolution_business_minutes == 540 + 150  # 1 j ouvré + 2 h 30
     content = technician_client.get(url("ticket_detail", ticket)).content.decode()
-    assert "1 j 2 h 30 ouvrées" in content
+    assert '<span class="value">1 j 2 h 30</span>' in content
     traites = technician_client.get(
         reverse("helpdesk:ticket_list"), {"onglet": "traites"}
     ).content.decode()

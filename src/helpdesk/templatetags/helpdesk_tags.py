@@ -76,3 +76,28 @@ def rich_html(value) -> str:
     from helpdesk.mail.parsing import sanitize_html
 
     return mark_safe(sanitize_html(value or ""))  # noqa: S308 - sortie de nh3 (liste blanche)
+
+
+@register.filter
+def elapsed(minutes) -> str:
+    """Durée calendaire courte : 50 → « 50 min » ; 1 570 → « 1 j 2 h »."""
+    if minutes in (None, ""):
+        return "—"
+    minutes = int(minutes)
+    days, rest = divmod(minutes, 1440)
+    if not days:
+        return duration(rest)
+    hours = rest // 60
+    return f"{days} j {hours} h" if hours else f"{days} j"
+
+
+@register.filter
+def initials(name) -> str:
+    """« Camille Martin » → « CM » ; « support@x.fr » → « SU » (pastilles d'avatar)."""
+    name = str(name or "").split("@")[0].replace(".", " ").replace("-", " ").strip()
+    words = [w for w in name.split() if w[:1].isalnum()]
+    if not words:
+        return "?"
+    if len(words) == 1:
+        return words[0][:2].upper()
+    return (words[0][0] + words[-1][0]).upper()

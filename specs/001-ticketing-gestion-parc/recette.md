@@ -48,4 +48,4 @@
 - Purge de l'audit laissant la protection levée dans une transaction englobante → réarmement.
 - Images intégrées des e-mails perdues ; limite de 20 e-mails/h fondée sur une date falsifiable.
 - Sonde de santé Azure rejetée par `ALLOWED_HOSTS` → en-tête `Host` dans la sonde.
-- Contraste du texte secondaire sur fonds linen/sauge, hiérarchie des titres (axe-core).
+- Contraste du texte secondaire sur fonds Mercury (texte en Armosa), hiérarchie des titres (axe-core).

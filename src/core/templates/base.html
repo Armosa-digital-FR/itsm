@@ -16,7 +16,7 @@
   {% if dev_mode %}<div class="dev-banner" role="region" aria-label="Mode développement">Mode développement — connexion de démonstration et données fictives. Cette version n'est jamais déployée en production.</div>{% endif %}
   {% if user.is_authenticated %}
   <header class="site-header">
-    <a class="logo" href="{% url 'core:home' %}"><img src="{% static 'img/logo.svg' %}" alt="Armosa Digital — ITSM"></a>
+    <a class="logo" href="{% url 'core:home' %}"><img src="{% static 'img/logo-light.svg' %}" alt="Armosa Digital — ITSM"></a>
     <nav class="site-nav" aria-label="Navigation principale">
       {% for item in nav_items %}
         <a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a>

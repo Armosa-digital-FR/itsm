@@ -4,7 +4,7 @@
 {% block content %}
 <p style="margin:0 0 16px 0;">Bonjour{% if ticket.requester.given_name %} {{ ticket.requester.given_name }}{% endif %},</p>
 <p style="margin:0 0 16px 0;">Nous avons bien reçu votre demande. Elle porte la référence <strong>{{ ticket.reference }}</strong> et sera traitée par l'équipe du support informatique.</p>
-<p style="margin:0 0 4px 0;font-family:'IBM Plex Mono',Menlo,monospace;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:#656f6a;">Objet</p>
+<p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#1f454d;">Objet</p>
 <p style="margin:0 0 16px 0;">{{ ticket.title }}</p>
 <p style="margin:0;">Pour ajouter une précision ou une pièce jointe, répondez simplement à cet e-mail.</p>
 {% endblock %}

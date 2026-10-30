@@ -13,10 +13,10 @@
     --body-bg: var(--canvas);
     --body-quiet-color: var(--ink-muted-strong);
     --body-loud-color: var(--ink);
-    --header-color: var(--ink);
-    --header-branding-color: var(--ink);
-    --header-bg: var(--paper);
-    --header-link-color: var(--ink);
+    --header-color: var(--mercury);
+    --header-branding-color: var(--white);
+    --header-bg: var(--tiber);
+    --header-link-color: var(--white);
     --breadcrumbs-fg: var(--ink-soft);
     --breadcrumbs-link-fg: var(--ink);
     --breadcrumbs-bg: var(--linen);
@@ -34,9 +34,9 @@
     --selected-row: var(--sage-100);
     --button-fg: var(--action-text);
     --button-bg: var(--action);
-    --button-hover-bg: #313e38;
+    --button-hover-bg: var(--armosa);
     --default-button-bg: var(--action);
-    --default-button-hover-bg: #313e38;
+    --default-button-hover-bg: var(--armosa);
     --close-button-bg: var(--ink-soft);
     --close-button-hover-bg: var(--ink);
     --delete-button-bg: var(--danger);
@@ -44,16 +44,17 @@
     --object-tools-fg: var(--canvas);
     --object-tools-bg: var(--ink-soft);
     --object-tools-hover-bg: var(--ink);
-    --font-family-primary: "IBM Plex Sans", Arial, sans-serif;
-    --font-family-monospace: "IBM Plex Mono", ui-monospace, monospace;
+    --font-family-primary: "Roboto", Arial, sans-serif;
+    --font-family-monospace: ui-monospace, monospace;
   }
-  #header { border-bottom: 1px solid var(--hairline); }
-  #branding h1 { font-family: "EB Garamond", Georgia, serif; font-weight: 500; }
+  #header { border-bottom: none; }
+  #branding h1 { font-weight: 400; }
+  .button, input[type=submit], input[type=button], .submit-row input, a.button, select, input, textarea { border-radius: 0; }
   #branding img { height: 26px; vertical-align: middle; margin-right: 10px; }
-  .module h2, .module caption, .inline-group h2 { background: var(--sage-100); color: var(--ink); }
+  .module h2, .module caption, .inline-group h2 { background: var(--mercury); color: var(--tiber); font-weight: 500; }
 </style>
 {% endblock %}
 {% block branding %}
-<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'img/logo.svg' %}" alt="">Administration de l'ITSM</a></div>
+<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'img/logo-light.svg' %}" alt="">Administration de l'ITSM</a></div>
 {% endblock %}
 {% block userlinks %}<a href="{% url 'core:home' %}">Retour à l'ITSM</a> / {{ block.super }}{% endblock %}

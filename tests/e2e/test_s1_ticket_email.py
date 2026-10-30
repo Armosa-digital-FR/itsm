@@ -29,18 +29,19 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
     page.get_by_label("Type").select_option("incident")
     page.get_by_label("Catégorie").select_option(label="Matériel › Impression › Bourrage")
     page.get_by_label("Priorité").select_option("haute")
-    page.get_by_role("button", name="Enregistrer").click()
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
     expect(page.get_by_text("Qualification enregistrée.")).to_be_visible()
     page.get_by_role("button", name="Prendre le ticket").click()
     expect(page.locator("#ticket .tag", has_text="Pris en compte").first).to_be_visible()
 
     # Note interne puis note externe.
+    expect(page.locator(".rich-area")).to_be_visible()  # éditeur initialisé après l'échange HTMX
     page.get_by_label("Message").fill("Vérifier le tiroir 2.")
-    page.get_by_role("button", name="Ajouter la note").click()
+    page.get_by_role("button", name="Enregistrer la note").click()
     expect(page.get_by_text("Note interne ajoutée.")).to_be_visible()
-    page.get_by_label("Externe").check()
+    page.get_by_text("Répondre au demandeur").click()
     page.get_by_label("Message").fill("Pouvez-vous éteindre l'imprimante ?")
-    page.get_by_role("button", name="Ajouter la note").click()
+    page.get_by_role("button", name="Envoyer la réponse").click()
     expect(page.get_by_text("Note envoyée au demandeur.")).to_be_visible()
 
     # Temps passé, tentative de résolution sans texte (refusée), résolution, fermeture.
@@ -52,11 +53,12 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
     page.get_by_label("Durée (minutes)").fill("30")
     page.get_by_role("button", name="Ajouter du temps").click()
     expect(page.get_by_text("30 min enregistrées.")).to_be_visible()
-    expect(page.locator(".time-summary")).to_contain_text("Mon temps 31 min")
+    expect(page.locator(".metric-mine .value")).to_have_text("31 min")
+    page.get_by_role("button", name="Résoudre le ticket").click()
     page.get_by_label("Résolution").fill("Rouleau d'entraînement remplacé.")
-    page.get_by_role("button", name="Résoudre").click()
+    page.get_by_role("button", name="Valider la résolution").click()
     expect(page.locator("#ticket .tag", has_text="Résolu").first).to_be_visible()
-    page.get_by_role("button", name="Fermé").click()
+    page.get_by_role("button", name="Fermer le ticket").click()
     expect(page.locator("#ticket .tag", has_text="Fermé").first).to_be_visible()
 
     ticket.refresh_from_db()

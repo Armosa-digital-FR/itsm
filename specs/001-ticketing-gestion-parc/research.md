@@ -263,8 +263,8 @@ TeamViewer hors application, couleurs d'état, ordre de livraison).
   - droits des personnes, depuis l'admin : **export** (JSON) de toutes les données d'un
     utilisateur et **anonymisation anticipée** sur demande ; la rectification se fait dans Entra
     (source de vérité).
-- **Polices** : EB Garamond, IBM Plex Sans et IBM Plex Mono sont **auto-hébergées** (fichiers
-  woff2 sous licence OFL) plutôt que chargées depuis Google Fonts, pour ne pas transmettre
+- **Polices** : Roboto (300, 400, 400 italique, 500, 700) est **auto-hébergée** (fichiers
+  woff2 sous licence Apache 2.0 ; EB Garamond et IBM Plex jusqu'au design system v2) plutôt que chargées depuis Google Fonts, pour ne pas transmettre
   l'adresse IP des utilisateurs à un tiers.
 - **Données traitées (pour le registre)** : identité professionnelle, e-mail, filiale, site,
   service et responsable des collaborateurs ; contenu des échanges de support ; inventaire
@@ -296,6 +296,15 @@ TeamViewer hors application, couleurs d'état, ordre de livraison).
 - **Écart aux règles d'usage** : le design system limite `brand` et l'accent bronze à une ou
   deux touches par écran ; dans les listes (plusieurs priorités hautes à l'écran), ce sont les
   tokens d'état qui portent l'information, jamais `brand` ni `accent`.
+
+- **Mise à jour design system v2 (2026-10-30)** : palette Tiber `#05232f`, Armosa `#1f454d`,
+  Hunter `#4e6f65`, Norway `#a3b292` (fonds sombres seulement), Mercury `#e6e6e6`, Teddy
+  `#a67c52` (une touche par écran : la pastille « Priorité haute » de la fiche) ; Roboto seule ;
+  angles droits (2 px pour les champs) ; ni ombre ni dégradé. Les tokens d'état ci-dessus
+  restent (≥ 4,5:1 sur blanc et Mercury). Hunter sur Mercury (4,4:1) est réservé aux filets
+  et bordures : le texte secondaire est en Armosa. En-tête sombre (Tiber) avec un logo clair
+  dérivé (`logo-light.svg` : symbole Norway, texte blanc). Les anciens noms de tokens restent
+  en alias pour les gabarits existants.
 
 ## R17. Tests, qualité et sécurité de la chaîne
 

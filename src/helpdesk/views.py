@@ -368,14 +368,96 @@ def _timeline(ticket: Ticket) -> list[dict]:
     return sorted(chain(notes, events, emails), key=lambda item: item["at"])
 
 
+def _thread(timeline: list[dict]) -> list[dict]:
+    """Fil de conversation : les événements consécutifs sont regroupés entre deux messages."""
+    thread: list[dict] = []
+    for item in timeline:
+        if item["type"] == "note":
+            thread.append(item)
+        elif thread and thread[-1]["type"] == "events":
+            thread[-1]["items"].append(item)
+        else:
+            thread.append({"type": "events", "items": [item]})
+    return thread
+
+
+def _steps(ticket: Ticket) -> list[dict]:
+    """Frise en quatre étapes ; les deux attentes sont des sous-états de « En cours »."""
+    S = Ticket.Status
+    current = {S.CREE: 0, S.RESOLU: 2, S.FERME: 3}.get(ticket.status, 1)
+    waiting = ticket.status in (S.ATTENTE_REPONSE, S.EN_ATTENTE)
+    dates = (ticket.created_at, ticket.acknowledged_at, ticket.resolved_at, ticket.closed_at)
+    names = ("Nouveau", "En cours", "Résolu", "Fermé")
+    return [
+        {
+            "name": name,
+            "at": at if index <= current else None,
+            "state": "done" if index < current else "current" if index == current else "todo",
+            "detail": ticket.get_status_display() if waiting and index == 1 else "",
+        }
+        for index, (name, at) in enumerate(zip(names, dates, strict=True))
+    ]
+
+
+ACTION_LABELS = {
+    (Ticket.Status.CREE, Ticket.Status.PRIS_EN_COMPTE): "Prendre en compte",
+    (Ticket.Status.ATTENTE_REPONSE, Ticket.Status.PRIS_EN_COMPTE): "Reprendre le traitement",
+    (Ticket.Status.EN_ATTENTE, Ticket.Status.PRIS_EN_COMPTE): "Reprendre le traitement",
+    (Ticket.Status.RESOLU, Ticket.Status.PRIS_EN_COMPTE): "Rouvrir le ticket",
+}
+TARGET_LABELS = {
+    Ticket.Status.ATTENTE_REPONSE: "Attendre le demandeur",
+    Ticket.Status.EN_ATTENTE: "Mettre en attente",
+    Ticket.Status.RESOLU: "Résoudre le ticket",
+    Ticket.Status.FERME: "Fermer le ticket",
+}
+# Action mise en avant (bouton principal) selon le statut courant.
+PRIMARY_TARGET = {
+    Ticket.Status.CREE: Ticket.Status.PRIS_EN_COMPTE,
+    Ticket.Status.PRIS_EN_COMPTE: Ticket.Status.RESOLU,
+    Ticket.Status.ATTENTE_REPONSE: Ticket.Status.PRIS_EN_COMPTE,
+    Ticket.Status.EN_ATTENTE: Ticket.Status.PRIS_EN_COMPTE,
+    Ticket.Status.RESOLU: Ticket.Status.FERME,
+}
+
+
+def _status_actions(ticket: Ticket, user, targets: list[str]) -> list[dict]:
+    """Boutons du bandeau de statut, l'action principale en dernier (à droite)."""
+    actions = []
+    for target in targets:
+        actions.append(
+            {
+                "kind": "resolve" if target == Ticket.Status.RESOLU else "status",
+                "status": target,
+                "label": ACTION_LABELS.get((ticket.status, target)) or TARGET_LABELS[target],
+                "primary": PRIMARY_TARGET.get(ticket.status) == target,
+            }
+        )
+    if ticket.status == Ticket.Status.CREE and ticket.assignee_id != user.pk:
+        # Prendre le ticket = s'affecter + prise en compte s'il est qualifié (FR-023).
+        actions = [{**a, "primary": False} for a in actions if a["status"] != "pris_en_compte"]
+        actions.append({"kind": "take", "label": "Prendre le ticket", "primary": True})
+    return sorted(actions, key=lambda a: a["primary"])
+
+
+def _elapsed(ticket: Ticket, now) -> int:
+    end = ticket.resolved_at or now
+    return int((end - ticket.created_at).total_seconds() // 60)
+
+
 def detail_context(request, ticket: Ticket, **extra) -> dict:
     main, quoted = split_quoted(ticket.description)
     annotate_deadlines([ticket])
+    targets = sorted(lifecycle.allowed_targets(ticket))
+    now = timezone.now()
     return {
         "ticket": ticket,
         "description_main": main,
         "description_quoted": quoted,
-        "timeline": _timeline(ticket),
+        "thread": _thread(_timeline(ticket)),
+        "steps": _steps(ticket),
+        "status_actions": _status_actions(ticket, request.user, targets),
+        "elapsed_minutes": _elapsed(ticket, now),
         "initial_attachments": not_inline(
             ticket.attachments.filter(note__isnull=True), ticket.description_html
         ),
@@ -394,7 +476,6 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
             if ticket.requester_id
             else []
         ),
-        "targets": [Ticket.Status(s) for s in sorted(lifecycle.allowed_targets(ticket))],
         "missing": lifecycle.missing_qualification(ticket),
         "qualify_form": extra.pop("qualify_form", None)
         or QualifyForm(
@@ -421,7 +502,7 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
             "technician__directory_user", "equipment"
         ),
         "time_form": extra.pop("time_form", None) or TimeForm(),
-        "now": timezone.now(),
+        "now": now,
         **extra,
     }
 

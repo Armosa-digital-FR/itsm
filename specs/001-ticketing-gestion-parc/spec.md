@@ -61,6 +61,20 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   image » ; affichées à leur place sur la fiche ; une note externe part avec ses images
   intégrées dans l'e-mail au demandeur.
 
+### Session 2026-10-30 (retour : refonte de la fiche ticket)
+
+- Q: Que revoir sur la fiche d'un ticket créé ? → A: Une mise en page orientée action, d'après la
+  maquette fournie : en-tête (référence, titre, pastilles de statut, priorité, type, catégorie ;
+  mon temps, ouvert depuis ou résolu en, chronomètre), bandeau de statut avec frise en quatre
+  étapes (Nouveau, En cours, Résolu, Fermé ; les attentes sont des sous-états de « En cours »)
+  et l'action suivante mise en avant, fil de conversation (messages du demandeur, réponses,
+  notes internes distinctes ; événements regroupés), zone de réponse « Répondre au demandeur »
+  / « Note interne » (note interne par défaut), et colonne latérale (affectation,
+  qualification, demandeur, équipements, prise en main, temps, résolutions similaires, dates).
+- Q: Quel design system ? → A: La mise à jour du design system Armosa (v2) sur tout le site :
+  Roboto, palette Tiber / Armosa / Hunter / Norway / Mercury / Teddy, angles droits, aplats
+  sans ombre, un seul bouton principal par écran.
+
 ### Session 2026-10-21 (temps passé par ticket)
 
 - Q: Comment mesurer le temps passé sur un ticket ? → A: En plus de la saisie manuelle, un
@@ -492,7 +506,8 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
 
 - **FR-080**: L'interface de l'application et les e-mails envoyés aux demandeurs DOIVENT
   reprendre l'identité visuelle d'Armosa Digital : le logo officiel et le design system
-  « Armosa » (couleurs, typographies, espacements, composants et règles d'usage).
+  « Armosa » dans sa version 2 (couleurs, typographie Roboto, espacements, angles droits,
+  composants et règles d'usage).
 
 ### Key Entities *(include if feature involves data)*
 
