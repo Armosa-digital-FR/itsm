@@ -176,6 +176,21 @@ textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
 fieldset { border: none; padding: 0; margin: 0; }
 .radio-row { display: flex; gap: var(--space-4); flex-wrap: wrap; font-size: 14px; }
 
+/* ---------- Éditeur enrichi (images dans le texte) ---------- */
+
+.rich-editor { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-4); }
+.rich-editor label { font-size: 14px; font-weight: 500; }
+.rich-toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; font-size: 14px; }
+.rich-area { min-height: 140px; padding: 9px var(--space-3); background: var(--paper); color: var(--ink);
+  border: 1px solid var(--border-control); border-radius: var(--radius-md); font-size: 15px; line-height: 1.5;
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+.rich-area:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+.rich-area:empty::before { content: attr(data-placeholder); color: var(--ink-faint); }
+.rich-area img, .note-body img, .description-html img { display: block; max-width: 100%; height: auto;
+  margin: var(--space-2) 0; border: 1px solid var(--hairline); border-radius: var(--radius-md); }
+.rich-html { white-space: pre-wrap; }
+.rich-error { color: var(--danger); font-size: 14px; margin: 0; }
+
 /* ---------- Messages ---------- */
 
 .messages { list-style: none; margin: 0 0 var(--space-4); padding: 0; }

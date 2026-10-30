@@ -125,6 +125,8 @@ class TicketCreateForm(ITSMForm):
     )
     title = forms.CharField(label="Titre", max_length=255)
     description = forms.CharField(label="Description", required=False, widget=forms.Textarea)
+    # HTML de l'éditeur enrichi (images intégrées, FR-014c) ; vide sans JavaScript.
+    description_html = forms.CharField(required=False, widget=forms.HiddenInput)
     type = forms.ChoiceField(
         label="Type", required=False, choices=[("", "—"), *Ticket.Type.choices]
     )
@@ -214,8 +216,18 @@ class NoteForm(forms.Form):
         initial=TicketNote.Visibility.INTERNE,
         widget=forms.RadioSelect,
     )
-    body = forms.CharField(label="Message", widget=forms.Textarea(attrs={"rows": 5}))
+    body = forms.CharField(
+        label="Message", required=False, widget=forms.Textarea(attrs={"rows": 5})
+    )
+    body_html = forms.CharField(required=False, widget=forms.HiddenInput)
     files = MultipleFileField(label="Pièces jointes")
+
+    def clean(self):
+        data = super().clean()
+        has_image = "<img" in (data.get("body_html") or "").lower()
+        if not (data.get("body") or "").strip() and not has_image:
+            raise forms.ValidationError("La note est vide.")
+        return data
 
 
 class TimeForm(forms.Form):

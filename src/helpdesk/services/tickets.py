@@ -112,6 +112,26 @@ def _with_inline_images(body_html: str, cid_map: dict) -> str:
     return sanitize_html(body_html, cid_map)
 
 
+def _rich(html: str):
+    """Texte enrichi de l'éditeur, ou None s'il n'y a ni texte ni image."""
+    if not (html or "").strip():
+        return None
+    from helpdesk.services.rich_text import prepare
+
+    rich = prepare(html)
+    return None if rich.is_empty and not rich.refused else rich
+
+
+def _store_rich(ticket: Ticket, rich, *, target, html_field: str, note=None) -> None:
+    """Enregistre les images intégrées puis le HTML avec leurs URL protégées."""
+    _, cid_map = save_files_with_cids(ticket, rich.files, note=note)
+    html = _with_inline_images(rich.html, cid_map) if cid_map else rich.html
+    if rich.refused:
+        html += "<p><em>Images non conservées : " + ", ".join(rich.refused) + ".</em></p>"
+    setattr(target, html_field, html)
+    target.save(update_fields=[html_field])
+
+
 def _too_large_mention(names: list[str]) -> str:
     if not names:
         return ""
@@ -181,11 +201,17 @@ def create_manual(
     priority: str = Ticket.Priority.NORMALE,
     files=(),
     equipment=(),
+    description_html: str = "",
 ) -> Ticket:
-    """Création par un technicien pour le compte d'un demandeur (FR-014, FR-014a)."""
+    """Création par un technicien pour le compte d'un demandeur (FR-014, FR-014a).
+
+    `description_html` vient de l'éditeur enrichi (images intégrées, FR-014c) ; à défaut,
+    la description texte est utilisée telle quelle.
+    """
+    rich = _rich(description_html)
     ticket = Ticket(
         title=title.strip()[:255],
-        description=description.strip(),
+        description=(rich.text if rich else description).strip(),
         channel=Ticket.Channel.APP,
         created_by=technician,
         requester=requester,
@@ -200,6 +226,8 @@ def create_manual(
     )
     ticket.save()
     save_files(ticket, files)
+    if rich:
+        _store_rich(ticket, rich, target=ticket, html_field="description_html")
     for item in equipment:
         link_equipment(ticket, technician, item)
     record_event(
@@ -334,9 +362,12 @@ def bulk_reassign(from_technician, actor, to_technician=None, to_group=None) -> 
 
 
 @transaction.atomic
-def add_note(ticket: Ticket, actor, visibility: str, body: str, files=()) -> TicketNote:
-    body = (body or "").strip()
-    if not body:
+def add_note(
+    ticket: Ticket, actor, visibility: str, body: str, files=(), body_html: str = ""
+) -> TicketNote:
+    rich = _rich(body_html)
+    body = (rich.text if rich else body or "").strip()
+    if not body and not (rich and rich.files):
         raise ValidationError("La note est vide.")
     external = visibility == TicketNote.Visibility.EXTERNE
     note = TicketNote.objects.create(
@@ -344,9 +375,11 @@ def add_note(ticket: Ticket, actor, visibility: str, body: str, files=()) -> Tic
         visibility=visibility,
         direction=TicketNote.Direction.SORTANT if external else TicketNote.Direction.INTERNE,
         author=actor,
-        body_text=body,
+        body_text=body or "(image)",
     )
     save_files(ticket, files, note=note)
+    if rich:
+        _store_rich(ticket, rich, target=note, html_field="body_html", note=note)
     record_event(
         ticket, TicketEvent.Kind.NOTE, actor, "", note.get_visibility_display(), note=note.pk
     )

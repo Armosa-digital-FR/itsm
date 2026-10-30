@@ -68,3 +68,11 @@ def highlight(text) -> str:
     return mark_safe(  # noqa: S308 - tout le texte est échappé avant l'ajout des balises
         escaped.replace(MARK_START, "<mark>").replace(MARK_STOP, "</mark>")
     )
+
+
+@register.filter
+def rich_html(value) -> str:
+    """HTML enregistré (déjà assaini) : assaini à nouveau à l'affichage, par précaution."""
+    from helpdesk.mail.parsing import sanitize_html
+
+    return mark_safe(sanitize_html(value or ""))  # noqa: S308 - sortie de nh3 (liste blanche)

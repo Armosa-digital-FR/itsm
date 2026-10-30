@@ -7,6 +7,7 @@ résolution. Tout autre type est refusé. Envoi via Graph depuis la boîte suppo
 
 import base64
 import logging
+import re
 from functools import cache
 
 from django.conf import settings
@@ -66,7 +67,12 @@ def queue_email(
         logger.info("pas de destinataire pour l'e-mail", extra={"ticket": ticket.pk, "kind": kind})
         return None
     mailbox = ticket.mailbox or default_mailbox()
-    context = _context(ticket=ticket, note=note, extra=extra or {})
+    context = _context(
+        ticket=ticket,
+        note=note,
+        extra=extra or {},
+        note_html=email_html(note.body_html) if note is not None and note.body_html else "",
+    )
     message = EmailMessage.objects.create(
         direction=EmailMessage.Direction.SORTANT,
         kind=kind,
@@ -84,6 +90,21 @@ def queue_email(
         note.save(update_fields=["email_message"])
     _schedule(message)
     return message
+
+
+def inline_content_id(attachment) -> str:
+    return f"att-{attachment.pk}"
+
+
+def email_html(html: str) -> str:
+    """HTML d'une note pour l'e-mail : images intégrées en cid:, largeur bornée."""
+    from helpdesk.mail.parsing import sanitize_html
+
+    clean = sanitize_html(html)
+    clean = re.sub(r'src="/attachments/(\d+)/"', r'src="cid:att-\1"', clean)
+    return clean.replace(
+        "<img ", '<img style="display:block;max-width:100%;height:auto;margin:8px 0;" '
+    )
 
 
 def send_technician_alert(
@@ -169,15 +190,23 @@ def send(message: EmailMessage, client: GraphClient | None = None) -> EmailMessa
         )
         for note in message.notes.all():
             for attachment in note.attachments.all():
+                # Images insérées dans le texte (FR-014c) : jointes « inline » et référencées
+                # par cid:att-<id> dans le corps.
+                embedded = {}
+                if f'cid:{inline_content_id(attachment)}"' in message.body_html:
+                    embedded = {"isInline": True, "contentId": inline_content_id(attachment)}
                 if attachment.size <= INLINE_ATTACHMENT_LIMIT:
                     with attachment.file.open("rb") as handle:
                         inline.append(
                             _file_attachment(
-                                attachment.filename, attachment.content_type, handle.read()
+                                attachment.filename,
+                                attachment.content_type,
+                                handle.read(),
+                                **embedded,
                             )
                         )
                 else:
-                    large.append(attachment)
+                    large.append((attachment, embedded))
         draft = client.post(
             base,
             json={
@@ -191,7 +220,7 @@ def send(message: EmailMessage, client: GraphClient | None = None) -> EmailMessa
         message.internet_message_id = draft.get("internetMessageId") or None
         message.conversation_id = draft.get("conversationId", "")
         message.save(update_fields=["graph_id", "internet_message_id", "conversation_id"])
-        for attachment in large:
+        for attachment, embedded in large:
             session = client.post(
                 f"{base}/{message.graph_id}/attachments/createUploadSession",
                 json={
@@ -200,6 +229,7 @@ def send(message: EmailMessage, client: GraphClient | None = None) -> EmailMessa
                         "name": attachment.filename,
                         "size": attachment.size,
                         "contentType": attachment.content_type or "application/octet-stream",
+                        **embedded,
                     }
                 },
             )

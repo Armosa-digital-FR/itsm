@@ -66,3 +66,92 @@ function tickTimers() {
 setInterval(tickTimers, 1000);
 document.addEventListener("DOMContentLoaded", tickTimers);
 document.addEventListener("htmx:afterSwap", tickTimers);
+
+// Éditeur enrichi (core/partials/rich_editor.html) : images collées, glissées ou insérées.
+// Les images sont intégrées en data: et converties en pièces jointes par le serveur.
+var RICH_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+var RICH_MAX_BYTES = 10 * 1024 * 1024;
+
+function richInit(root) {
+  (root || document).querySelectorAll("[data-rich-editor]:not([data-ready])").forEach(function (box) {
+    box.setAttribute("data-ready", "");
+    var source = box.querySelector("textarea");
+    var hidden = box.querySelector('input[type="hidden"]');
+    var area = box.querySelector(".rich-area");
+    var toolbar = box.querySelector(".rich-toolbar");
+    var picker = box.querySelector("[data-rich-file]");
+    var error = box.querySelector(".rich-error");
+    if (!source || !hidden || !area) return;
+
+    area.textContent = source.value;  // texte déjà saisi (réaffichage après erreur)
+    var label = box.querySelector('label[for="' + source.id + '"]');
+    if (label) label.removeAttribute("for");  // le libellé désigne désormais la zone éditable
+    source.hidden = true;
+    source.removeAttribute("required");
+    area.hidden = false;
+    toolbar.hidden = false;
+
+    function sync() {
+      hidden.value = area.querySelector("img") || area.textContent.trim() ? area.innerHTML : "";
+      source.value = area.innerText;
+    }
+    function fail(message) {
+      error.textContent = message;
+      error.hidden = false;
+      setTimeout(function () { error.hidden = true; }, 6000);
+    }
+    function insertNode(node) {
+      var selection = window.getSelection();
+      if (selection.rangeCount && area.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+        var range = selection.getRangeAt(0);
+        range.deleteContents();
+        range.insertNode(node);
+        range.setStartAfter(node);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        area.appendChild(node);
+      }
+      sync();
+    }
+    function insertImages(files) {
+      Array.prototype.forEach.call(files, function (file) {
+        if (RICH_TYPES.indexOf(file.type) === -1) { fail(file.name + " : seules les images PNG, JPEG, GIF et WebP sont acceptées."); return; }
+        if (file.size > RICH_MAX_BYTES) { fail(file.name + " : image trop lourde (10 Mo maximum)."); return; }
+        var reader = new FileReader();
+        reader.onload = function () {
+          var img = document.createElement("img");
+          img.src = reader.result;
+          img.alt = file.name || "Image collée";
+          insertNode(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    area.addEventListener("input", sync);
+    area.addEventListener("paste", function (event) {
+      var data = event.clipboardData;
+      if (!data) return;
+      var images = Array.prototype.filter.call(data.files || [], function (f) { return f.type.indexOf("image/") === 0; });
+      event.preventDefault();
+      if (images.length) { insertImages(images); return; }
+      // Texte collé sans mise en forme (évite le HTML parasite des traitements de texte).
+      insertNode(document.createTextNode(data.getData("text/plain")));
+    });
+    area.addEventListener("dragover", function (event) { event.preventDefault(); });
+    area.addEventListener("drop", function (event) {
+      if (!event.dataTransfer || !event.dataTransfer.files.length) return;
+      event.preventDefault();
+      insertImages(event.dataTransfer.files);
+    });
+    box.querySelector("[data-rich-insert]").addEventListener("click", function () { picker.click(); });
+    picker.addEventListener("change", function () { insertImages(picker.files); picker.value = ""; area.focus(); });
+    var form = box.closest("form");
+    if (form) form.addEventListener("submit", sync);
+    sync();
+  });
+}
+document.addEventListener("DOMContentLoaded", function () { richInit(document); });
+document.addEventListener("htmx:load", function (event) { richInit(event.target); });

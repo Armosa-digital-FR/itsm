@@ -14,7 +14,9 @@
       <div id="requester-equipment" hx-get="{% url 'inventory:person_equipment' %}" hx-trigger="load, change from:#id_requester" hx-include="#id_requester"></div>
       <span class="help">Le demandeur recevra l'accusé de réception et les échanges par e-mail, comme pour une demande envoyée par e-mail.</span>
     </div>
-    {% for field in form %}{% if field.name != "requester" %}
+    {% for field in form %}{% if field.name == "description" %}
+      {% include "core/partials/rich_editor.html" with field=form.description html_field=form.description_html placeholder="Décrivez la demande ; collez ou glissez une capture d'écran pour l'illustrer." %}
+    {% elif field.name != "requester" and field.name != "description_html" %}
       <div class="field">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
         {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}

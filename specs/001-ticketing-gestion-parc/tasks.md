@@ -162,6 +162,17 @@ MVP », FR-019, FR-081 à FR-083).
 
 ---
 
+## Retour : images dans la description et les notes (2026-10-30)
+
+**Purpose**: illustrer une demande par des images insérées dans le texte (FR-014c).
+
+- [X] T118 [US1] Implémenter `src/helpdesk/services/rich_text.py` : extraction des images `data:` (PNG, JPEG, GIF, WebP vérifiés par signature ; 10 Mo, 20 images au plus) en pièces jointes `cid:`, assainissement (nh3), texte dérivé ; brancher dans `create_manual` (description) et `add_note` (message)
+- [X] T119 [US1] Éditeur enrichi réutilisable `src/core/templates/core/partials/rich_editor.html` + `app.js` : zone éditable, collage d'images (texte collé sans mise en forme), glisser-déposer, bouton « Insérer une image », repli sur le champ texte sans JavaScript ; branché sur la création de ticket et le formulaire de note
+- [X] T120 [US1] Affichage : description et notes rédigées dans l'application rendues en HTML assaini (images à leur place, pièces jointes déjà affichées dans le texte non répétées) ; e-mail de note externe avec images intégrées (`cid:`)
+- [X] T121 [US1] Tests : `tests/unit/test_rich_text.py` (extraction, signatures, refus SVG/scripts, limites) et `tests/integration/test_rich_text_views.py` (création, note, affichage, e-mail) ; e2e S2 avec insertion d'une image
+
+---
+
 ## Suivi du temps par ticket (2026-10-21)
 
 **Purpose**: chronomètre, « mon temps / total » et délai de résolution (FR-035a, FR-035b,

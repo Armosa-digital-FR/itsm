@@ -25,8 +25,12 @@
     <div class="stack">
       <section class="card">
         <div class="label">Demande initiale · {{ ticket.created_at|date:"d/m/Y H:i" }}</div>
-        <div class="note-body" style="margin-top:var(--space-2)">{{ description_main|default:"(sans description)" }}</div>
-        {% if description_quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ description_quoted }}</div></details>{% endif %}
+        {% if ticket.description_html %}
+          <div class="note-body html description-html{% if ticket.channel == 'app' %} rich-html{% endif %}" style="margin-top:var(--space-2)">{{ ticket.description_html|rich_html }}</div>
+        {% else %}
+          <div class="note-body" style="margin-top:var(--space-2)">{{ description_main|default:"(sans description)" }}</div>
+          {% if description_quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ description_quoted }}</div></details>{% endif %}
+        {% endif %}
         {% if initial_attachments %}<ul class="attachments">{% for a in initial_attachments %}<li><a class="tag tag-plain" href="{% url 'helpdesk:attachment' a.pk %}">{{ a.filename }}</a></li>{% endfor %}</ul>{% endif %}
         {% if ticket.related_ticket %}<p class="muted" style="margin-top:var(--space-3)">Fait suite au ticket <a href="{% url 'helpdesk:ticket_detail' ticket.related_ticket.number %}">{{ ticket.related_ticket.reference }}</a>.</p>{% endif %}
       </section>
@@ -43,9 +47,13 @@
               {% if n.direction == "interne" %}<span class="tag tag-plain">Note interne</span>{% elif n.direction == "entrant" %}<span class="tag tag-info">Réponse du demandeur</span>{% else %}<span class="tag">Envoyée au demandeur</span>{% endif %}
             </div>
             <div class="note {% if n.direction == 'interne' %}note-internal{% elif n.direction == 'entrant' %}note-inbound{% endif %}">
-              <div class="note-body">{{ item.main }}</div>
-              {% if item.quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ item.quoted }}</div></details>{% endif %}
-              {% if n.attachments.all %}<ul class="attachments">{% for a in n.attachments.all %}<li><a class="tag tag-plain" href="{% url 'helpdesk:attachment' a.pk %}">{{ a.filename }}</a></li>{% endfor %}</ul>{% endif %}
+              {% if n.body_html and n.direction != "entrant" %}
+                <div class="note-body html rich-html">{{ n.body_html|rich_html }}</div>
+              {% else %}
+                <div class="note-body">{{ item.main }}</div>
+                {% if item.quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ item.quoted }}</div></details>{% endif %}
+              {% endif %}
+              {% if item.files %}<ul class="attachments">{% for a in item.files %}<li><a class="tag tag-plain" href="{% url 'helpdesk:attachment' a.pk %}">{{ a.filename }}</a></li>{% endfor %}</ul>{% endif %}
             </div>
           </li>
           {% endwith %}{% elif item.type == "email" %}{% with m=item.email %}
@@ -63,7 +71,7 @@
         <h2>Ajouter une note</h2>
         <form hx-post="{% url 'helpdesk:ticket_note' ticket.number %}" hx-encoding="multipart/form-data" method="post" action="{% url 'helpdesk:ticket_note' ticket.number %}" enctype="multipart/form-data">{% csrf_token %}
           <fieldset class="field"><legend class="field-label">Visibilité</legend><div class="radio-row">{% for radio in note_form.visibility %}<label>{{ radio.tag }} {{ radio.choice_label }}{% if radio.data.value == "externe" %} (envoyée par e-mail au demandeur){% else %} (techniciens uniquement){% endif %}</label>{% endfor %}</div></fieldset>
-          <div class="field"><label for="{{ note_form.body.id_for_label }}">Message</label>{{ note_form.body }}</div>
+          {% include "core/partials/rich_editor.html" with field=note_form.body html_field=note_form.body_html label="Message" placeholder="Votre message ; collez ou glissez une image pour l'illustrer." %}
           <div class="field"><label for="{{ note_form.files.id_for_label }}">Pièces jointes</label>{{ note_form.files }}</div>
           <button class="btn btn-primary" type="submit">Ajouter la note</button>
         </form>

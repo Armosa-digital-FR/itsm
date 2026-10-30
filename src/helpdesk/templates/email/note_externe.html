@@ -2,6 +2,7 @@
 {% block eyebrow %}Demande {{ ticket.reference }}{% endblock %}
 {% block heading %}{{ ticket.title }}{% endblock %}
 {% block content %}
-<div style="margin:0 0 16px 0;white-space:pre-wrap;">{{ note.body_text }}</div>
+{% if note_html %}<div style="margin:0 0 16px 0;white-space:pre-wrap;">{{ note_html|safe }}</div>
+{% else %}<div style="margin:0 0 16px 0;white-space:pre-wrap;">{{ note.body_text }}</div>{% endif %}
 <p style="margin:0;color:#4b5651;">{{ note.author.directory_user.given_name|default:note.author.display_name }}, support informatique</p>
 {% endblock %}

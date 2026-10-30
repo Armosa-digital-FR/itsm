@@ -54,6 +54,13 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
 - Q: La connexion de démonstration est-elle acceptable ? → A: Uniquement en mode
   développement, jamais en production ; un bandeau signale ce mode.
 
+### Session 2026-10-30 (retour : images dans le texte)
+
+- Q: Comment illustrer une demande ? → A: Images insérées dans le texte de la description (à la
+  création) et des notes, par collage (Ctrl+V), glisser-déposer ou bouton « Insérer une
+  image » ; affichées à leur place sur la fiche ; une note externe part avec ses images
+  intégrées dans l'e-mail au demandeur.
+
 ### Session 2026-10-21 (temps passé par ticket)
 
 - Q: Comment mesurer le temps passé sur un ticket ? → A: En plus de la saisie manuelle, un
@@ -323,6 +330,12 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   les échanges ultérieurs passent par e-mail avec le demandeur exactement comme pour un ticket
   créé par e-mail (FR-013, FR-031). Le technicien peut saisir dès la création la description,
   le type, la catégorie, l'outil, la priorité et les équipements liés.
+- **FR-014c**: La description d'un ticket créé dans l'application et le message d'une note
+  (interne ou externe) DOIVENT accepter des images insérées dans le texte, par collage,
+  glisser-déposer ou bouton dédié (PNG, JPEG, GIF, WebP ; 10 Mo par image, 20 images au plus) ;
+  les images sont conservées comme pièces jointes protégées du ticket et affichées à leur
+  place sur la fiche ; une note externe est envoyée avec ses images intégrées au corps de
+  l'e-mail. Le contenu est assaini côté serveur (aucun script, aucune image SVG).
 - **FR-014a**: Le système DOIT enregistrer le canal de création de chaque ticket (e-mail ou
   application) et, pour un ticket créé dans l'application, le technicien créateur.
 - **FR-014b**: L'e-mail est le seul canal côté demandeur : aucun portail demandeur n'est prévu

@@ -299,6 +299,7 @@ def ticket_new(request):
             priority=data["priority"],
             files=data["files"],
             equipment=data["equipment"],
+            description_html=data["description_html"],
         )
         messages.success(request, f"Ticket {ticket.reference} créé ; le demandeur est prévenu.")
         return redirect("helpdesk:ticket_detail", number=ticket.number)
@@ -330,6 +331,11 @@ def _get_ticket(number: int) -> Ticket:
     )
 
 
+def not_inline(attachments, html: str) -> list:
+    """Pièces jointes à lister : celles déjà affichées dans le texte (images) sont omises."""
+    return [a for a in attachments if f"/attachments/{a.pk}/" not in (html or "")]
+
+
 def _timeline(ticket: Ticket) -> list[dict]:
     notes = [
         {
@@ -338,6 +344,10 @@ def _timeline(ticket: Ticket) -> list[dict]:
             "note": n,
             "main": split_quoted(n.body_text)[0],
             "quoted": split_quoted(n.body_text)[1],
+            "files": not_inline(
+                n.attachments.all(),
+                n.body_html if n.direction != TicketNote.Direction.ENTRANT else "",
+            ),
         }
         for n in ticket.notes.select_related("author__directory_user").prefetch_related(
             "attachments"
@@ -366,7 +376,9 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "description_main": main,
         "description_quoted": quoted,
         "timeline": _timeline(ticket),
-        "initial_attachments": ticket.attachments.filter(note__isnull=True),
+        "initial_attachments": not_inline(
+            ticket.attachments.filter(note__isnull=True), ticket.description_html
+        ),
         "htmx": is_htmx(request),
         "time": svc.time_totals(ticket, request.user),
         "time_entries": ticket.time_entries.select_related("technician__directory_user").order_by(
@@ -516,7 +528,14 @@ def ticket_note(request, number: int):
     if not form.is_valid():
         return _error(request, ticket, "La note est vide.", note_form=form)
     data = form.cleaned_data
-    note = svc.add_note(ticket, request.user, data["visibility"], data["body"], data["files"])
+    note = svc.add_note(
+        ticket,
+        request.user,
+        data["visibility"],
+        data["body"],
+        data["files"],
+        body_html=data["body_html"],
+    )
     text = (
         "Note envoyée au demandeur."
         if note.visibility == TicketNote.Visibility.EXTERNE
