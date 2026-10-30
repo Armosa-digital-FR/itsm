@@ -185,3 +185,13 @@ document.addEventListener("change", function (event) {
   form.querySelector("[data-composer-hint]").textContent = choice.getAttribute("data-hint");
   form.querySelector("[data-composer-submit]").textContent = choice.getAttribute("data-submit");
 });
+
+// Création rapide (catégorie, outil) : Entrée dans le panneau crée l'élément au lieu
+// d'envoyer le formulaire de qualification qui l'englobe.
+document.addEventListener("keydown", function (event) {
+  if (event.key !== "Enter") return;
+  var panel = event.target.closest("[data-quick-add]");
+  if (!panel || event.target.tagName === "TEXTAREA") return;
+  event.preventDefault();
+  panel.querySelector("[data-quick-submit]").click();
+});

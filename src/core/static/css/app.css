@@ -392,3 +392,16 @@ mark { background: var(--accent-200); color: var(--tiber); padding: 0 2px; }
 .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }
 .equip { display: flex; flex-direction: column; gap: var(--space-2); padding-bottom: 12px;
   border-bottom: 1px solid #b4bfba; }
+
+/* Création rapide d'une catégorie ou d'un outil sous sa liste (FR-019a). */
+.quick-add > summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px;
+  font-size: 14px; font-weight: 400; color: var(--armosa); }
+.quick-add > summary::before { content: "+"; font-weight: 500; margin-right: 6px; }
+.quick-add[open] > summary::before { content: "−"; }
+.quick-panel { display: flex; flex-direction: column; gap: 12px; padding: var(--space-3);
+  background: var(--white); border-left: 3px solid var(--hunter); }
+.card .quick-panel { background: var(--white); }
+.band .quick-panel, .quick-panel { margin-top: var(--space-2); }
+.quick-panel .field { margin-bottom: 0; }
+.quick-panel .btn { align-self: flex-start; }
+.quick-done { margin: 0; font-size: 14px; font-weight: 400; color: var(--success); }

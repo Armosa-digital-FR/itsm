@@ -1,0 +1,23 @@
+{# Liste Catégorie ou Outil avec création rapide (FR-019a). Paramètres : kind, field, quick_form, open, created. #}
+<div class="field quick-select" id="quick-{{ kind }}">
+  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  {{ field }}
+  {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  {% if created %}<p class="quick-done" role="status">{% if kind == "category" %}Catégorie « {{ created.full_path }} » créée{% else %}Outil « {{ created.name }} » créé{% endif %} et sélectionné{% if kind == "category" %}e{% endif %}.</p>{% endif %}
+  <details class="quick-add"{% if open %} open{% endif %}>
+    <summary>{% if kind == "category" %}Nouvelle catégorie{% else %}Nouvel outil{% endif %}</summary>
+    <div class="quick-panel" data-quick-add>
+      {% for f in quick_form %}
+      <div class="field">
+        <label for="{{ f.id_for_label }}">{{ f.label }}</label>{{ f }}
+        {% if f.errors %}<ul class="errorlist">{% for e in f.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="button" class="btn btn-small btn-white" data-quick-submit
+              hx-post="{% url 'helpdesk:quick_create' kind %}" hx-target="#quick-{{ kind }}" hx-swap="outerHTML"
+              hx-include="#quick-{{ kind }}" hx-params="{{ kind }},{% for f in quick_form %}{{ f.html_name }}{% if not forloop.last %},{% endif %}{% endfor %}">
+        {% if kind == "category" %}Créer la catégorie{% else %}Créer l'outil{% endif %}
+      </button>
+    </div>
+  </details>
+</div>

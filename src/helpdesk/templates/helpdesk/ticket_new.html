@@ -16,6 +16,10 @@
     </div>
     {% for field in form %}{% if field.name == "description" %}
       {% include "core/partials/rich_editor.html" with field=form.description html_field=form.description_html placeholder="Décrivez la demande ; collez ou glissez une capture d'écran pour l'illustrer." %}
+    {% elif field.name == "category" %}
+      {% include "helpdesk/partials/quick_select.html" with kind="category" field=field quick_form=category_quick open=False created=None %}
+    {% elif field.name == "tool" %}
+      {% include "helpdesk/partials/quick_select.html" with kind="tool" field=field quick_form=tool_quick open=False created=None %}
     {% elif field.name != "requester" and field.name != "description_html" %}
       <div class="field">
         <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}

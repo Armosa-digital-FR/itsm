@@ -162,6 +162,16 @@ MVP », FR-019, FR-081 à FR-083).
 
 ---
 
+## Retour : catégories et outils depuis la qualification (2026-10-30)
+
+**Purpose**: ajouter une catégorie ou un outil manquant sans passer par l'administration (FR-019a).
+
+- [X] T130 [US1] `src/helpdesk/services/catalog.py` (`create_category`, `create_tool` : validation du modèle + audit) ; route `POST /quick-create/<kind>/` renvoyant la liste à jour, élément sélectionné
+- [X] T131 [US1] Partial `helpdesk/partials/quick_select.html` (liste + panneau « Nouvelle catégorie » / « Nouvel outil ») branché sur la qualification de la fiche et la création de ticket ; Entrée crée l'élément sans envoyer le formulaire englobant
+- [X] T132 Tests : `tests/integration/test_quick_create.py`, matrice des permissions, e2e S1 (création d'une sous-catégorie pendant la qualification)
+
+---
+
 ## Retour : temps de traitement automatique (2026-10-30)
 
 **Purpose**: remplacer le chronomètre par un temps de traitement déduit des statuts (FR-035c).

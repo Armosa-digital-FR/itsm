@@ -75,6 +75,12 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   Roboto, palette Tiber / Armosa / Hunter / Norway / Mercury / Teddy, angles droits, aplats
   sans ombre, un seul bouton principal par écran.
 
+### Session 2026-10-30 (retour : catégories et outils depuis la qualification)
+
+- Q: Comment ajouter une catégorie ou un outil manquant ? → A: Directement sous la liste
+  déroulante, à la création comme à la qualification (« Nouvelle catégorie », « Nouvel
+  outil ») ; l'administration n'est plus nécessaire pour ce cas courant.
+
 ### Session 2026-10-30 (retour : temps de traitement automatique)
 
 - Q: Le chronomètre reste-t-il utile ? → A: Non : la prise en compte, la mise en attente et la
@@ -372,6 +378,12 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   être pris en compte ; il porte aussi le site du demandeur, repris à la création et modifiable.
   Entité et site sont affichés dans la liste, la fiche, la création et l'export. Le demandeur peut rester vide uniquement pour un expéditeur non identifié (jusqu'à
   sa qualification) ou après anonymisation (FR-072).
+- **FR-019a**: Lors de la création ou de la qualification d'un ticket, un technicien DOIT
+  pouvoir créer une catégorie (nom et catégorie parente, 3 niveaux au plus, nom unique sous un
+  même parent) ou un outil (nom unique, groupe compétent facultatif) directement depuis la
+  liste correspondante, sans passer par l'administration ; l'élément créé est sélectionné et
+  la création est tracée dans le journal d'audit. Désactivation, renommage et réorganisation
+  restent dans l'administration.
 
 **Tickets : affectation et compétences**
 

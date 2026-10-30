@@ -73,6 +73,8 @@ def url_for(name: str, pattern: str, objects) -> str:
         kwargs["number"] = objects["number"]
     if "<uuid:entra_id>" in pattern:
         kwargs["entra_id"] = objects["entra_id"]
+    if "<str:kind>" in pattern:
+        kwargs["kind"] = "tool"
     if "<int:pk>" in pattern:
         kwargs["pk"] = objects["pk"][name]
     return reverse(name, kwargs=kwargs or None)

@@ -42,6 +42,7 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | POST | `/tickets/<number>/time/` | T | FR-035 | corps : `date`, `minutes`, `comment` |
 | POST | `/time-entries/<id>/` · `/time-entries/<id>/delete/` | T (auteur) | FR-035a | correction ou suppression d'une saisie ; 403 pour un autre technicien |
 | POST | `/tickets/<number>/equipment/` | T | FR-017 | lier / délier un équipement |
+| POST | `/quick-create/<category|tool>/` | T | FR-019a | corps : `new_category_name`, `new_category_parent` ou `new_tool_name`, `new_tool_group` ; renvoie la liste à jour avec l'élément créé sélectionné (422 + erreurs sinon) ; audit `category.create` / `tool.create` |
 | POST | `/tickets/<number>/remote/` | T | FR-050 | corps : `equipment`, `started_at`, `ended_at`, `comment` ; déclare une intervention TeamViewer réalisée, événement + audit (aucun lancement de TeamViewer) |
 | GET | `/attachments/<id>/` | T | | téléchargement via URL signée courte durée du stockage |
 

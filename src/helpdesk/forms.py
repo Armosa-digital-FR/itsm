@@ -175,6 +175,52 @@ class QualifyForm(ITSMForm):
     )
 
 
+class CatalogSelectForm(ITSMForm):
+    """Listes Catégorie et Outil seules, réaffichées après une création rapide."""
+
+    category = CategoryChoiceField(label="Catégorie", required=False)
+    tool = forms.ModelChoiceField(
+        label="Outil", required=False, queryset=Tool.objects.filter(is_active=True), empty_label="—"
+    )
+
+
+class CategoryQuickForm(forms.Form):
+    """Nouvelle catégorie saisie sous la liste déroulante (FR-019a). Pas d'attribut `required` :
+    ces champs sont imbriqués dans le formulaire de qualification et ne doivent pas le bloquer."""
+
+    use_required_attribute = False
+
+    new_category_name = forms.CharField(label="Nom de la catégorie", max_length=255)
+    new_category_parent = forms.ModelChoiceField(
+        label="Rattachée à",
+        required=False,
+        queryset=Category.objects.filter(is_active=True, level__lt=3),
+        empty_label="— (catégorie principale)",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["new_category_parent"]
+        field.choices = [("", field.empty_label)] + sorted(
+            ((c.pk, c.full_path) for c in field.queryset.select_related("parent")),
+            key=lambda item: item[1].lower(),
+        )
+
+
+class ToolQuickForm(forms.Form):
+    """Nouvel outil saisi sous la liste déroulante (FR-019a)."""
+
+    use_required_attribute = False
+
+    new_tool_name = forms.CharField(label="Nom de l'outil", max_length=255)
+    new_tool_group = forms.ModelChoiceField(
+        label="Groupe compétent",
+        required=False,
+        queryset=TechnicianGroup.objects.all(),
+        empty_label="— (aucun)",
+    )
+
+
 class StatusForm(forms.Form):
     status = forms.ChoiceField(choices=Ticket.Status.choices)
     resolution = forms.CharField(label="Résolution", required=False, widget=forms.Textarea)

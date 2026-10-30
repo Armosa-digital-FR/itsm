@@ -7,7 +7,7 @@ import pytest
 from playwright.sync_api import expect
 
 from helpdesk.mail.inbound import handle_message, parse_eml
-from helpdesk.models import EmailMessage, Ticket
+from helpdesk.models import Category, EmailMessage, Ticket
 from tests.factories import DirectoryUserFactory
 
 pytestmark = pytest.mark.e2e
@@ -28,7 +28,15 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
 
     # Qualification puis prise en compte.
     page.get_by_label("Type").select_option("incident")
-    page.get_by_label("Catégorie").select_option(label="Matériel › Impression › Bourrage")
+    # Catégorie absente : créée depuis la liste, sans passer par l'administration.
+    page.get_by_text("Nouvelle catégorie").click()
+    page.get_by_label("Nom de la catégorie").fill("Tiroir")
+    page.get_by_label("Rattachée à").select_option(label="Matériel › Impression")
+    page.get_by_label("Nom de la catégorie").press("Enter")
+    expect(page.get_by_text("Catégorie « Matériel › Impression › Tiroir » créée")).to_be_visible()
+    expect(page.get_by_label("Catégorie", exact=True)).to_have_value(
+        str(Category.objects.get(name="Tiroir").pk)
+    )
     page.get_by_label("Priorité").select_option("haute")
     page.get_by_role("button", name="Enregistrer", exact=True).click()
     expect(page.get_by_text("Qualification enregistrée.")).to_be_visible()
@@ -62,6 +70,7 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
 
     ticket.refresh_from_db()
     assert ticket.status == Ticket.Status.FERME and ticket.assignee == page.technician
+    assert ticket.category.full_path == "Matériel › Impression › Tiroir"
     kinds = list(
         ticket.emails.filter(direction="sortant").order_by("id").values_list("kind", flat=True)
     )

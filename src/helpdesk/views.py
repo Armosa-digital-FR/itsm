@@ -12,7 +12,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Exists, F, OuterRef, Q, Subquery, Sum
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -25,6 +25,8 @@ from directory.models import Account
 from .forms import (
     AssignForm,
     BulkAssignForm,
+    CatalogSelectForm,
+    CategoryQuickForm,
     EquipmentLinkForm,
     KnowledgeSearchForm,
     NoteForm,
@@ -35,6 +37,7 @@ from .forms import (
     TicketFilterForm,
     TimeEntryEditForm,
     TimeForm,
+    ToolQuickForm,
 )
 from .mail.parsing import split_quoted
 from .models import (
@@ -45,7 +48,7 @@ from .models import (
     TicketNote,
     TimeEntry,
 )
-from .services import knowledge, lifecycle, remote, sla, timers
+from .services import catalog, knowledge, lifecycle, remote, sla, timers
 from .services import tickets as svc
 
 PAGE_SIZE = 50
@@ -307,7 +310,16 @@ def ticket_new(request):
     selected = None
     if requester:
         selected = form.fields["requester"].queryset.filter(pk=requester).first()
-    return render(request, "helpdesk/ticket_new.html", {"form": form, "selected": selected})
+    return render(
+        request,
+        "helpdesk/ticket_new.html",
+        {
+            "form": form,
+            "selected": selected,
+            "category_quick": CategoryQuickForm(),
+            "tool_quick": ToolQuickForm(),
+        },
+    )
 
 
 # --- Fiche ------------------------------------------------------------------
@@ -522,6 +534,8 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
             "technician__directory_user", "equipment"
         ),
         "time_form": extra.pop("time_form", None) or TimeForm(),
+        "category_quick": CategoryQuickForm(),
+        "tool_quick": ToolQuickForm(),
         "now": now,
         **extra,
     }
@@ -873,4 +887,50 @@ def ticket_suggestions(request, number: int):
         request,
         "helpdesk/partials/suggestions.html",
         {"suggestions": knowledge.suggestions(ticket), "ticket": ticket},
+    )
+
+
+QUICK_KINDS = {
+    "category": (CategoryQuickForm, "new_category_name", "new_category_parent"),
+    "tool": (ToolQuickForm, "new_tool_name", "new_tool_group"),
+}
+
+
+@technician_required
+@require_POST
+def quick_create(request, kind: str):
+    """Création d'une catégorie ou d'un outil depuis sa liste déroulante (FR-019a) : renvoie la
+    liste à jour avec le nouvel élément sélectionné."""
+    if kind not in QUICK_KINDS:
+        raise Http404
+    form_class, name_field, link_field = QUICK_KINDS[kind]
+    quick = form_class(request.POST)
+    created = None
+    if quick.is_valid():
+        create = catalog.create_category if kind == "category" else catalog.create_tool
+        try:
+            created = create(
+                request.user,
+                quick.cleaned_data[name_field],
+                quick.cleaned_data[link_field],
+                request=request,
+            )
+        except ValidationError as exc:
+            for message in exc.messages:
+                quick.add_error(name_field, message)
+    select = CatalogSelectForm(
+        initial={kind: created.pk} if created else {kind: request.POST.get(kind)}
+    )
+    context = {
+        "kind": kind,
+        "field": select[kind],
+        "quick_form": form_class() if created else quick,
+        "created": created,
+        "open": created is None,
+    }
+    return render(
+        request,
+        "helpdesk/partials/quick_select.html",
+        context,
+        status=200 if created else 422,
     )

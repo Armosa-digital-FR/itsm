@@ -20,6 +20,7 @@ urlpatterns = [
     path("time-entries/<int:pk>/delete/", views.time_entry_delete, name="time_entry_delete"),
     path("tickets/<int:number>/equipment/", views.ticket_equipment, name="ticket_equipment"),
     path("tickets/<int:number>/remote/", views.ticket_remote, name="ticket_remote"),
+    path("quick-create/<str:kind>/", views.quick_create, name="quick_create"),
     path("tracking/", views.tracking, name="tracking"),
     path("knowledge/", views.knowledge_search, name="knowledge"),
     path("tickets/<int:number>/suggestions/", views.ticket_suggestions, name="ticket_suggestions"),
