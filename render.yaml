@@ -1,5 +1,6 @@
 # Blueprint Render — environnement de recette (Francfort, UE). Voir deploy/render.md.
-# Les valeurs `sync: false` sont demandées dans le tableau de bord à la création du blueprint.
+# Render ignore `sync: false` dans un groupe d'environnement : ces variables (et le fichier
+# secret itsm-graph.pem) se saisissent à la main dans Environment Groups › itsm-config.
 databases:
   - name: itsm-db
     region: frankfurt

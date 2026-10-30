@@ -26,9 +26,11 @@ d'application avec **certificat**, fourni à Render comme fichier secret.
 ## 2. Côté Render
 
 1. **New › Blueprint**, choisir le dépôt et la branche ; Render lit `render.yaml`.
-2. Renseigner les valeurs demandées (`sync: false`) : `ITSM_BASE_URL`, `AZURE_TENANT_ID`,
-   `OIDC_RP_CLIENT_ID`, `OIDC_RP_CLIENT_SECRET`, `AZURE_CLIENT_ID` (identité Graph),
-   `AZURE_STORAGE_ACCOUNT_NAME`.
+2. Render ne demande pas les variables `sync: false` d'un groupe d'environnement : les
+   ajouter à la main dans **Environment Groups › itsm-config** : `ITSM_BASE_URL`,
+   `AZURE_TENANT_ID`, `OIDC_RP_CLIENT_ID`, `OIDC_RP_CLIENT_SECRET`, `AZURE_CLIENT_ID`
+   (identité Graph), `AZURE_STORAGE_ACCOUNT_NAME`. Le premier déploiement échoue tant
+   qu'elles manquent ; relancer ensuite **Manual Deploy** sur le web et le worker.
 3. Dans le groupe d'environnement `itsm-config`, ajouter le **fichier secret**
    `itsm-graph.pem` (le PEM de l'identité Graph) : il est monté dans
    `/etc/secrets/itsm-graph.pem` pour le web et le worker.
