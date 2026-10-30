@@ -162,13 +162,23 @@ MVP », FR-019, FR-081 à FR-083).
 
 ---
 
+## Retour : temps de traitement automatique (2026-10-30)
+
+**Purpose**: remplacer le chronomètre par un temps de traitement déduit des statuts (FR-035c).
+
+- [X] T127 [US3] `Ticket.treatment_seconds` / `treatment_started_at` alimentés par `change_status` (démarrage à « Pris en compte », cumul en secondes ouvrées à la sortie) ; `business_seconds_between` et `window_end` dans `core/business_time.py` ; migration 0008 (reprise de l'historique des statuts, chronomètres actifs convertis en saisies, suppression de `RunningTimer`)
+- [X] T128 [US3] Fiche : « Temps de traitement » et « Ouvert depuis / Résolu en » en HH:MM:SS mis à jour en direct (`app.js`, arrêt à la fin de la plage ouvrée), état du compteur (en cours, en pause, hors heures ouvrées) ; retrait du chronomètre (routes, vues, pastille d'en-tête)
+- [X] T129 Tests : `tests/unit/test_treatment_time.py` ; tests du chronomètre retirés ; e2e S1 mis à jour
+
+---
+
 ## Retour : refonte de la fiche ticket et design system v2 (2026-10-30)
 
 **Purpose**: rendre la fiche d'un ticket créé intuitive (maquette fournie) et aligner tout le site sur le design system Armosa v2 (FR-080).
 
 - [X] T122 [P] Design system v2 : Roboto auto-hébergée (anciennes polices retirées), `tokens.css` réécrit (palette v2, espacements, angles droits, alias des anciens noms), `logo-light.svg` pour l'en-tête sombre
 - [X] T123 `app.css` réécrit : en-tête Tiber, libellés 11 px capitales, cartes Mercury à filet, boutons et pastilles à angles droits, onglets, tableaux, formulaires ; composants de la fiche (frise, bulles, avatars, zone de réponse segmentée, métriques)
-- [X] T124 [US1] Fiche ticket (`helpdesk/partials/ticket_body.html`) : en-tête à métriques et chronomètre, bandeau de statut (frise en 4 étapes, action principale contextuelle, résolution dépliable), fil de conversation avec événements regroupés, zone de réponse « Répondre au demandeur » / « Note interne », colonne latérale réordonnée (formulaires secondaires repliés) ; `views.py` : `_steps`, `_status_actions`, `_thread`, filtres `initials` et `elapsed`
+- [X] T124 [US1] Fiche ticket (`helpdesk/partials/ticket_body.html`) : en-tête à métriques, bandeau de statut (frise en 4 étapes, action principale contextuelle, résolution dépliable), fil de conversation avec événements regroupés, zone de réponse « Répondre au demandeur » / « Note interne », colonne latérale réordonnée (formulaires secondaires repliés) ; `views.py` : `_steps`, `_status_actions`, `_thread`, filtres `initials` et `elapsed`
 - [X] T125 [P] E-mails (`email/base.html` et gabarits) et thème de l'admin alignés sur la v2
 - [X] T126 Tests : `tests/integration/test_ticket_page.py`, mises à jour de l'e2e S1 et des tests du temps ; audit axe-core sans violation sur 15 pages
 

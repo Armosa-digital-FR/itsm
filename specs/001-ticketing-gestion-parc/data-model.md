@@ -150,6 +150,8 @@ Unicité (`technician`, `tool`). Supprimée automatiquement quand le technicien 
 | `resolution_kind` | énum {`technicien`, `sans_reponse`} | |
 | `resolved_at`, `closed_at` | date-heure | |
 | `resolution_business_minutes` | entier | délai de résolution en minutes ouvrées (création → résolution, FR-037a) ; effacé à la réouverture |
+| `treatment_seconds` | entier ≥ 0 | temps de traitement cumulé en secondes ouvrées des périodes closes au statut « Pris en compte » (FR-035c) |
+| `treatment_started_at` | date-heure, optionnel | début de la période de traitement en cours ; renseigné tant que le statut est « Pris en compte » |
 | `has_unread_reply` | booléen | réponse du demandeur non lue par le technicien |
 | `search_vector` | tsvector (colonne générée) | titre + description + résolution, config `french` + `unaccent` |
 | `anonymized_at` | date-heure | |
@@ -252,18 +254,9 @@ Exécutée quand `tool` est renseigné ou modifié **et** que le ticket est en `
 Agrégats affichés : total du ticket ; total par technicien sur le ticket ; total par technicien
 sur une période (vue de suivi).
 
-### Chronomètre (`RunningTimer`)
-
-| Champ | Type | Règles |
-|---|---|---|
-| `technician` | → Account | **unique** : un seul chronomètre actif par technicien |
-| `ticket` | → Ticket | |
-| `started_at` | date-heure | |
-
-L'arrêt supprime le chronomètre et crée une `TimeEntry` (`source = chrono`, `date` = jour de
-démarrage, `minutes` = durée arrondie à la minute supérieure, bornée à 1–1 440).
-`TimeEntry` gagne `source` ∈ {`manuel`, `chrono`} ; une saisie est modifiable et supprimable
-par son auteur (événement `temps`).
+`TimeEntry.source` ∈ {`manuel`, `chrono`} (`chrono` : saisies créées par l'ancien chronomètre,
+retiré le 2026-10-30, migration 0008) ; une saisie est modifiable et supprimable par son
+auteur (événement `temps`).
 
 ### Événement de ticket (`TicketEvent`)
 

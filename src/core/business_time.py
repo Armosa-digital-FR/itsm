@@ -91,6 +91,11 @@ def add_business_minutes(start: datetime, minutes: int, cal: Calendar | None = N
 
 def business_minutes_between(start: datetime, end: datetime, cal: Calendar | None = None) -> int:
     """Nombre de minutes ouvrées entre deux instants (0 si `end` ≤ `start`)."""
+    return business_seconds_between(start, end, cal) // 60
+
+
+def business_seconds_between(start: datetime, end: datetime, cal: Calendar | None = None) -> int:
+    """Nombre de secondes ouvrées entre deux instants (0 si `end` ≤ `start`)."""
     cal = cal or get_calendar()
     begin, finish = _local(start, cal), _local(end, cal)
     if finish <= begin:
@@ -104,7 +109,15 @@ def business_minutes_between(start: datetime, end: datetime, cal: Calendar | Non
             if overlap > timedelta():
                 total += overlap
         day += timedelta(days=1)
-    return int(total.total_seconds() // 60)
+    return int(total.total_seconds())
+
+
+def window_end(dt: datetime, cal: Calendar | None = None) -> datetime | None:
+    """Fin de la plage ouvrée en cours à `dt`, ou None si `dt` est hors heures ouvrées."""
+    cal = cal or get_calendar()
+    if not is_business_time(dt, cal):
+        return None
+    return cal.window(_local(dt, cal).date())[1].astimezone(UTC)
 
 
 def add_business_days(start: datetime, days: int, cal: Calendar | None = None) -> datetime:

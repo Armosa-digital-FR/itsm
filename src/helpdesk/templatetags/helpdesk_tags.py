@@ -79,19 +79,6 @@ def rich_html(value) -> str:
 
 
 @register.filter
-def elapsed(minutes) -> str:
-    """Durée calendaire courte : 50 → « 50 min » ; 1 570 → « 1 j 2 h »."""
-    if minutes in (None, ""):
-        return "—"
-    minutes = int(minutes)
-    days, rest = divmod(minutes, 1440)
-    if not days:
-        return duration(rest)
-    hours = rest // 60
-    return f"{days} j {hours} h" if hours else f"{days} j"
-
-
-@register.filter
 def initials(name) -> str:
     """« Camille Martin » → « CM » ; « support@x.fr » → « SU » (pastilles d'avatar)."""
     name = str(name or "").split("@")[0].replace(".", " ").replace("-", " ").strip()
@@ -101,3 +88,11 @@ def initials(name) -> str:
     if len(words) == 1:
         return words[0][:2].upper()
     return (words[0][0] + words[-1][0]).upper()
+
+
+@register.filter
+def hms(seconds) -> str:
+    """3 725 → « 01:02:05 » (les heures peuvent dépasser 99)."""
+    seconds = max(0, int(seconds or 0))
+    hours, rest = divmod(seconds, 3600)
+    return f"{hours:02d}:{rest // 60:02d}:{rest % 60:02d}"

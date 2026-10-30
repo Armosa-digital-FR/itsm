@@ -261,6 +261,12 @@ class Ticket(models.Model):
         "délai de résolution (minutes ouvrées)", null=True, blank=True
     )
     closed_at = models.DateTimeField("fermé le", null=True, blank=True)
+    # Temps de traitement (FR-035b) : secondes ouvrées passées au statut « Pris en compte »,
+    # périodes closes cumulées ; la période en cours démarre à `treatment_started_at`.
+    treatment_seconds = models.PositiveIntegerField(
+        "temps de traitement (secondes ouvrées)", default=0
+    )
+    treatment_started_at = models.DateTimeField("en traitement depuis", null=True, blank=True)
     has_unread_reply = models.BooleanField("nouvelle réponse", default=False)
     anonymized_at = models.DateTimeField("anonymisé le", null=True, blank=True)
     # Calculée par PostgreSQL (migration 0005) : titre (A), résolution (B), description (C),
@@ -572,23 +578,3 @@ class RemoteSession(models.Model):
             errors["ended_at"] = "La fin doit être postérieure au début."
         if errors:
             raise ValidationError(errors)
-
-
-class RunningTimer(models.Model):
-    """Chronomètre en cours (FR-035a) : un seul par technicien, transformé en saisie à l'arrêt."""
-
-    technician = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="running_timer",
-        verbose_name="technicien",
-    )
-    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="running_timers")
-    started_at = models.DateTimeField("démarré le", default=timezone.now)
-
-    class Meta:
-        verbose_name = "chronomètre en cours"
-        verbose_name_plural = "chronomètres en cours"
-
-    def __str__(self) -> str:
-        return f"{self.technician} · {self.ticket.reference}"

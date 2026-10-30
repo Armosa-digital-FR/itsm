@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from core.auth import technician_required
-from core.business_time import get_calendar
+from core.business_time import business_seconds_between, get_calendar, window_end
 from core.models import Settings
 from directory.models import Account
 
@@ -440,9 +440,30 @@ def _status_actions(ticket: Ticket, user, targets: list[str]) -> list[dict]:
     return sorted(actions, key=lambda a: a["primary"])
 
 
-def _elapsed(ticket: Ticket, now) -> int:
-    end = ticket.resolved_at or now
-    return int((end - ticket.created_at).total_seconds() // 60)
+def _counter(base: int, since, now, cal) -> dict:
+    """Compteur en secondes ouvrées ; il n'avance dans le navigateur que jusqu'à la fin de la
+    plage ouvrée en cours (`tick_until`), et pas du tout s'il est arrêté."""
+    if since is None:
+        return {"seconds": base, "running": False, "tick_until": None}
+    return {
+        "seconds": base + business_seconds_between(since, now, cal),
+        "running": True,
+        "tick_until": window_end(now, cal),
+    }
+
+
+def _counters(ticket: Ticket, now) -> dict:
+    cal = get_calendar()
+    if ticket.resolved_at:
+        opened = _counter(
+            business_seconds_between(ticket.created_at, ticket.resolved_at, cal), None, now, cal
+        )
+    else:
+        opened = _counter(0, ticket.created_at, now, cal)
+    return {
+        "treatment": _counter(ticket.treatment_seconds, ticket.treatment_started_at, now, cal),
+        "opened": opened,
+    }
 
 
 def detail_context(request, ticket: Ticket, **extra) -> dict:
@@ -457,7 +478,7 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "thread": _thread(_timeline(ticket)),
         "steps": _steps(ticket),
         "status_actions": _status_actions(ticket, request.user, targets),
-        "elapsed_minutes": _elapsed(ticket, now),
+        "counters": _counters(ticket, now),
         "initial_attachments": not_inline(
             ticket.attachments.filter(note__isnull=True), ticket.description_html
         ),
@@ -466,7 +487,6 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "time_entries": ticket.time_entries.select_related("technician__directory_user").order_by(
             "-date", "-created_at"
         ),
-        "running_here": timers.running_timer(request.user),
         "day_minutes": Settings.load().business_day_minutes,
         "equipment": ticket.equipment.select_related("type", "site"),
         "requester_equipment": (
@@ -676,36 +696,6 @@ def ticket_remote(request, number: int):
     except ValidationError as exc:
         return _error(request, ticket, exc, remote_form=form)
     return _done(request, ticket, "Prise en main déclarée.")
-
-
-@technician_required
-@require_POST
-def timer_start(request, number: int):
-    ticket = _get_ticket(number)
-    _, previous = timers.start(ticket, request.user)
-    message = "Chronomètre démarré."
-    if previous is not None:
-        message += (
-            f" Celui de {previous.entry.ticket.reference} a été arrêté "
-            f"({previous.entry.minutes} min enregistrées)."
-        )
-    return _done(request, ticket, message)
-
-
-@technician_required
-@require_POST
-def timer_stop(request, number: int):
-    ticket = _get_ticket(number)
-    stopped = timers.stop(request.user)
-    if stopped is None:
-        return _done(request, ticket, "Aucun chronomètre en cours.")
-    message = f"{stopped.entry.minutes} min enregistrées sur {stopped.entry.ticket.reference}."
-    if stopped.capped:
-        message += " Le chronomètre est resté actif plus de 24 h : vérifiez la durée."
-    if not is_htmx(request) and request.POST.get("next", "").startswith("/"):
-        messages.success(request, message)
-        return redirect(request.POST["next"])
-    return _done(request, stopped.entry.ticket if is_htmx(request) else ticket, message)
 
 
 @technician_required

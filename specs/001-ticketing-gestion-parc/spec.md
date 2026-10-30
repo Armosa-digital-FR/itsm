@@ -65,7 +65,7 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
 
 - Q: Que revoir sur la fiche d'un ticket créé ? → A: Une mise en page orientée action, d'après la
   maquette fournie : en-tête (référence, titre, pastilles de statut, priorité, type, catégorie ;
-  mon temps, ouvert depuis ou résolu en, chronomètre), bandeau de statut avec frise en quatre
+  temps de traitement, ouvert depuis ou résolu en), bandeau de statut avec frise en quatre
   étapes (Nouveau, En cours, Résolu, Fermé ; les attentes sont des sous-états de « En cours »)
   et l'action suivante mise en avant, fil de conversation (messages du demandeur, réponses,
   notes internes distinctes ; événements regroupés), zone de réponse « Répondre au demandeur »
@@ -74,6 +74,13 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
 - Q: Quel design system ? → A: La mise à jour du design system Armosa (v2) sur tout le site :
   Roboto, palette Tiber / Armosa / Hunter / Norway / Mercury / Teddy, angles droits, aplats
   sans ombre, un seul bouton principal par écran.
+
+### Session 2026-10-30 (retour : temps de traitement automatique)
+
+- Q: Le chronomètre reste-t-il utile ? → A: Non : la prise en compte, la mise en attente et la
+  reprise suffisent. « Mon temps » devient « Temps de traitement » : le temps passé par ce
+  ticket au statut « Pris en compte », mis à jour en direct (HH:MM:SS), figé pendant les
+  attentes. « Ouvert depuis » est aussi en direct. Les deux ne comptent que les heures ouvrées.
 
 ### Session 2026-10-21 (temps passé par ticket)
 
@@ -396,15 +403,19 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   être paramétrables.
 - **FR-035**: Les techniciens DOIVENT pouvoir saisir le temps passé sur un ticket (durée,
   date, technicien) ; le système DOIT afficher le cumul par ticket et par technicien.
-- **FR-035a**: Chaque technicien DOIT pouvoir chronométrer son travail sur un ticket
-  (Démarrer/Arrêter) : un seul chronomètre actif par technicien (en démarrer un autre arrête
-  et enregistre le précédent), visible sur toutes les pages, arrêté automatiquement quand ce
-  technicien résout le ticket. L'arrêt crée une saisie de temps (au moins 1 minute,
-  24 heures au plus) que son auteur peut modifier ou supprimer, avec historique.
-- **FR-035b**: Pour chaque ticket, le système DOIT afficher le temps que le technicien
-  connecté y a passé et le temps total, sur la fiche, dans la liste (colonne dédiée, tous les
-  onglets) et dans l'export CSV ; la liste DOIT pouvoir être filtrée sur les tickets où le
-  technicien a saisi du temps.
+- **FR-035a**: Une saisie de temps DOIT pouvoir être modifiée ou supprimée par son auteur,
+  avec historique. *(Le chronomètre Démarrer/Arrêter du 2026-10-21 est retiré le 2026-10-30,
+  remplacé par le temps de traitement de FR-035c ; les chronomètres actifs à la migration
+  deviennent des saisies.)*
+- **FR-035b**: Pour chaque ticket, le système DOIT afficher le temps saisi par le technicien
+  connecté et le temps saisi total dans la liste (colonne dédiée, tous les onglets) et dans
+  l'export CSV, et le cumul par technicien sur la fiche ; la liste DOIT pouvoir être filtrée
+  sur les tickets où le technicien a saisi du temps.
+- **FR-035c**: La fiche DOIT afficher en direct, au format HH:MM:SS et en heures ouvrées
+  seulement, le **temps de traitement** (temps passé par le ticket au statut « Pris en
+  compte » : il démarre à la prise en compte, se fige pendant les attentes et à la résolution,
+  reprend à la réouverture) et le temps **depuis l'ouverture** (création → maintenant, figé à
+  la résolution : « Résolu en »).
 - **FR-036**: Le système DOIT enregistrer la date de prise en compte et calculer le délai de
   prise en compte en heures ouvrées.
 - **FR-037**: Le système DOIT permettre de définir un délai cible de prise en compte par

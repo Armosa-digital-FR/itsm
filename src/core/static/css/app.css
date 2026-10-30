@@ -74,15 +74,6 @@ p { margin: 0 0 var(--space-3); }
 .site-user form { margin: 0; }
 .site-user .btn-link { color: var(--white); }
 
-/* Chronomètre en cours, dans l'en-tête sombre. */
-.timer-chip { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: 14px;
-  font-weight: 400; color: var(--white); border: 1px solid var(--armosa); padding: 4px 4px 4px 12px; }
-.timer-chip .label { color: var(--norway); }
-.timer-chip a { color: var(--white); }
-.timer-chip .mono { min-width: 64px; }
-.timer-chip .btn { color: var(--white); border-color: var(--mercury); }
-.timer-chip .btn:hover { background: var(--white); color: var(--tiber); }
-
 main { max-width: 1440px; margin: 0 auto; padding: var(--space-6) var(--space-6) var(--space-8); }
 
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-4);
@@ -316,12 +307,9 @@ mark { background: var(--accent-200); color: var(--tiber); padding: 0 2px; }
 .ticket-head h1 { margin: 0; }
 .ticket-head .chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .ticket-metrics { flex: 0 1 auto; display: flex; flex-wrap: wrap; gap: var(--space-5); align-items: flex-end; }
-.metric { display: flex; flex-direction: column; gap: 4px; }
+.metric { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
 .metric .value { font-size: 32px; line-height: 1.1; font-weight: 400; font-variant-numeric: tabular-nums; }
 .metric .sub { font-size: 13px; font-weight: 400; color: var(--text-soft); }
-.metric-timer { display: flex; flex-direction: column; gap: 6px; }
-.metric-timer form { margin: 0; }
-.timer-live { font-size: 32px; line-height: 1.1; font-weight: 400; font-variant-numeric: tabular-nums; }
 
 /* Bandeau de statut : frise + actions, sur toute la largeur. */
 .status-band { background: var(--surface-alt); margin: 0 calc(-1 * var(--space-6)) var(--space-6);

@@ -16,37 +16,21 @@
         {% if ticket.is_unidentified %}<span class="tag tag-warning">Demandeur non identifié</span>{% endif %}
       </div>
     </div>
-    <div class="ticket-metrics" aria-label="Temps passé et délais">
-      <div class="metric metric-mine">
-        <span class="label">Mon temps</span>
-        <span class="value">{{ time.mine|duration }}</span>
-        <span class="sub">Total : {{ time.total|duration }}</span>
+    <div class="ticket-metrics" aria-label="Compteurs en heures ouvrées">
+      {% with c=counters.treatment %}
+      <div class="metric metric-treatment">
+        <span class="label">Temps de traitement</span>
+        <span class="value" data-counter="{{ c.seconds }}"{% if c.tick_until %} data-tick-until="{{ c.tick_until|date:'c' }}"{% endif %}>{{ c.seconds|hms }}</span>
+        <span class="sub">{% if c.tick_until %}En cours{% elif c.running %}En cours · hors heures ouvrées{% elif ticket.status == "cree" %}Démarre à la prise en compte{% elif ticket.status == "resolu" or ticket.status == "ferme" %}Arrêté à la résolution{% else %}En pause · {{ ticket.get_status_display|lower }}{% endif %}</span>
       </div>
-      <div class="metric">
-        {% if ticket.resolution_business_minutes is not None %}
-        <span class="label">Résolu en</span>
-        <span class="value">{{ ticket.resolution_business_minutes|business_duration:day_minutes }}</span>
-        <span class="sub">ouvrées</span>
-        {% else %}
-        <span class="label">Ouvert depuis</span>
-        <span class="value">{{ elapsed_minutes|elapsed }}</span>
-        <span class="sub">le {{ ticket.created_at|date:"d/m/Y à H:i" }}</span>
-        {% endif %}
+      {% endwith %}
+      {% with c=counters.opened %}
+      <div class="metric metric-opened">
+        <span class="label">{% if ticket.resolved_at %}Résolu en{% else %}Ouvert depuis{% endif %}</span>
+        <span class="value" data-counter="{{ c.seconds }}"{% if c.tick_until %} data-tick-until="{{ c.tick_until|date:'c' }}"{% endif %}>{{ c.seconds|hms }}</span>
+        <span class="sub">Heures ouvrées · créé le {{ ticket.created_at|date:"d/m à H:i" }}</span>
       </div>
-      <div class="metric-timer">
-        <span class="label">Chronomètre</span>
-        {% if running_here and running_here.ticket_id == ticket.pk %}
-          <span class="timer-live" data-timer-start="{{ running_here.started_at|date:'c' }}">—</span>
-          <form hx-post="{% url 'helpdesk:timer_stop' ticket.number %}" method="post" action="{% url 'helpdesk:timer_stop' ticket.number %}">{% csrf_token %}
-            <button class="btn btn-small" type="submit">Arrêter et enregistrer</button>
-          </form>
-        {% else %}
-          <form hx-post="{% url 'helpdesk:timer_start' ticket.number %}" method="post" action="{% url 'helpdesk:timer_start' ticket.number %}">{% csrf_token %}
-            <button class="btn btn-small" type="submit">Démarrer le chronomètre</button>
-          </form>
-          {% if running_here %}<span class="sub muted">Arrêtera celui de {{ running_here.ticket.reference }}</span>{% endif %}
-        {% endif %}
-      </div>
+      {% endwith %}
     </div>
   </header>
 
@@ -340,4 +324,3 @@
     </aside>
   </div>
 </div>
-{% if htmx %}{% include "core/partials/timer_chip.html" with oob=True %}{% endif %}

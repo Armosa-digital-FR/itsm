@@ -53,19 +53,22 @@ document.addEventListener("click", function (event) {
   }
 });
 
-// Chronomètres en cours : affichage du temps écoulé (hh:mm:ss), y compris après un échange HTMX.
-function tickTimers() {
-  document.querySelectorAll("[data-timer-start]").forEach(function (el) {
-    var start = Date.parse(el.getAttribute("data-timer-start"));
-    if (isNaN(start)) return;
-    var s = Math.max(0, Math.floor((Date.now() - start) / 1000));
+// Compteurs de la fiche ticket (HH:MM:SS, secondes ouvrées) : le serveur donne la valeur au
+// chargement ; elle avance jusqu'à la fin de la plage ouvrée en cours (data-tick-until).
+function tickCounters() {
+  var now = Date.now();
+  document.querySelectorAll("[data-counter]").forEach(function (el) {
+    if (!el.hasAttribute("data-tick-until")) return;
+    if (!el._loadedAt) el._loadedAt = now;
+    var until = Date.parse(el.getAttribute("data-tick-until"));
+    var s = Number(el.getAttribute("data-counter")) + Math.floor((Math.min(now, until) - el._loadedAt) / 1000);
     var pad = function (n) { return String(n).padStart(2, "0"); };
     el.textContent = pad(Math.floor(s / 3600)) + ":" + pad(Math.floor(s / 60) % 60) + ":" + pad(s % 60);
   });
 }
-setInterval(tickTimers, 1000);
-document.addEventListener("DOMContentLoaded", tickTimers);
-document.addEventListener("htmx:afterSwap", tickTimers);
+setInterval(tickCounters, 1000);
+document.addEventListener("DOMContentLoaded", tickCounters);
+document.addEventListener("htmx:afterSwap", tickCounters);
 
 // Éditeur enrichi (core/partials/rich_editor.html) : images collées, glissées ou insérées.
 // Les images sont intégrées en data: et converties en pièces jointes par le serveur.

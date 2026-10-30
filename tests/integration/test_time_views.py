@@ -6,7 +6,7 @@ import time_machine
 from django.urls import reverse
 from django.utils import timezone
 
-from helpdesk.models import RunningTimer, Ticket, TimeEntry
+from helpdesk.models import Ticket, TimeEntry
 from helpdesk.services.lifecycle import change_status
 from tests.factories import AccountFactory, TicketFactory
 
@@ -16,30 +16,6 @@ HX = {"HTTP_HX_REQUEST": "true"}
 
 def url(name, ticket):
     return reverse(f"helpdesk:{name}", args=[ticket.number])
-
-
-def test_chronometre_depuis_la_fiche_et_l_en_tete(technician_client, technician):
-    ticket = TicketFactory()
-    response = technician_client.post(url("timer_start", ticket), **HX)
-    content = response.content.decode()
-    assert "Arrêter et enregistrer" in content
-    assert 'id="timer-slot" hx-swap-oob="true"' in content  # en-tête mis à jour sans recharger
-    page = technician_client.get(reverse("helpdesk:ticket_list")).content.decode()
-    assert "timer-chip" in page and ticket.reference in page  # visible sur toutes les pages
-    response = technician_client.post(
-        url("timer_stop", ticket), {"next": reverse("helpdesk:ticket_list")}
-    )
-    assert response.status_code == 302 and response["Location"] == reverse("helpdesk:ticket_list")
-    assert not RunningTimer.objects.exists()
-    assert TimeEntry.objects.get().source == "chrono"
-
-
-def test_demarrer_ailleurs_arrete_le_precedent(technician_client):
-    first, second = TicketFactory(), TicketFactory()
-    technician_client.post(url("timer_start", first), **HX)
-    response = technician_client.post(url("timer_start", second), **HX)
-    assert f"Celui de {first.reference} a été arrêté" in response.content.decode()
-    assert RunningTimer.objects.get().ticket == second
 
 
 def test_mon_temps_et_total_sur_la_fiche(technician_client, technician):
@@ -53,8 +29,7 @@ def test_mon_temps_et_total_sur_la_fiche(technician_client, technician):
     response = technician_client.get(url("ticket_detail", ticket))
     assert response.context["time"]["mine"] == 80 and response.context["time"]["total"] == 125
     content = response.content.decode()
-    assert '<span class="value">1 h 20</span>' in content
-    assert "Total : 2 h 05" in content
+    assert "<dd>1 h 20</dd>" in content and "<dd>45 min</dd>" in content  # par technicien
 
 
 def test_correction_d_une_saisie_par_son_auteur_seulement(client, technician_client, technician):
@@ -128,7 +103,7 @@ def test_delai_de_resolution(technician_client, technician):
         change_status(ticket, Ticket.Status.RESOLU, technician, resolution="Fait.")
     assert ticket.resolution_business_minutes == 540 + 150  # 1 j ouvré + 2 h 30
     content = technician_client.get(url("ticket_detail", ticket)).content.decode()
-    assert '<span class="value">1 j 2 h 30</span>' in content
+    assert "Résolu en" in content and ">11:30:00</span>" in content  # 690 min ouvrées
     traites = technician_client.get(
         reverse("helpdesk:ticket_list"), {"onglet": "traites"}
     ).content.decode()

@@ -6,7 +6,7 @@ from django.urls import reverse
 from helpdesk.models import Ticket, TicketNote
 from helpdesk.services.lifecycle import change_status
 from helpdesk.services.tickets import add_note
-from helpdesk.templatetags.helpdesk_tags import elapsed, initials
+from helpdesk.templatetags.helpdesk_tags import hms, initials
 from helpdesk.views import _status_actions, _steps, _thread
 from tests.factories import TicketFactory
 
@@ -61,9 +61,9 @@ def test_filtres_initiales_et_duree():
     assert initials("Jean-Pierre de la Tour") == "JT"
     assert initials("support@armosa.test") == "SU"
     assert initials("") == "?"
-    assert elapsed(50) == "50 min"
-    assert elapsed(1570) == "1 j 2 h"
-    assert elapsed(2880) == "2 j"
+    assert hms(3725) == "01:02:05"
+    assert hms(400 * 3600) == "400:00:00"
+    assert hms(None) == "00:00:00"
 
 
 def test_fiche_affiche_la_conversation_et_le_bandeau(technician_client, technician):

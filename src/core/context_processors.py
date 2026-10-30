@@ -40,7 +40,4 @@ def navigation(request):
         items.append({"label": label, "url": url, "active": active})
     if user.is_admin:
         items.append({"label": "Administration", "url": reverse("admin:index"), "active": False})
-    from helpdesk.models import RunningTimer
-
-    timer = RunningTimer.objects.filter(technician=user).select_related("ticket").first()
-    return {"nav_items": items, "running_timer": timer, **dev_mode}
+    return {"nav_items": items, **dev_mode}

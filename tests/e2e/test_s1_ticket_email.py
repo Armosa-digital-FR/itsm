@@ -1,5 +1,6 @@
 """Quickstart S1 : ticket créé par e-mail, traité jusqu'à la fermeture (US1)."""
 
+import re
 from pathlib import Path
 
 import pytest
@@ -44,16 +45,14 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
     page.get_by_role("button", name="Envoyer la réponse").click()
     expect(page.get_by_text("Note envoyée au demandeur.")).to_be_visible()
 
-    # Temps passé, tentative de résolution sans texte (refusée), résolution, fermeture.
-    page.get_by_role("button", name="Démarrer le chronomètre").click()
-    expect(page.locator(".timer-chip, #ticket [data-timer-start]").first).to_be_visible()
-    page.get_by_role("button", name="Arrêter et enregistrer").click()
-    expect(page.get_by_text("1 min enregistrées")).to_be_visible()
+    # Compteur de traitement, saisie manuelle, résolution, fermeture.
+    treatment = page.locator(".metric-treatment .value")
+    expect(treatment).to_have_text(re.compile(r"^\d{2,}:\d{2}:\d{2}$"))
     page.get_by_text("Saisir du temps manuellement").click()
     page.get_by_label("Durée (minutes)").fill("30")
     page.get_by_role("button", name="Ajouter du temps").click()
     expect(page.get_by_text("30 min enregistrées.")).to_be_visible()
-    expect(page.locator(".metric-mine .value")).to_have_text("31 min")
+    expect(page.locator(".side")).to_contain_text("30 min")
     page.get_by_role("button", name="Résoudre le ticket").click()
     page.get_by_label("Résolution").fill("Rouleau d'entraînement remplacé.")
     page.get_by_role("button", name="Valider la résolution").click()

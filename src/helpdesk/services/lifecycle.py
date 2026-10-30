@@ -7,7 +7,12 @@ un `TicketEvent` ; la résolution envoie l'e-mail de résolution (FR-038).
 from django.db import transaction
 from django.utils import timezone
 
-from core.business_time import add_business_days, business_minutes_between, get_calendar
+from core.business_time import (
+    add_business_days,
+    business_minutes_between,
+    business_seconds_between,
+    get_calendar,
+)
 from core.models import Settings
 from helpdesk.models import Ticket, TicketEvent
 from helpdesk.signals import ticket_status_changed
@@ -131,6 +136,13 @@ def change_status(
 
     if new_status == S.FERME:
         ticket.closed_at = now
+
+    # Temps de traitement : le compteur tourne au statut « Pris en compte » seulement.
+    if old_status == S.PRIS_EN_COMPTE and ticket.treatment_started_at:
+        ticket.treatment_seconds += business_seconds_between(ticket.treatment_started_at, now)
+        ticket.treatment_started_at = None
+    if new_status == S.PRIS_EN_COMPTE:
+        ticket.treatment_started_at = now
 
     ticket.status = new_status
     ticket.save()
