@@ -83,7 +83,7 @@ specs/001-ticketing-gestion-parc/
 ├── plan.md              # ce fichier
 ├── research.md          # Phase 0 : décisions R1 à R19
 ├── data-model.md        # Phase 1 : entités, machine à états, règle d'affectation
-├── quickstart.md        # Phase 1 : mise en route et scénarios de validation S1 à S9
+├── quickstart.md        # Phase 1 : mise en route et scénarios de validation S1 à S10
 ├── contracts/
 │   ├── ui-routes.md          # écrans, routes, rôles
 │   ├── email.md              # messagerie entrante/sortante, liste fermée FR-038
@@ -150,7 +150,7 @@ Aligné sur les priorités de la spec pour permettre un pilote tôt :
    temps, accusés) → **pilote possible** sur une boîte de test.
 3. **P2** : US2 (affectation), US3 (délais, rappels), US4 (parc Intune + manuel + licences).
 4. **P3** : US6 (base de résolution), US7 (prise en main à distance).
-5. **Recette et bascule** : scénarios S1–S9, pilote parallèle, bascule de l'adresse support.
+5. **Recette et bascule** : scénarios S1–S10, pilote parallèle, bascule de l'adresse support.
 
 ## Complexity Tracking
 

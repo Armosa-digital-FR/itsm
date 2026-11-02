@@ -405,3 +405,25 @@ mark { background: var(--accent-200); color: var(--tiber); padding: 0 2px; }
 .quick-panel .field { margin-bottom: 0; }
 .quick-panel .btn { align-self: flex-start; }
 .quick-done { margin: 0; font-size: 14px; font-weight: 400; color: var(--success); }
+
+/* Mentions « @technicien » (FR-014d) */
+.site-mentions { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--mercury);
+  text-decoration: none; text-transform: uppercase; font-size: 13px; letter-spacing: 0.6px; border-bottom: 2px solid transparent; }
+.site-mentions:hover, .site-mentions[aria-current="page"] { color: var(--white); border-bottom-color: var(--norway); }
+.site-mentions .count { min-width: 22px; padding: 2px 6px; background: var(--norway); color: var(--tiber);
+  font-weight: 700; font-size: 12px; text-align: center; letter-spacing: 0; }
+.rich-editor { position: relative; }
+.mention-menu { position: absolute; z-index: 20; width: 280px; max-height: 260px; overflow-y: auto; margin: 0; padding: 0;
+  list-style: none; background: var(--white); border: 1px solid var(--tiber); }
+.mention-menu [role="option"] { display: flex; flex-direction: column; padding: 8px 12px; cursor: pointer; font-size: 14px; font-weight: 400; }
+.mention-menu [role="option"] .muted { font-size: 12px; }
+.mention-menu [aria-selected="true"] { background: var(--tiber); color: var(--white); }
+.mention-menu [aria-selected="true"] .muted { color: var(--mercury); }
+.mention { font-weight: 500; color: var(--armosa); background: var(--mercury); padding: 0 2px; }
+.mentions-line { margin: 8px 0 0; font-size: 13px; font-weight: 400; }
+.mention-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.mention-item { display: flex; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--mercury); }
+.mention-item.unread { border-color: var(--tiber); border-left: 4px solid var(--tiber); }
+.mention-item .body { flex: 1; min-width: 0; }
+.mention-item .meta { font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+.mention-item .excerpt { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }

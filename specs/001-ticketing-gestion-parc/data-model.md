@@ -213,6 +213,19 @@ Exécutée quand `tool` est renseigné ou modifié **et** que le ticket est en `
 | `body_text`, `body_html` | texte | HTML assaini |
 | `email_message` | → EmailMessage | e-mail entrant ou sortant associé |
 
+### Mention (`Mention`)
+
+Technicien cité par « @ » dans une note interne (FR-014d).
+
+| Champ | Type | Règles |
+|---|---|---|
+| `note` | → TicketNote | note interne uniquement ; suppression en cascade |
+| `account` | → Account | technicien ou administrateur actif au moment de la note ; jamais l'auteur |
+| `created_at` | horodatage | |
+| `read_at` | horodatage, vide | renseigné à l'ouverture du ticket par le technicien cité, ou par « Tout marquer comme lu » |
+
+Unicité (`note`, `account`) ; index (`account`, `read_at`) pour la pastille de l'en-tête.
+
 ### Pièce jointe (`Attachment`)
 
 | Champ | Type | Règles |

@@ -422,6 +422,32 @@ class TicketNote(models.Model):
         return f"{self.ticket.reference} · {self.get_visibility_display()}"
 
 
+class Mention(models.Model):
+    """Technicien interpellé par « @nom » dans une note interne (FR-014d)."""
+
+    note = models.ForeignKey(TicketNote, on_delete=models.CASCADE, related_name="mentions")
+    account = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mentions",
+        verbose_name="technicien mentionné",
+    )
+    created_at = models.DateTimeField("mentionné le", default=timezone.now)
+    read_at = models.DateTimeField("lue le", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "mention"
+        verbose_name_plural = "mentions"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(fields=["note", "account"], name="mention_unique_par_note")
+        ]
+        indexes = [models.Index(fields=["account", "read_at"], name="mention_non_lue_idx")]
+
+    def __str__(self) -> str:
+        return f"{self.note.ticket.reference} · @{self.account}"
+
+
 class Attachment(models.Model):
     ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="attachments")
     note = models.ForeignKey(

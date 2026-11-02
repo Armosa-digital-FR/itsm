@@ -32,13 +32,15 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | GET | `/tickets/new/` | T | FR-014 | formulaire de création manuelle |
 | POST | `/tickets/new/` | T | FR-014, FR-014a | crée le ticket (`channel = app`), envoie l'accusé, déclenche l'affectation si outil → redirige vers la fiche |
 | GET | `/directory/search/?q=` | T | FR-014 | fragment : 10 utilisateurs actifs max par nom ou e-mail (≥ 2 caractères) |
-| GET | `/tickets/<number>/` | T | US1 | fiche : en-tête, qualification, fil chronologique (notes, e-mails, événements), temps, équipements liés, suggestions de résolution (FR-042) ; marque la réponse comme lue |
+| GET | `/tickets/<number>/` | T | US1 | fiche : en-tête, qualification, fil chronologique (notes, e-mails, événements), temps, équipements liés, suggestions de résolution (FR-042) ; marque la réponse et les mentions de l'utilisateur comme lues |
 | POST | `/tickets/<number>/qualify/` | T | FR-015 à FR-019 | met à jour type, catégorie, outil, priorité, filiale ; recalcul de l'échéance ; affectation auto |
 | POST | `/tickets/<number>/status/` | T | FR-030, FR-032 | corps : `status`, `resolution` si `resolu` ; transition refusée → fragment d'erreur `422` |
 | POST | `/tickets/<number>/take/` | T | FR-023 | l'utilisateur courant devient assigné ; passe en `pris_en_compte` si `cree` |
 | POST | `/tickets/<number>/assign/` | T | FR-024 | corps : `assignee` et/ou `group` ; `assignment_mode = manuel` |
 | POST | `/tickets/bulk-assign/` | T | cas limite | réaffectation en masse des tickets d'un technicien vers un autre/groupe |
-| POST | `/tickets/<number>/notes/` | T | FR-031 | corps : `visibility`, `body`, pièces jointes ; note externe → e-mail au demandeur |
+| POST | `/tickets/<number>/notes/` | T | FR-031, FR-014d | corps : `visibility`, `body`, pièces jointes ; note externe → e-mail au demandeur ; note interne → mentions « @ » enregistrées et e-mail à chaque technicien cité |
+| GET | `/mentions/` | T | FR-014d | « Mes mentions » : non lues d'abord, 100 dernières, lien vers la note (`#note-<id>`) |
+| POST | `/mentions/` | T | FR-014d | marque toutes les mentions de l'utilisateur comme lues → redirige vers `/mentions/` |
 | POST | `/tickets/<number>/time/` | T | FR-035 | corps : `date`, `minutes`, `comment` |
 | POST | `/time-entries/<id>/` · `/time-entries/<id>/delete/` | T (auteur) | FR-035a | correction ou suppression d'une saisie ; 403 pour un autre technicien |
 | POST | `/tickets/<number>/equipment/` | T | FR-017 | lier / délier un équipement |

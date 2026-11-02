@@ -140,9 +140,18 @@ d'audit `remote_session.declare`.
    boîte support (`GET /users/{autre boîte}/messages`).
    **Attendu** : refus `403` (restriction RBAC Exchange effective, FR-004 et principe II).
 
+### S10 — Mentionner un collègue (FR-014d)
+
+Sur un ticket, en « Note interne », taper « @iv », choisir « Ivan Martin » dans les
+suggestions, compléter et enregistrer.
+**Attendu** : le nom est mis en évidence dans la note, « Notifié : Ivan Martin (non lu) »
+apparaît dessous ; Ivan reçoit un e-mail de la boîte support avec l'extrait et le lien ; sa
+pastille « Mentions » affiche 1 ; ouvrir le ticket la remet à zéro et la note indique « lu ».
+En « Répondre au demandeur », « @ » ne propose rien et n'envoie aucune notification.
+
 ## Critères de sortie de la recette
 
-- S1 à S9 passent en recette sur le tenant de test.
+- S1 à S10 passent en recette sur le tenant de test.
 - Pilote de 2 semaines en parallèle d'Atera sur une boîte support dédiée ; bascule de
   l'adresse support publique seulement après acceptation de l'équipe support ; procédure de
   retour arrière (rétablir la redirection vers Atera) testée une fois (principe V).

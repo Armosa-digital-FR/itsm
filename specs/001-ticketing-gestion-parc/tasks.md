@@ -351,7 +351,7 @@ déclarées et tracées. **Aucun lancement ni intégration de TeamViewer** (rese
 - [X] T100 Passe d'accessibilité et de conformité Armosa sur tous les gabarits de `src/*/templates/` : navigation clavier, focus visible, libellés de formulaires, statut et priorité jamais portés par la seule couleur, un seul bouton `action` par écran, aucune ombre hors menus flottants
 - [X] T101 Vérifier SC-009 : créer la commande `src/core/management/commands/seed_volume.py` (refusée hors `DEBUG`) générant la volumétrie doublée — 1 000 utilisateurs, 2 000 équipements, 7 200 tickets avec notes, temps et événements, 20 techniciens — puis `tests/perf/test_volume.py` (marqueur `perf`, exclu de `check.sh`) mesurant côté serveur `/tickets/` (avec et sans filtres), `/tickets/<number>/`, `/inventory/`, `/inventory/<id>/`, `/knowledge/?q=…` et `/tracking/` : chaque page en moins de 2 s et nombre de requêtes SQL borné (pas de N+1) ; corriger les index ou `select_related`/`prefetch_related` manquants
 - [X] T102 Exécuter `scripts/check.sh` (ruff, contrôle et aller-retour des migrations, tests, `pip-audit`) et vérifier une couverture ≥ 90 % sur `core/business_time.py`, `helpdesk/services/`, `helpdesk/mail/`, `inventory/services/intune_sync.py`, `core/gdpr.py`, `core/auth.py`
-- [ ] T103 Dérouler les scénarios S1 à S9 de [quickstart.md](./quickstart.md) en local puis sur le tenant de test — dont S9-5 : l'identité de l'application est refusée (403) sur une boîte non support — et consigner les écarts
+- [ ] T103 Dérouler les scénarios S1 à S10 de [quickstart.md](./quickstart.md) en local puis sur le tenant de test — dont S9-5 : l'identité de l'application est refusée (403) sur une boîte non support — et consigner les écarts
 
 ---
 
@@ -419,6 +419,17 @@ Task: "T077 Modèles du parc dans src/inventory/models.py"
 
 ---
 
+## Retour : mentionner un collègue dans une note interne (2026-11-02)
+
+**Purpose**: interpeller un technicien par « @ » dans une note interne, à la manière de Teams (FR-014d).
+
+- [X] T133 [US1] Modèle `Mention` (migration `0009_mentions`) ; `src/helpdesk/services/mentions.py` : reconnaissance (nom complet, partie locale de l'e-mail, prénom unique ; sans casse ni accents), e-mail aux techniciens cités, lecture, mise en évidence ; branché sur `add_note` (notes internes seulement)
+- [X] T134 [US1] Composeur de la fiche : suggestions au fil de la frappe après « @ » (clavier ↑ ↓ Entrée Tab Échap, liste ARIA), seulement en note interne ; fiche : noms cités en évidence, ligne « Notifié : … (lu / non lu) » sous la note
+- [X] T135 [US1] Pastille « Mentions » de l'en-tête (`helpdesk.context_processors.mentions`) et page `GET/POST /mentions/` ; l'ouverture du ticket marque ses mentions comme lues
+- [X] T136 Tests : `tests/unit/test_mentions.py`, `tests/integration/test_mention_views.py`, e2e S10 (`tests/e2e/test_s10_mentions.py`), scénario S10 du quickstart
+
+---
+
 ## Implementation Strategy
 
 ### MVP First (US5 + US1)
@@ -435,7 +446,7 @@ Task: "T077 Modèles du parc dans src/inventory/models.py"
 2. US2 + US3 (affectation, délais, rappels) → l'équipe peut traiter tout son flux dans l'ITSM.
 3. US4 (parc et licences) → remplacement de l'inventaire Atera.
 4. US6 + US7 (base de résolution, TeamViewer) → confort et traçabilité.
-5. Polish (RGPD, déploiement Azure, recette S1–S9) → bascule de l'adresse support.
+5. Polish (RGPD, déploiement Azure, recette S1–S10) → bascule de l'adresse support.
 
 ---
 

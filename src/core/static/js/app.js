@@ -195,3 +195,125 @@ document.addEventListener("keydown", function (event) {
   event.preventDefault();
   panel.querySelector("[data-quick-submit]").click();
 });
+
+// Mentions « @technicien » dans une note interne (FR-014d) : suggestions au fil de la frappe.
+// Le choix insère « @Prénom Nom » en texte ; le serveur reconnaît la mention à l'enregistrement.
+var mention = { menu: null, area: null, items: [], index: 0, ctx: null };
+
+function mentionFold(text) {
+  return text.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+function mentionPeople(area) {
+  var form = area.closest("[data-composer]");
+  var data = form && form.querySelector("#mentionable");
+  try { return data ? JSON.parse(data.textContent) : []; } catch (e) { return []; }
+}
+function mentionAllowed(area) {
+  var checked = area.closest("[data-composer]").querySelector('input[name="visibility"]:checked');
+  return !checked || checked.value === "interne";
+}
+function mentionContext(area) {
+  var selection = window.getSelection();
+  if (!selection.rangeCount || !selection.isCollapsed) return null;
+  var node = selection.anchorNode;
+  if (!node || node.nodeType !== 3 || !area.contains(node)) return null;
+  var before = node.textContent.slice(0, selection.anchorOffset);
+  var match = before.match(/(?:^|[\s (])@([^\s @]{0,40})$/);
+  if (!match) return null;
+  return { node: node, start: selection.anchorOffset - match[1].length - 1, end: selection.anchorOffset, query: match[1] };
+}
+function mentionClose() {
+  if (mention.menu) mention.menu.remove();
+  if (mention.area) {
+    mention.area.removeAttribute("aria-activedescendant");
+    mention.area.setAttribute("aria-expanded", "false");
+  }
+  mention.menu = null; mention.items = []; mention.ctx = null;
+}
+function mentionRender() {
+  mention.menu.querySelectorAll("[role=option]").forEach(function (li, i) {
+    li.setAttribute("aria-selected", String(i === mention.index));
+    if (i === mention.index) {
+      mention.area.setAttribute("aria-activedescendant", li.id);
+      li.scrollIntoView({ block: "nearest" });
+    }
+  });
+}
+function mentionOpen(area, ctx) {
+  var query = mentionFold(ctx.query);
+  var items = mentionPeople(area).filter(function (p) {
+    var haystack = [p.name].concat(p.name.split(/[\s-]+/), [p.email.split("@")[0]]);
+    return haystack.some(function (h) { return mentionFold(h).indexOf(query) === 0; });
+  }).slice(0, 8);
+  if (!items.length) { mentionClose(); return; }
+  if (!mention.menu) {
+    mention.menu = document.createElement("ul");
+    mention.menu.className = "mention-menu";
+    mention.menu.id = "mention-menu";
+    mention.menu.setAttribute("role", "listbox");
+    mention.menu.setAttribute("aria-label", "Techniciens à mentionner");
+    area.parentElement.appendChild(mention.menu);
+    area.setAttribute("aria-controls", "mention-menu");
+    area.setAttribute("aria-expanded", "true");
+  }
+  mention.area = area; mention.items = items; mention.ctx = ctx; mention.index = 0;
+  mention.menu.innerHTML = "";
+  items.forEach(function (p, i) {
+    var li = document.createElement("li");
+    li.id = "mention-option-" + i;
+    li.setAttribute("role", "option");
+    li.textContent = p.name;
+    if (p.email) {
+      var email = document.createElement("span");
+      email.className = "muted";
+      email.textContent = p.email;
+      li.appendChild(email);
+    }
+    li.addEventListener("mousedown", function (event) { event.preventDefault(); mentionChoose(i); });
+    mention.menu.appendChild(li);
+  });
+  var caret = window.getSelection().getRangeAt(0).getBoundingClientRect();
+  var box = area.parentElement.getBoundingClientRect();
+  mention.menu.style.top = (caret.bottom ? caret.bottom - box.top + 4 : area.offsetTop + area.offsetHeight) + "px";
+  mention.menu.style.left = Math.max(0, Math.min((caret.left || box.left) - box.left, box.width - 280)) + "px";
+  mentionRender();
+}
+function mentionChoose(i) {
+  var person = mention.items[i], ctx = mention.ctx, area = mention.area;
+  if (!person || !ctx) return;
+  var text = ctx.node.textContent;
+  ctx.node.textContent = text.slice(0, ctx.start) + "@" + person.name + " " + text.slice(ctx.end);
+  var range = document.createRange();
+  range.setStart(ctx.node, ctx.start + person.name.length + 2);
+  range.collapse(true);
+  var selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+  mentionClose();
+  area.dispatchEvent(new Event("input", { bubbles: true }));  // synchronise l'éditeur
+}
+document.addEventListener("input", function (event) {
+  var area = event.target.closest && event.target.closest("[data-composer] .rich-area");
+  if (!area) return;
+  var ctx = mentionAllowed(area) && mentionContext(area);
+  if (ctx) mentionOpen(area, ctx); else mentionClose();
+});
+document.addEventListener("keydown", function (event) {
+  if (!mention.menu || event.target !== mention.area) return;
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    var n = mention.items.length;
+    mention.index = (mention.index + (event.key === "ArrowDown" ? 1 : n - 1)) % n;
+    mentionRender();
+  } else if (event.key === "Enter" || event.key === "Tab") {
+    event.preventDefault();
+    mentionChoose(mention.index);
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    mentionClose();
+  }
+});
+document.addEventListener("focusout", function (event) {
+  if (mention.menu && event.target === mention.area) mentionClose();
+});
+document.addEventListener("htmx:beforeSwap", mentionClose);

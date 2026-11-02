@@ -23,6 +23,7 @@
       {% endfor %}
     </nav>
     <div class="site-user">
+      {% if mentions_unread is not None %}<a class="site-mentions" href="{% url 'helpdesk:mentions' %}"{% if request.resolver_match.url_name == "mentions" %} aria-current="page"{% endif %}>Mentions{% if mentions_unread %} <span class="count" aria-label="{{ mentions_unread }} non lue{{ mentions_unread|pluralize }}">{{ mentions_unread }}</span>{% endif %}</a>{% endif %}
       <span>{{ user.display_name }}</span>
       <form method="post" action="{% url 'core:logout' %}">{% csrf_token %}
         <button class="btn-link" type="submit">Se déconnecter</button>

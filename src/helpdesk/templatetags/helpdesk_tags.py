@@ -96,3 +96,14 @@ def hms(seconds) -> str:
     seconds = max(0, int(seconds or 0))
     hours, rest = divmod(seconds, 3600)
     return f"{hours:02d}:{rest // 60:02d}:{rest % 60:02d}"
+
+
+@register.filter
+def mentions_marked(value, note) -> str:
+    """Corps de note avec les « @nom » mentionnés en évidence (FR-014d) ; échappe le texte brut."""
+    from django.utils.safestring import SafeData
+
+    from helpdesk.services.mentions import highlight
+
+    html = str(value) if isinstance(value, SafeData) else str(escape(value or ""))
+    return mark_safe(highlight(html, note))  # noqa: S308 - HTML assaini ou échappé ci-dessus

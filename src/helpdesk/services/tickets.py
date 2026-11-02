@@ -24,6 +24,7 @@ from helpdesk.models import (
     TicketNote,
     TimeEntry,
 )
+from helpdesk.services import mentions
 from helpdesk.services.lifecycle import change_status, record_event, reopen_deadline_passed
 from helpdesk.signals import ticket_created, ticket_qualified
 
@@ -385,6 +386,8 @@ def add_note(
     )
     if external:
         outbound.queue_email(ticket, EmailMessage.Kind.NOTE_EXTERNE, note=note)
+    else:
+        mentions.notify(note)
     return note
 
 

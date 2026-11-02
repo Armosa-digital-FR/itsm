@@ -43,12 +43,13 @@ from .mail.parsing import split_quoted
 from .models import (
     Attachment,
     EmailMessage,
+    Mention,
     Ticket,
     TicketEvent,
     TicketNote,
     TimeEntry,
 )
-from .services import catalog, knowledge, lifecycle, remote, sla, timers
+from .services import catalog, knowledge, lifecycle, mentions, remote, sla, timers
 from .services import tickets as svc
 
 PAGE_SIZE = 50
@@ -362,7 +363,7 @@ def _timeline(ticket: Ticket) -> list[dict]:
             ),
         }
         for n in ticket.notes.select_related("author__directory_user").prefetch_related(
-            "attachments"
+            "attachments", "mentions__account__directory_user"
         )
     ]
     events = [
@@ -536,6 +537,11 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "time_form": extra.pop("time_form", None) or TimeForm(),
         "category_quick": CategoryQuickForm(),
         "tool_quick": ToolQuickForm(),
+        "mentionable": [
+            {"name": a.display_name, "email": a.email}
+            for a in mentions.mentionable()
+            if a.pk != request.user.pk
+        ],
         "now": now,
         **extra,
     }
@@ -555,6 +561,7 @@ def render_detail(request, ticket: Ticket, status: int = 200, **extra):
 def ticket_detail(request, number: int):
     ticket = _get_ticket(number)
     svc.mark_read(ticket, request.user)
+    mentions.mark_read(request.user, ticket)
     return render(request, "helpdesk/ticket_detail.html", detail_context(request, ticket))
 
 
@@ -775,6 +782,22 @@ def attachment_download(request, pk: int):
 # --- Suivi des délais et du temps (US3) ------------------------------------------
 
 TRACKING_PERIODS = {7: "7 jours", 30: "30 jours", 90: "90 jours"}
+
+
+@technician_required
+def mention_list(request):
+    """Mentions du technicien connecté (FR-014d) : non lues d'abord, puis les 100 dernières."""
+    if request.method == "POST":
+        count = mentions.mark_read(request.user)
+        if count:
+            messages.success(request, "Toutes vos mentions sont marquées comme lues.")
+        return redirect("helpdesk:mentions")
+    items = (
+        Mention.objects.filter(account=request.user)
+        .select_related("note__ticket", "note__author__directory_user")
+        .order_by(F("read_at").desc(nulls_first=True), "-created_at")[:100]
+    )
+    return render(request, "helpdesk/mentions.html", {"mentions": items})
 
 
 @technician_required

@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load helpdesk_tags %}
+{% block title %}Mes mentions{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Support · Notes internes</div><h1>Mes mentions</h1></div>
+  {% if mentions_unread %}
+  <form method="post" action="{% url 'helpdesk:mentions' %}">{% csrf_token %}
+    <button class="btn" type="submit">Tout marquer comme lu</button>
+  </form>
+  {% endif %}
+</div>
+<p class="muted">Les notes internes où un collègue vous a interpellé avec « @ ». Ouvrir le ticket marque ses mentions comme lues.</p>
+<ol class="mention-list">
+{% for m in mentions %}{% with n=m.note t=m.note.ticket %}
+  {% if n.author %}{% firstof n.author.display_name as who %}{% else %}{% firstof "Un technicien" as who %}{% endif %}
+  <li class="mention-item{% if not m.read_at %} unread{% endif %}">
+    <span class="avatar" aria-hidden="true">{{ who|initials }}</span>
+    <div class="body">
+      <div class="meta">{% if not m.read_at %}<strong>Non lue</strong> · {% endif %}{{ who }} · {{ m.created_at|date:"d/m/Y H:i" }}</div>
+      <a href="{% url 'helpdesk:ticket_detail' t.number %}#note-{{ n.pk }}"><strong>{{ t.reference }}</strong> {{ t.title }}</a>
+      <p class="excerpt">{{ n.body_text|truncatechars:300 }}</p>
+    </div>
+  </li>
+{% endwith %}{% empty %}
+  <li class="muted">Personne ne vous a encore mentionné.</li>
+{% endfor %}
+</ol>
+{% endblock %}

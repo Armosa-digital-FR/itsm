@@ -110,7 +110,7 @@
         {% for item in thread %}
           {% if item.type == "note" %}{% with n=item.note %}
           {% if n.author %}{% firstof n.author.display_name as who %}{% else %}{% firstof n.author_email "Demandeur" as who %}{% endif %}
-          <li class="msg {% if n.direction == 'interne' %}msg-internal{% elif n.direction == 'entrant' %}msg-requester{% else %}msg-agent{% endif %}">
+          <li class="msg {% if n.direction == 'interne' %}msg-internal{% elif n.direction == 'entrant' %}msg-requester{% else %}msg-agent{% endif %}" id="note-{{ n.pk }}">
             <span class="avatar{% if n.direction == 'entrant' %} avatar-requester{% endif %}" aria-hidden="true">{{ who|initials }}</span>
             <div class="bubble">
               <div class="head">
@@ -118,12 +118,15 @@
                 <span class="when">{{ n.created_at|date:"d/m/Y H:i" }}</span>
               </div>
               {% if n.body_html and n.direction != "entrant" %}
-                <div class="note-body html rich-html">{{ n.body_html|rich_html }}</div>
+                <div class="note-body html rich-html">{{ n.body_html|rich_html|mentions_marked:n }}</div>
               {% else %}
-                <div class="note-body">{{ item.main }}</div>
+                <div class="note-body">{{ item.main|mentions_marked:n }}</div>
                 {% if item.quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ item.quoted }}</div></details>{% endif %}
               {% endif %}
               {% if item.files %}<ul class="attachments">{% for a in item.files %}<li><a class="attachment-link" href="{% url 'helpdesk:attachment' a.pk %}">{{ a.filename }}</a></li>{% endfor %}</ul>{% endif %}
+              {% with notified=n.mentions.all %}{% if notified %}
+              <p class="mentions-line">Notifié{{ notified|length|pluralize }} : {% for m in notified %}{{ m.account.display_name }} <span class="muted">({% if m.read_at %}lu le {{ m.read_at|date:"d/m H:i" }}{% else %}non lu{% endif %})</span>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+              {% endif %}{% endwith %}
             </div>
           </li>
           {% endwith %}{% else %}
@@ -154,12 +157,13 @@
             <legend class="visually-hidden">Destinataire du message</legend>
             <div class="segmented">
               {% for radio in note_form.visibility %}
-              <label>{{ radio.tag }}{% if radio.data.value == "externe" %}<span data-hint="Le message est envoyé par e-mail au demandeur et ajouté au fil." data-submit="Envoyer la réponse">Répondre au demandeur</span>{% else %}<span data-hint="Visible des techniciens uniquement : le demandeur n'est pas notifié." data-submit="Enregistrer la note">Note interne</span>{% endif %}</label>
+              <label>{{ radio.tag }}{% if radio.data.value == "externe" %}<span data-hint="Le message est envoyé par e-mail au demandeur et ajouté au fil." data-submit="Envoyer la réponse">Répondre au demandeur</span>{% else %}<span data-hint="Visible des techniciens uniquement : le demandeur n'est pas notifié. Tapez @ pour prévenir un collègue." data-submit="Enregistrer la note">Note interne</span>{% endif %}</label>
               {% endfor %}
             </div>
           </fieldset>
-          <p class="hint" data-composer-hint aria-live="polite">{% if note_form.visibility.value == "externe" %}Le message est envoyé par e-mail au demandeur et ajouté au fil.{% else %}Visible des techniciens uniquement : le demandeur n'est pas notifié.{% endif %}</p>
+          <p class="hint" data-composer-hint aria-live="polite">{% if note_form.visibility.value == "externe" %}Le message est envoyé par e-mail au demandeur et ajouté au fil.{% else %}Visible des techniciens uniquement : le demandeur n'est pas notifié. Tapez @ pour prévenir un collègue.{% endif %}</p>
           {% include "core/partials/rich_editor.html" with field=note_form.body html_field=note_form.body_html label="Message" placeholder="Votre message ; collez ou glissez une image pour l'illustrer." %}
+          {{ mentionable|json_script:"mentionable" }}
           <div class="footer">
             <div class="field"><label for="{{ note_form.files.id_for_label }}">Pièces jointes</label>{{ note_form.files }}</div>
             <button class="btn" type="submit" data-composer-submit>{% if note_form.visibility.value == "externe" %}Envoyer la réponse{% else %}Enregistrer la note{% endif %}</button>

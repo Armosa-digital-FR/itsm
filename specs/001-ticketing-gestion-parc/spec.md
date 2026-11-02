@@ -88,6 +88,16 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   ticket au statut « Pris en compte », mis à jour en direct (HH:MM:SS), figé pendant les
   attentes. « Ouvert depuis » est aussi en direct. Les deux ne comptent que les heures ouvrées.
 
+### Session 2026-11-02 (retour : mentionner un collègue dans une note interne)
+
+- Q: Qui peut-on mentionner avec « @ » ? → A: Les techniciens et administrateurs actifs
+  seulement ; le contenu d'une note interne ne sort pas de l'équipe.
+- Q: Comment le collègue est-il prévenu ? → A: Par un e-mail de la boîte support (extrait et
+  lien vers le ticket) et par une pastille « Mentions » dans l'en-tête de l'application ; pas de
+  message Teams (une application ne peut pas écrire en 1:1 sans app Teams dédiée).
+- Q: Peut-il répondre sans ouvrir l'ITSM ? → A: Non : il répond par une note interne sur la
+  fiche, qui peut à son tour mentionner quelqu'un.
+
 ### Session 2026-10-21 (temps passé par ticket)
 
 - Q: Comment mesurer le temps passé sur un ticket ? → A: En plus de la saisie manuelle, un
@@ -363,6 +373,15 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   les images sont conservées comme pièces jointes protégées du ticket et affichées à leur
   place sur la fiche ; une note externe est envoyée avec ses images intégrées au corps de
   l'e-mail. Le contenu est assaini côté serveur (aucun script, aucune image SVG).
+- **FR-014d**: Une note interne DOIT pouvoir interpeller un ou plusieurs techniciens en les
+  citant par « @ » : en tapant « @ », la zone de saisie propose les techniciens et
+  administrateurs actifs (hors soi-même) ; « @Prénom Nom », « @partie-locale-de-l'e-mail » et
+  « @Prénom » (si un seul technicien porte ce prénom) sont reconnus, sans tenir compte de la
+  casse ni des accents. Chaque technicien cité reçoit un e-mail depuis la boîte support (extrait
+  de la note, lien vers le ticket) et voit sa mention dans la pastille « Mentions » de l'en-tête
+  et la page « Mes mentions » ; ouvrir le ticket marque ses mentions comme lues. La fiche met en
+  évidence les noms cités et indique sous la note qui a été notifié et s'il a lu. Une note
+  externe ne déclenche aucune mention ; on ne se notifie pas soi-même.
 - **FR-014a**: Le système DOIT enregistrer le canal de création de chaque ticket (e-mail ou
   application) et, pour un ticket créé dans l'application, le technicien créateur.
 - **FR-014b**: L'e-mail est le seul canal côté demandeur : aucun portail demandeur n'est prévu
