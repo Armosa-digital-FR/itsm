@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Nouveau ticket{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><div class="eyebrow">Support · Création manuelle</div><h1>Nouveau ticket</h1></div>
+</div>
+<form method="post" enctype="multipart/form-data" class="grid-2">{% csrf_token %}
+  <div class="card">
+    {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="field">
+      <span class="field-label">Demandeur</span>
+      {% include "directory/partials/person_picker.html" with field=form.requester selected=selected target="requester" label="Rechercher le demandeur" %}
+      {% if form.requester.errors %}<ul class="errorlist">{% for e in form.requester.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      <div id="requester-equipment" hx-get="{% url 'inventory:person_equipment' %}" hx-trigger="load, change from:#id_requester" hx-include="#id_requester"></div>
+      <span class="help">Le demandeur recevra l'accusé de réception et les échanges par e-mail, comme pour une demande envoyée par e-mail.</span>
+    </div>
+    {% for field in form %}{% if field.name == "description" %}
+      {% include "core/partials/rich_editor.html" with field=form.description html_field=form.description_html placeholder="Décrivez la demande ; collez ou glissez une capture d'écran pour l'illustrer." %}
+    {% elif field.name == "category" %}
+      {% include "helpdesk/partials/quick_select.html" with kind="category" field=field quick_form=category_quick open=False created=None %}
+    {% elif field.name == "tool" %}
+      {% include "helpdesk/partials/quick_select.html" with kind="tool" field=field quick_form=tool_quick open=False created=None %}
+    {% elif field.name != "requester" and field.name != "description_html" %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endif %}{% endfor %}
+    <button class="btn btn-primary" type="submit">Créer le ticket</button>
+    <a class="btn" href="{% url 'helpdesk:ticket_list' %}">Annuler</a>
+  </div>
+  <aside class="band">
+    <h2>À savoir</h2>
+    <p class="muted">Le ticket est créé au nom du demandeur choisi, rattaché à son entité et à son site, et marqué « créé par » vous. Si vous renseignez un outil, il est affecté automatiquement selon les compétences.</p>
+  </aside>
+</form>
+{% endblock %}

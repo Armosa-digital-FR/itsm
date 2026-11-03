@@ -1,0 +1,7 @@
+{% if person %}
+  {% if items %}
+  <fieldset class="field"><legend class="field-label">Équipements concernés (facultatif)</legend>
+    {% for e in items %}<label style="display:block"><input type="checkbox" name="equipment" value="{{ e.pk }}"> {{ e.type }} · {{ e.name }}{% if e.serial_number %} <span class="muted">({{ e.serial_number }})</span>{% endif %}</label>{% endfor %}
+  </fieldset>
+  {% else %}<p class="muted">Aucun équipement affecté à {{ person }}.</p>{% endif %}
+{% endif %}

@@ -1,0 +1,9 @@
+<section class="card">
+  <h2>Équipements et licences</h2>
+  {% if block.equipment %}
+  <table class="list"><tbody>
+    {% for e in block.equipment %}<tr><td>{{ e.type }}</td><td><a href="{% url 'inventory:equipment_detail' e.pk %}">{{ e.name }}</a></td><td class="num">{{ e.serial_number|default:"—" }}</td><td class="muted">{{ e.site }}</td></tr>{% endfor %}
+  </tbody></table>
+  {% else %}<p class="muted">Aucun équipement affecté.</p>{% endif %}
+  {% if block.licences %}<p style="margin-top:var(--space-3)">Licences : {% for l in block.licences %}<a href="{% url 'inventory:licence_detail' l.pk %}">{{ l.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+</section>

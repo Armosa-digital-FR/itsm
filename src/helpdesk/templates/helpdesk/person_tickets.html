@@ -1,0 +1,16 @@
+{% load helpdesk_tags %}
+<section class="card">
+  <h2>Tickets</h2>
+  {% if block.tickets %}
+  <table class="list">
+    <thead><tr><th>N°</th><th>Titre</th><th>Statut</th><th>Créé</th></tr></thead>
+    <tbody>
+    {% for t in block.tickets %}
+      <tr><td class="num"><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a></td><td>{{ t.title }}</td><td>{% status_tag t %}</td><td>{{ t.created_at|date:"d/m/Y" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if block.total > block.tickets|length %}<p class="muted">{{ block.total }} tickets au total, les 20 plus récents sont affichés.</p>{% endif %}
+  {% else %}<p class="muted">Aucun ticket.</p>{% endif %}
+  <p style="margin-top:var(--space-3)"><a class="btn btn-small" href="{% url 'helpdesk:ticket_new' %}?requester={{ block.person_pk }}">Créer un ticket pour cette personne</a></p>
+</section>

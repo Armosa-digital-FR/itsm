@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Réaffectation en masse{% endblock %}
+{% block content %}
+<div class="page-head"><div><div class="eyebrow">Support · Tickets</div><h1>Réaffectation en masse</h1></div></div>
+<div class="grid-2">
+  <form class="card" method="post">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+    <div class="field"><label for="{{ form.from_technician.id_for_label }}">{{ form.from_technician.label }}</label>{{ form.from_technician }}</div>
+    <div class="field"><label for="{{ form.assignee.id_for_label }}">Vers le technicien</label>{{ form.assignee }}</div>
+    <div class="field"><label for="{{ form.group.id_for_label }}">ou vers le groupe</label>{{ form.group }}</div>
+    <button class="btn btn-primary" type="submit">Réaffecter les tickets ouverts</button>
+  </form>
+  <aside class="band">
+    <h3>Techniciens inactifs avec des tickets ouverts</h3>
+    {% for account in inactive %}<p>{{ account.display_name }}</p>{% empty %}<p class="muted">Aucun.</p>{% endfor %}
+  </aside>
+</div>
+{% endblock %}

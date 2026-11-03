@@ -1,0 +1,65 @@
+# Blueprint Render — environnement de recette (Francfort, UE). Voir deploy/render.md.
+# Render ignore `sync: false` dans un groupe d'environnement : ces variables (et le fichier
+# secret itsm-graph.pem) se saisissent à la main dans Environment Groups › itsm-config.
+databases:
+  - name: itsm-db
+    region: frankfurt
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+    databaseName: itsm
+    user: itsm
+    ipAllowList: []  # accès réseau interne Render uniquement
+
+envVarGroups:
+  - name: itsm-config
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: ITSM_BASE_URL
+        sync: false  # https://<service>.onrender.com
+      # Connexion des techniciens (application Entra « ITSM »)
+      - key: AZURE_TENANT_ID
+        sync: false
+      - key: OIDC_RP_CLIENT_ID
+        sync: false
+      - key: OIDC_RP_CLIENT_SECRET
+        sync: false
+      # Microsoft Graph : identité à certificat (fichier secret Render)
+      - key: ITSM_GRAPH_ENABLED
+        value: "true"
+      - key: AZURE_CLIENT_ID
+        sync: false
+      - key: AZURE_CLIENT_CERTIFICATE_PATH
+        value: /etc/secrets/itsm-graph.pem
+      # Pièces jointes dans PostgreSQL, partagées par le web et le worker
+      - key: ITSM_ATTACHMENT_STORAGE
+        value: database
+
+services:
+  - type: web
+    name: itsm-web
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    preDeployCommand: python manage.py migrate --noinput
+    envVars:
+      - fromGroup: itsm-config
+      - key: DATABASE_URL
+        fromDatabase:
+          name: itsm-db
+          property: connectionString
+
+  - type: worker
+    name: itsm-worker
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerCommand: python manage.py procrastinate worker
+    envVars:
+      - fromGroup: itsm-config
+      - key: DATABASE_URL
+        fromDatabase:
+          name: itsm-db
+          property: connectionString

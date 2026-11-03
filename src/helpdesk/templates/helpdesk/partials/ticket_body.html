@@ -1,0 +1,334 @@
+{% load helpdesk_tags %}
+<div id="ticket" hx-target="#ticket" hx-swap="outerHTML">
+  <a class="ticket-back" href="{% url 'helpdesk:ticket_list' %}">← Tous les tickets</a>
+
+  <header class="ticket-head">
+    <div class="title-block">
+      <div class="eyebrow" style="margin:0">Ticket {{ ticket.reference }} · {{ ticket.get_channel_display }}{% if ticket.created_by %} · créé par {{ ticket.created_by.display_name }}{% endif %}</div>
+      <h1>{{ ticket.title }}</h1>
+      <div class="chips">
+        <span class="tag tag-dark">{{ ticket.get_status_display }}</span>
+        {% if ticket.priority == "haute" %}<span class="tag tag-highlight">Priorité haute</span>{% else %}<span class="tag tag-plain">Priorité {{ ticket.get_priority_display|lower }}</span>{% endif %}
+        {% if ticket.type %}<span class="tag tag-plain">{{ ticket.get_type_display }}</span>{% endif %}
+        {% if ticket.category %}<span class="tag tag-plain">{{ ticket.category }}</span>{% endif %}
+        {% if ticket.sla_state == "depasse" %}<span class="tag tag-danger">Délai de prise en compte dépassé</span>
+        {% elif ticket.sla_state == "bientot" %}<span class="tag tag-warning">À prendre en compte avant {{ ticket.ack_due_at|date:"H:i" }}</span>{% endif %}
+        {% if ticket.is_unidentified %}<span class="tag tag-warning">Demandeur non identifié</span>{% endif %}
+      </div>
+    </div>
+    <div class="ticket-metrics" aria-label="Compteurs en heures ouvrées">
+      {% with c=counters.treatment %}
+      <div class="metric metric-treatment">
+        <span class="label">Temps de traitement</span>
+        <span class="value" data-counter="{{ c.seconds }}"{% if c.tick_until %} data-tick-until="{{ c.tick_until|date:'c' }}"{% endif %}>{{ c.seconds|hms }}</span>
+        <span class="sub">{% if c.tick_until %}En cours{% elif c.running %}En cours · hors heures ouvrées{% elif ticket.status == "cree" %}Démarre à la prise en compte{% elif ticket.status == "resolu" or ticket.status == "ferme" %}Arrêté à la résolution{% else %}En pause · {{ ticket.get_status_display|lower }}{% endif %}</span>
+      </div>
+      {% endwith %}
+      {% with c=counters.opened %}
+      <div class="metric metric-opened">
+        <span class="label">{% if ticket.resolved_at %}Résolu en{% else %}Ouvert depuis{% endif %}</span>
+        <span class="value" data-counter="{{ c.seconds }}"{% if c.tick_until %} data-tick-until="{{ c.tick_until|date:'c' }}"{% endif %}>{{ c.seconds|hms }}</span>
+        <span class="sub">Heures ouvrées · créé le {{ ticket.created_at|date:"d/m à H:i" }}</span>
+      </div>
+      {% endwith %}
+    </div>
+  </header>
+
+  {% if error %}<div class="form-error" role="alert">{{ error }}</div>{% endif %}
+  {% if flash %}<ul class="messages" role="status"><li class="success">{{ flash }}</li></ul>{% endif %}
+
+  <section class="status-band" aria-labelledby="status-title">
+    <div class="steps-block">
+      <h2 id="status-title" class="label" style="margin:0">Statut du ticket</h2>
+      <ol class="steps">
+        {% for step in steps %}
+        <li class="step {{ step.state }}"{% if step.state == "current" %} aria-current="step"{% endif %}>
+          <span class="name">{{ step.name }}{% if step.state == "done" %}<span class="visually-hidden"> (terminé)</span>{% endif %}</span>
+          {% if step.detail %}<span class="detail">{{ step.detail }}</span>{% endif %}
+          <span class="when">{{ step.at|date:"d/m H:i"|default:"—" }}</span>
+        </li>
+        {% endfor %}
+      </ol>
+    </div>
+    <div class="status-actions">
+      {% if status_actions %}
+      <div class="buttons">
+        {% for action in status_actions %}
+          {% if action.kind == "take" %}
+          <form hx-post="{% url 'helpdesk:ticket_take' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_take' ticket.number %}">{% csrf_token %}<button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="submit">{{ action.label }}</button></form>
+          {% elif action.kind == "resolve" %}
+          <button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="button" data-toggle-panel="resolve-panel" aria-expanded="false" aria-controls="resolve-panel">{{ action.label }}</button>
+          {% else %}
+          <form hx-post="{% url 'helpdesk:ticket_status' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_status' ticket.number %}">{% csrf_token %}<input type="hidden" name="status" value="{{ action.status }}"><button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="submit">{{ action.label }}</button></form>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% if missing and ticket.status == "cree" %}<p class="status-hint" style="margin:0">À compléter avant la prise en compte : {{ missing|join:", " }}.</p>
+      {% elif ticket.status == "ferme" %}<p class="status-hint" style="margin:0">Ticket fermé : une réponse du demandeur ouvre un nouveau ticket lié.</p>{% endif %}
+    </div>
+    {% for action in status_actions %}{% if action.kind == "resolve" %}
+    <form class="resolve-panel" id="resolve-panel" hidden hx-post="{% url 'helpdesk:ticket_status' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_status' ticket.number %}">{% csrf_token %}
+      <input type="hidden" name="status" value="resolu">
+      <div class="field"><label for="resolution">Résolution</label><textarea id="resolution" name="resolution" rows="3" required>{{ ticket.resolution }}</textarea>
+      <span class="help">Envoyée au demandeur et conservée dans la base de résolution : n'y saisissez pas de données personnelles.</span></div>
+      <div class="actions">
+        <button class="btn" type="button" data-toggle-panel="resolve-panel">Annuler</button>
+        <button class="btn btn-primary" type="submit">Valider la résolution</button>
+      </div>
+    </form>
+    {% endif %}{% endfor %}
+  </section>
+
+  <div class="grid-2">
+    <div class="stack-lg">
+      <section aria-labelledby="initial-title">
+        <h2 class="section-title" id="initial-title">Demande initiale</h2>
+        <div class="band">
+          <p class="muted" style="margin-bottom:var(--space-2)">Reçue le {{ ticket.created_at|date:"d/m/Y à H:i" }} · {{ ticket.get_channel_display|lower }}</p>
+          {% if ticket.description_html %}
+            <div class="note-body html description-html{% if ticket.channel == 'app' %} rich-html{% endif %}">{{ ticket.description_html|rich_html }}</div>
+          {% else %}
+            <div class="note-body">{{ description_main|default:"(sans description)" }}</div>
+            {% if description_quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ description_quoted }}</div></details>{% endif %}
+          {% endif %}
+          {% if initial_attachments %}<ul class="attachments">{% for a in initial_attachments %}<li><a class="attachment-link" href="{% url 'helpdesk:attachment' a.pk %}">{{ a.filename }}</a></li>{% endfor %}</ul>{% endif %}
+          {% if ticket.related_ticket %}<p class="muted" style="margin:var(--space-3) 0 0">Fait suite au ticket <a href="{% url 'helpdesk:ticket_detail' ticket.related_ticket.number %}">{{ ticket.related_ticket.reference }}</a>.</p>{% endif %}
+        </div>
+      </section>
+
+      {% if ticket.resolution and ticket.status == "resolu" or ticket.resolution and ticket.status == "ferme" %}
+      <section aria-labelledby="resolution-title">
+        <h2 class="section-title" id="resolution-title">Résolution{% if ticket.resolution_kind == "sans_reponse" %} · sans réponse du demandeur{% endif %}</h2>
+        <div class="note-body">{{ ticket.resolution }}</div>
+      </section>
+      {% endif %}
+
+      <section aria-labelledby="thread-title">
+        <h2 class="section-title" id="thread-title">Échanges</h2>
+        <ol class="convo" style="list-style:none;margin:0;padding:0">
+        {% for item in thread %}
+          {% if item.type == "note" %}{% with n=item.note %}
+          {% if n.author %}{% firstof n.author.display_name as who %}{% else %}{% firstof n.author_email "Demandeur" as who %}{% endif %}
+          <li class="msg {% if n.direction == 'interne' %}msg-internal{% elif n.direction == 'entrant' %}msg-requester{% else %}msg-agent{% endif %}" id="note-{{ n.pk }}">
+            <span class="avatar{% if n.direction == 'entrant' %} avatar-requester{% endif %}" aria-hidden="true">{{ who|initials }}</span>
+            <div class="bubble">
+              <div class="head">
+                <span><span class="who">{{ who }}</span><span class="kind">{% if n.direction == "interne" %}Note interne{% elif n.direction == "entrant" %}Réponse du demandeur{% else %}Envoyée au demandeur{% endif %}</span></span>
+                <span class="when">{{ n.created_at|date:"d/m/Y H:i" }}</span>
+              </div>
+              {% if n.body_html and n.direction != "entrant" %}
+                <div class="note-body html rich-html">{{ n.body_html|rich_html|mentions_marked:n }}</div>
+              {% else %}
+                <div class="note-body">{{ item.main|mentions_marked:n }}</div>
+                {% if item.quoted %}<details class="quoted"><summary>Afficher l'historique cité</summary><div class="note-body">{{ item.quoted }}</div></details>{% endif %}
+              {% endif %}
+              {% if item.files %}<ul class="attachments">{% for a in item.files %}<li><a class="attachment-link" href="{% url 'helpdesk:attachment' a.pk %}">{{ a.filename }}</a></li>{% endfor %}</ul>{% endif %}
+              {% with notified=n.mentions.all %}{% if notified %}
+              <p class="mentions-line">Notifié{{ notified|length|pluralize }} : {% for m in notified %}{{ m.account.display_name }} <span class="muted">({% if m.read_at %}lu le {{ m.read_at|date:"d/m H:i" }}{% else %}non lu{% endif %})</span>{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+              {% endif %}{% endwith %}
+            </div>
+          </li>
+          {% endwith %}{% else %}
+          <li class="events">
+            {% if item.items|length > 1 %}<details><summary>{{ item.items|length }} événements · {% with last=item.items|last %}{{ item.items.0.at|date:"d/m H:i" }} → {{ last.at|date:"d/m H:i" }}{% endwith %}</summary>{% endif %}
+            <ul>
+            {% for ev in item.items %}
+              {% if ev.type == "email" %}{% with m=ev.email %}
+              <li>{{ ev.at|date:"d/m H:i" }} · E-mail « {{ m.get_kind_display|lower }} » à {{ m.to_addresses|join:", " }} — {{ m.get_processing_display|lower }}</li>
+              {% endwith %}{% else %}{% with e=ev.event %}
+              <li>{{ e.at|date:"d/m H:i" }} · {{ e.get_kind_display }}{% if e.old_value %} : {{ e.old_value }} → {{ e.new_value|default:"—" }}{% elif e.new_value %} : {{ e.new_value }}{% endif %}{% if e.actor %} · {{ e.actor.display_name }}{% endif %}</li>
+              {% endwith %}{% endif %}
+            {% endfor %}
+            </ul>
+            {% if item.items|length > 1 %}</details>{% endif %}
+          </li>
+          {% endif %}
+        {% empty %}
+          <li class="muted">Aucun échange pour le moment.</li>
+        {% endfor %}
+        </ol>
+      </section>
+
+      <section aria-labelledby="composer-title">
+        <form class="composer" data-composer hx-post="{% url 'helpdesk:ticket_note' ticket.number %}" hx-encoding="multipart/form-data" method="post" action="{% url 'helpdesk:ticket_note' ticket.number %}" enctype="multipart/form-data">{% csrf_token %}
+          <h2 class="visually-hidden" id="composer-title">Répondre ou ajouter une note</h2>
+          <fieldset>
+            <legend class="visually-hidden">Destinataire du message</legend>
+            <div class="segmented">
+              {% for radio in note_form.visibility %}
+              <label>{{ radio.tag }}{% if radio.data.value == "externe" %}<span data-hint="Le message est envoyé par e-mail au demandeur et ajouté au fil." data-submit="Envoyer la réponse">Répondre au demandeur</span>{% else %}<span data-hint="Visible des techniciens uniquement : le demandeur n'est pas notifié. Tapez @ pour prévenir un collègue." data-submit="Enregistrer la note">Note interne</span>{% endif %}</label>
+              {% endfor %}
+            </div>
+          </fieldset>
+          <p class="hint" data-composer-hint aria-live="polite">{% if note_form.visibility.value == "externe" %}Le message est envoyé par e-mail au demandeur et ajouté au fil.{% else %}Visible des techniciens uniquement : le demandeur n'est pas notifié. Tapez @ pour prévenir un collègue.{% endif %}</p>
+          {% include "core/partials/rich_editor.html" with field=note_form.body html_field=note_form.body_html label="Message" placeholder="Votre message ; collez ou glissez une image pour l'illustrer." %}
+          {{ mentionable|json_script:"mentionable" }}
+          <div class="footer">
+            <div class="field"><label for="{{ note_form.files.id_for_label }}">Pièces jointes</label>{{ note_form.files }}</div>
+            <button class="btn" type="submit" data-composer-submit>{% if note_form.visibility.value == "externe" %}Envoyer la réponse{% else %}Enregistrer la note{% endif %}</button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <aside class="side" aria-label="Détails du ticket">
+      <section class="card">
+        <h2>Affectation</h2>
+        <div class="person-line">
+          <span class="avatar" aria-hidden="true">{% if ticket.assignee %}{{ ticket.assignee.display_name|initials }}{% else %}—{% endif %}</span>
+          <div>
+            <div class="name">{% if ticket.assignee %}{{ ticket.assignee.display_name }}{% else %}Aucun technicien{% endif %}</div>
+            <div class="muted">{% if ticket.assigned_group %}Groupe {{ ticket.assigned_group }}{% endif %}{% if ticket.assignment_mode == "auto" %}{% if ticket.assigned_group %} · {% endif %}affectation automatique{% endif %}</div>
+          </div>
+        </div>
+        {% if ticket.status != "cree" and ticket.is_open and ticket.assignee_id != user.pk %}
+        <form hx-post="{% url 'helpdesk:ticket_take' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_take' ticket.number %}">{% csrf_token %}<button class="btn btn-small btn-white" type="submit">Prendre le ticket</button></form>
+        {% endif %}
+        <details{% if assign_form.errors %} open{% endif %}><summary>Réaffecter</summary>
+          <form hx-post="{% url 'helpdesk:ticket_assign' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_assign' ticket.number %}">{% csrf_token %}
+            {% for field in assign_form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+            <button class="btn btn-small btn-white" type="submit">Réaffecter</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>Qualification</h2>
+        <dl class="facts">
+          <dt>Type</dt><dd>{{ ticket.get_type_display|default:"—" }}</dd>
+          <dt>Catégorie</dt><dd>{{ ticket.category|default:"—" }}</dd>
+          <dt>Outil</dt><dd>{{ ticket.tool|default:"—" }}</dd>
+          <dt>Priorité</dt><dd>{{ ticket.get_priority_display }}</dd>
+        </dl>
+        <details{% if missing or qualify_form.errors %} open{% endif %}><summary>Modifier la qualification</summary>
+          <form hx-post="{% url 'helpdesk:ticket_qualify' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_qualify' ticket.number %}">{% csrf_token %}
+            {% for field in qualify_form %}
+              {% if field.name == "requester" %}
+                {% if not ticket.requester %}
+                <div class="field"><span class="field-label">Identifier le demandeur</span>
+                  {% include "directory/partials/person_picker.html" with field=field selected=None target="requester" label="Rechercher le demandeur" %}</div>
+                {% else %}{{ field.as_hidden }}{% endif %}
+              {% elif field.name == "category" %}
+                {% include "helpdesk/partials/quick_select.html" with kind="category" field=field quick_form=category_quick open=False created=None %}
+              {% elif field.name == "tool" %}
+                {% include "helpdesk/partials/quick_select.html" with kind="tool" field=field quick_form=tool_quick open=False created=None %}
+              {% else %}
+              <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>
+              {% endif %}
+            {% endfor %}
+            <button class="btn btn-small btn-white" type="submit">Enregistrer</button>
+          </form>
+        </details>
+      </section>
+
+      <section class="card">
+        <h2>Demandeur</h2>
+        {% if ticket.requester %}
+        <div class="person-line">
+          <span class="avatar avatar-requester" aria-hidden="true">{{ ticket.requester|initials }}</span>
+          <a class="name" href="{% url 'directory:person' ticket.requester.entra_id %}">{{ ticket.requester }}</a>
+        </div>
+        {% else %}
+        <p class="muted" style="margin:0">Non identifié dans l'annuaire.</p>
+        {% endif %}
+        <dl class="facts">
+          <dt>Mail</dt><dd>{% if ticket.requester %}{{ ticket.requester.email }}{% else %}{{ ticket.requester_email|default:"—" }}{% endif %}</dd>
+          <dt>Entité</dt><dd>{{ ticket.subsidiary|default:"—" }}</dd>
+          <dt>Site</dt><dd>{{ ticket.site|default:"—" }}</dd>
+        </dl>
+      </section>
+
+      <section class="card">
+        <h2>Équipements</h2>
+        {% for e in equipment %}
+          <div class="equip">
+            <div class="row" style="justify-content:space-between">
+              <a class="name" href="{% url 'inventory:equipment_detail' e.pk %}">{{ e.name }}</a>
+              <form hx-post="{% url 'helpdesk:ticket_equipment' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_equipment' ticket.number %}">{% csrf_token %}<input type="hidden" name="equipment" value="{{ e.pk }}"><input type="hidden" name="action" value="delier"><button class="btn-link" type="submit" aria-label="Délier {{ e.name }}">Délier</button></form>
+            </div>
+            <dl class="facts">
+              <dt>Type</dt><dd>{{ e.type }}</dd>
+              {% if e.model %}<dt>Modèle</dt><dd>{{ e.model }}</dd>{% endif %}
+              {% if e.serial_number %}<dt>N° de série</dt><dd>{{ e.serial_number }}</dd>{% endif %}
+            </dl>
+            {% if e.teamviewer_id %}<div>{% include "inventory/partials/teamviewer_id.html" with value=e.teamviewer_id %}</div>{% endif %}
+          </div>
+        {% empty %}<p class="muted" style="margin:0">Aucun équipement lié au ticket.</p>{% endfor %}
+        {% if requester_equipment %}
+        <form class="inline-form" hx-post="{% url 'helpdesk:ticket_equipment' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_equipment' ticket.number %}">{% csrf_token %}
+          <input type="hidden" name="action" value="lier">
+          <div class="field"><label for="link-equipment">Équipements du demandeur</label>
+            <select id="link-equipment" name="equipment">{% for e in requester_equipment %}<option value="{{ e.pk }}">{{ e.type }} · {{ e.name }}</option>{% endfor %}</select></div>
+          <button class="btn btn-small btn-white" type="submit">Lier</button>
+        </form>
+        {% endif %}
+      </section>
+
+      <section class="card">
+        <h2>Prise en main à distance</h2>
+        {% for r in remote_sessions %}
+          <p class="muted" style="margin:0">{{ r.started_at|date:"d/m H:i" }}–{{ r.ended_at|date:"H:i" }} · {{ r.equipment }} · {{ r.technician.display_name }}{% if r.comment %} — {{ r.comment }}{% endif %}</p>
+        {% empty %}<p class="muted" style="margin:0">Aucune intervention déclarée.</p>{% endfor %}
+        {% if remote_form.fields.equipment.queryset %}
+        <details{% if remote_form.errors %} open{% endif %}><summary>Déclarer une intervention TeamViewer</summary>
+          <p class="muted">TeamViewer s'utilise en dehors de l'ITSM : copiez l'identifiant de l'appareil, puis déclarez ici l'intervention réalisée.</p>
+          <form hx-post="{% url 'helpdesk:ticket_remote' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_remote' ticket.number %}">{% csrf_token %}
+            {% for field in remote_form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+            <button class="btn btn-small btn-white" type="submit">Déclarer la prise en main</button>
+          </form>
+        </details>
+        {% else %}<p class="muted" style="margin:0">Liez un équipement au ticket pour déclarer une intervention.</p>{% endif %}
+      </section>
+
+      <section class="card">
+        <h2>Temps passé</h2>
+        {% if time.per_technician %}<dl class="facts">{% for name, minutes in time.per_technician %}<dt>{{ name }}</dt><dd>{{ minutes|duration }}</dd>{% endfor %}</dl>
+        {% else %}<p class="muted" style="margin:0">Aucun temps saisi.</p>{% endif %}
+        {% if time_entries %}
+        <ul class="time-entries">
+          {% for entry in time_entries %}
+          <li>
+            <span>{{ entry.date|date:"d/m" }} · <strong>{{ entry.minutes|duration }}</strong> · {{ entry.technician.display_name }}{% if entry.source == "chrono" %} · chronomètre{% endif %}{% if entry.comment and entry.comment != "Chronomètre" %} <span class="muted">— {{ entry.comment }}</span>{% endif %}</span>
+            {% if entry.technician_id == user.pk %}
+            <details class="entry-edit"><summary>Corriger</summary>
+              <form hx-post="{% url 'helpdesk:time_entry_edit' entry.pk %}" method="post" action="{% url 'helpdesk:time_entry_edit' entry.pk %}">{% csrf_token %}
+                <input type="date" name="date" value="{{ entry.date|date:'Y-m-d' }}" aria-label="Date de la saisie" required>
+                <input type="number" name="minutes" value="{{ entry.minutes }}" min="1" max="1440" aria-label="Durée corrigée (minutes)" required>
+                <input type="text" name="comment" value="{{ entry.comment }}" aria-label="Commentaire de la saisie" maxlength="500">
+                <button class="btn btn-small btn-white" type="submit">Enregistrer</button>
+              </form>
+              <form hx-post="{% url 'helpdesk:time_entry_delete' entry.pk %}" hx-confirm="Supprimer cette saisie de temps ?" method="post" action="{% url 'helpdesk:time_entry_delete' entry.pk %}">{% csrf_token %}<button class="btn-link" type="submit">Supprimer</button></form>
+            </details>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <details{% if time_form.errors %} open{% endif %}><summary>Saisir du temps manuellement</summary>
+          <form hx-post="{% url 'helpdesk:ticket_time' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_time' ticket.number %}">{% csrf_token %}
+            {% for field in time_form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+            <button class="btn btn-small btn-white" type="submit">Ajouter du temps</button>
+          </form>
+        </details>
+      </section>
+
+      {% if ticket.is_open %}
+      <section class="card" hx-get="{% url 'helpdesk:ticket_suggestions' ticket.number %}" hx-trigger="load" hx-swap="innerHTML" hx-target="this">
+        <h2>Résolutions similaires</h2><p class="muted" style="margin:0">Recherche…</p>
+      </section>
+      {% endif %}
+
+      <section class="card">
+        <h2>Dates</h2>
+        <dl class="facts">
+          <dt>Créé</dt><dd>{{ ticket.created_at|date:"d/m/Y H:i" }}</dd>
+          <dt>Échéance</dt><dd>{{ ticket.ack_due_at|date:"d/m/Y H:i"|default:"—" }}</dd>
+          <dt>Pris en compte</dt><dd>{{ ticket.acknowledged_at|date:"d/m/Y H:i"|default:"—" }}{% if ticket.ack_business_minutes is not None %} ({{ ticket.ack_business_minutes|duration }} ouvrées){% endif %}</dd>
+          <dt>Résolu</dt><dd>{{ ticket.resolved_at|date:"d/m/Y H:i"|default:"—" }}</dd>
+          <dt>Fermé</dt><dd>{{ ticket.closed_at|date:"d/m/Y H:i"|default:"—" }}</dd>
+        </dl>
+      </section>
+    </aside>
+  </div>
+</div>

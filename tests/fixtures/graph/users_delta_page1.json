@@ -1,0 +1,33 @@
+{
+  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#users(id,displayName)",
+  "@odata.nextLink": "https://graph.microsoft.com/v1.0/users/delta?$skiptoken=page2",
+  "value": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "displayName": "Camille Martin",
+      "givenName": "Camille",
+      "surname": "Martin",
+      "mail": "Camille.Martin@armosa.test",
+      "userPrincipalName": "camille.martin@armosa.test",
+      "companyName": "Armosa Élevage",
+      "officeLocation": "Rennes",
+      "department": "Comptabilité",
+      "jobTitle": "Comptable",
+      "accountEnabled": true,
+      "manager@delta": [{"@odata.type": "#microsoft.graph.user", "id": "22222222-2222-2222-2222-222222222222"}]
+    },
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "displayName": "Dominique Bernard",
+      "givenName": "Dominique",
+      "surname": "Bernard",
+      "mail": null,
+      "userPrincipalName": "dominique.bernard@armosa.test",
+      "companyName": "Armosa Élevage",
+      "officeLocation": "Rennes",
+      "department": "Direction",
+      "jobTitle": "Directrice administrative",
+      "accountEnabled": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{# Sélecteur de personne : recherche tant qu'aucun choix, puis carte récapitulative. #}
+{# Paramètres : field (champ caché lié), selected (DirectoryUser ou None), target (préfixe), label. #}
+<div class="person-picker" data-picker="{{ target }}">
+  {{ field.as_hidden }}
+  <div class="picker-selected person-card"{% if not selected %} hidden{% endif %}>
+    <div>
+      <div class="person-name" data-slot="name">{{ selected.display_name }}</div>
+      <div class="muted"><span data-slot="email">{{ selected.email }}</span></div>
+      <div class="muted"><span data-slot="entite">{{ selected.subsidiary|default:"Entité non renseignée" }}</span> · <span data-slot="site">{{ selected.site|default:"site non renseigné" }}</span></div>
+    </div>
+    <button type="button" class="btn btn-small" data-picker-reset="{{ target }}">Changer</button>
+  </div>
+  <div class="picker-search"{% if selected %} hidden{% endif %}>
+    <input id="{{ target }}-search" type="search" name="q" placeholder="Nom ou e-mail (2 caractères minimum)" autocomplete="off" aria-label="{{ label|default:'Rechercher une personne' }}"
+           hx-get="{% url 'directory:search' %}?target={{ target }}" hx-trigger="input changed delay:300ms, search" hx-target="#{{ target }}-results" hx-include="this">
+    <div id="{{ target }}-results"></div>
+  </div>
+</div>

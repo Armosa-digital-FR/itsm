@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Accès refusé{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 640px">
+  <div class="eyebrow">Erreur 403</div>
+  <h1>Accès refusé</h1>
+  <p>Votre compte n'a pas de rôle ITSM pour cette page. Les rôles « Technicien » et « Administrateur » sont attribués dans Microsoft Entra par l'administrateur du support.</p>
+  <a class="btn" href="{% url 'core:login' %}">Retour à la connexion</a>
+</div>
+{% endblock %}

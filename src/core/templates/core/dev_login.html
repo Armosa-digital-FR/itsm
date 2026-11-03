@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Connexion de développement{% endblock %}
+{% block content %}
+<div class="login-shell">
+  <div class="card login-card">
+    <div class="eyebrow">Développement uniquement</div>
+    <h1>Compte de démonstration</h1>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      <div class="field">
+        <label for="account">Compte</label>
+        <select id="account" name="account">
+          {% for account in accounts %}<option value="{{ account.pk }}">{{ account.display_name }} ({{ account.roles|join:", " }})</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Se connecter</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

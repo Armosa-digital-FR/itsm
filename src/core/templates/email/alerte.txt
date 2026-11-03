@@ -1,0 +1,6 @@
+{% extends "email/base.txt" %}{% block content %}{{ subject }}
+
+{{ body }}{% if ticket %}
+
+Ticket : {{ base_url }}/tickets/{{ ticket.number }}/{% endif %}{% endblock %}
+{% block footer %}Message automatique de l'ITSM, destiné à l'équipe du support.{% endblock %}

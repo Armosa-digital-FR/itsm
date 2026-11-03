@@ -1,0 +1,48 @@
+{% load helpdesk_tags %}
+<div class="kpis">
+  {% for label, value, href, tone in data.kpis %}
+  <a class="kpi kpi-link{% if tone %} kpi-{{ tone }}{% endif %}" href="{{ href }}">
+    <div class="label">{{ label }}</div>
+    <div class="value">{{ value }}</div>
+  </a>
+  {% endfor %}
+</div>
+<div class="grid-2 dash-lists">
+  <div class="card">
+    <h3>Prochaines échéances à traiter</h3>
+    {% if data.upcoming %}
+    <table class="list">
+      <tbody>
+      {% for t in data.upcoming %}
+        <tr>
+          <td class="num"><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a></td>
+          <td>{{ t.title }}<div class="muted">{{ t.requester|default:t.requester_email }} · {{ t.subsidiary|default:"entité ?" }}{% if t.site %} · {{ t.site }}{% endif %}</div></td>
+          <td>{% priority_tag t %}</td>
+          <td class="num">{% if t.ack_breached %}<span class="tag tag-danger">Dépassé</span>{% else %}{{ t.ack_due_at|date:"d/m H:i"|default:"—" }}{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="muted">Aucun ticket en attente de prise en compte.</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Mes tickets{% if data.counts.nouvelles_reponses %} <span class="tag tag-info">{{ data.counts.nouvelles_reponses }} nouvelle{{ data.counts.nouvelles_reponses|pluralize }} réponse{{ data.counts.nouvelles_reponses|pluralize }}</span>{% endif %}</h3>
+    {% if data.mine %}
+    <table class="list">
+      <tbody>
+      {% for t in data.mine %}
+        <tr>
+          <td class="num"><a href="{% url 'helpdesk:ticket_detail' t.number %}">{{ t.reference }}</a></td>
+          <td>{{ t.title }}{% if t.has_unread_reply %} <span class="tag tag-info">Réponse</span>{% endif %}</td>
+          <td>{% status_tag t %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="muted">Aucun ticket ouvert à votre nom.</p>{% endif %}
+    <p class="muted" style="margin-top:var(--space-3)">Tickets ouverts par priorité :
+      <span class="tag tag-danger">Haute {{ data.counts.haute }}</span>
+      <span class="tag tag-plain">Normale {{ data.counts.normale }}</span>
+      <span class="tag tag-muted">Basse {{ data.counts.basse }}</span></p>
+  </div>
+</div>

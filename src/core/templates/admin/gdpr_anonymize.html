@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<h1>Anonymiser {{ person }}</h1>
+{% if person.anonymized_at %}
+  <p>Cette personne a déjà été anonymisée le {{ person.anonymized_at|date:"d/m/Y" }}.</p>
+{% else %}
+  <p>L'anonymisation anticipée (droit à l'effacement, FR-075) est <strong>définitive</strong> :</p>
+  <ul>
+    <li>ses {{ tickets }} ticket(s) seront anonymisés (échanges, pièces jointes et historique supprimés ; seules la catégorie, l'outil, les dates et la résolution masquée sont conservées) ;</li>
+    <li>ses {{ equipment }} équipement(s) seront désaffectés et ses licences retirées ;</li>
+    <li>son identité (nom, e-mail, fonction, service) sera effacée de l'annuaire de l'ITSM.</li>
+  </ul>
+  <p>La rectification des données d'identité se fait dans Microsoft Entra, qui reste la source de vérité.</p>
+  {% if open_tickets %}
+    <p class="errornote">{{ open_tickets }} ticket(s) encore ouvert(s) : résolvez-les ou fermez-les avant d'anonymiser.</p>
+  {% else %}
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="confirm" value="oui">
+    <input type="submit" class="deletelink" value="Anonymiser définitivement" style="background:var(--danger);color:#fff;border-radius:999px;padding:10px 16px;border:none">
+    <a href="{% url 'admin:directory_directoryuser_change' person.pk %}" class="button cancel-link">Annuler</a>
+  </form>
+  {% endif %}
+{% endif %}
+{% endblock %}

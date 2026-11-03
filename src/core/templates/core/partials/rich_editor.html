@@ -1,0 +1,16 @@
+{# Éditeur enrichi (FR-014c) : texte + images collées, glissées ou insérées.        #}
+{# Paramètres : field (zone de texte liée), html_field (champ caché du HTML), label. #}
+{# Sans JavaScript, la zone de texte classique reste utilisée.                       #}
+<div class="rich-editor" data-rich-editor>
+  <label id="{{ field.id_for_label }}-label" for="{{ field.id_for_label }}">{{ label|default:field.label }}</label>
+  {{ field }}
+  {{ html_field }}
+  <div class="rich-toolbar" hidden>
+    <button type="button" class="btn btn-small" data-rich-insert>Insérer une image</button>
+    <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden data-rich-file aria-label="Choisir des images à insérer">
+    <span class="muted">ou collez (Ctrl+V) / glissez une capture dans le texte</span>
+  </div>
+  <div class="rich-area" contenteditable="true" role="textbox" aria-multiline="true"
+       aria-labelledby="{{ field.id_for_label }}-label" data-placeholder="{{ placeholder|default:'' }}" hidden></div>
+  <p class="rich-error" role="alert" hidden></p>
+</div>

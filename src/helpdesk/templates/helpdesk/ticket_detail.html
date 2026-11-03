@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.reference }} {{ ticket.title }}{% endblock %}
+{% block content %}
+{% include "helpdesk/partials/ticket_body.html" %}
+{% endblock %}
