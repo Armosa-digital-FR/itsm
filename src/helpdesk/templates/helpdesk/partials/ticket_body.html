@@ -258,7 +258,7 @@
         {% if requester_equipment %}
         <form class="inline-form" hx-post="{% url 'helpdesk:ticket_equipment' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_equipment' ticket.number %}">{% csrf_token %}
           <input type="hidden" name="action" value="lier">
-          <div class="field" style="flex:1 1 180px"><label for="link-equipment">Équipements du demandeur</label>
+          <div class="field"><label for="link-equipment">Équipements du demandeur</label>
             <select id="link-equipment" name="equipment">{% for e in requester_equipment %}<option value="{{ e.pk }}">{{ e.type }} · {{ e.name }}</option>{% endfor %}</select></div>
           <button class="btn btn-small btn-white" type="submit">Lier</button>
         </form>

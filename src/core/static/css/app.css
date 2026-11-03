@@ -378,7 +378,8 @@ mark { background: var(--accent-200); color: var(--tiber); padding: 0 2px; }
 .side .field { margin-bottom: 0; }
 .side form { display: flex; flex-direction: column; gap: 12px; margin: 0; }
 .side .inline-form { flex-direction: row; flex-wrap: wrap; gap: var(--space-2); align-items: flex-end; }
-.side .inline-form select { flex: 1 1 160px; width: auto; }
+.side .inline-form .field { flex: 1 1 160px; min-width: 0; }
+.side .inline-form select { width: 100%; }
 .person-line { display: flex; gap: 12px; align-items: center; }
 .person-line .name { font-weight: 500; }
 .side details > summary { cursor: pointer; font-weight: 400; color: var(--armosa); min-height: 32px;
