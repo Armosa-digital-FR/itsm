@@ -82,6 +82,7 @@ def change_status(
     actor=None,
     resolution: str | None = None,
     resolution_kind: str = Ticket.ResolutionKind.TECHNICIEN,
+    resolution_html: str = "",
 ) -> Ticket:
     old_status = ticket.status
     if new_status == old_status:
@@ -116,6 +117,7 @@ def change_status(
             raise InvalidTransition("Une résolution est obligatoire pour résoudre le ticket.")
         _acknowledge(ticket, now)
         ticket.resolution = text
+        ticket.resolution_html = resolution_html  # images intégrées (FR-032a), sinon texte seul
         ticket.resolution_kind = resolution_kind
         ticket.resolved_at = now
         ticket.resolution_business_minutes = business_minutes_between(ticket.created_at, now)

@@ -1,5 +1,6 @@
 """Quickstart S1 : ticket créé par e-mail, traité jusqu'à la fermeture (US1)."""
 
+import base64
 import re
 from pathlib import Path
 
@@ -12,6 +13,9 @@ from tests.factories import DirectoryUserFactory
 
 pytestmark = pytest.mark.e2e
 MAIL = Path(__file__).parent.parent / "fixtures" / "mail"
+PNG = base64.b64decode(  # PNG 1×1 valide
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+)
 
 
 def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
@@ -44,7 +48,9 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
     expect(page.locator("#ticket .tag", has_text="Pris en compte").first).to_be_visible()
 
     # Note interne puis note externe.
-    expect(page.locator(".rich-area")).to_be_visible()  # éditeur initialisé après l'échange HTMX
+    expect(
+        page.locator(".composer .rich-area")
+    ).to_be_visible()  # éditeur initialisé après l'échange HTMX
     page.get_by_label("Message").fill("Vérifier le tiroir 2.")
     page.get_by_role("button", name="Enregistrer la note").click()
     expect(page.get_by_text("Note interne ajoutée.")).to_be_visible()
@@ -62,15 +68,26 @@ def test_s1_ticket_email_jusqu_a_la_fermeture(logged_page):
     expect(page.get_by_text("30 min enregistrées.")).to_be_visible()
     expect(page.locator(".side")).to_contain_text("30 min")
     page.get_by_role("button", name="Résoudre le ticket").click()
-    page.get_by_label("Résolution").fill("Rouleau d'entraînement remplacé.")
+    panel = page.locator("#resolve-panel")
+    resolution = panel.locator(".rich-area")
+    expect(resolution).to_be_focused()
+    resolution.fill("Rouleau d'entraînement remplacé.")
+    # Une capture dans la résolution (FR-032a), insérée par le bouton dédié.
+    with page.expect_file_chooser() as chooser:
+        panel.get_by_role("button", name="Insérer une image").click()
+    chooser.value.set_files({"name": "rouleau.png", "mimeType": "image/png", "buffer": PNG})
+    expect(resolution.locator("img")).to_have_count(1)
     page.get_by_role("button", name="Valider la résolution").click()
     expect(page.locator("#ticket .tag", has_text="Résolu").first).to_be_visible()
+    expect(page.locator('section[aria-labelledby="resolution-title"] img')).to_have_count(1)
     page.get_by_role("button", name="Fermer le ticket").click()
     expect(page.locator("#ticket .tag", has_text="Fermé").first).to_be_visible()
 
     ticket.refresh_from_db()
     assert ticket.status == Ticket.Status.FERME and ticket.assignee == page.technician
     assert ticket.category.full_path == "Matériel › Impression › Tiroir"
+    assert ticket.resolution == "Rouleau d'entraînement remplacé."
+    assert ticket.attachments.filter(in_resolution=True).count() == 1
     kinds = list(
         ticket.emails.filter(direction="sortant").order_by("id").values_list("kind", flat=True)
     )

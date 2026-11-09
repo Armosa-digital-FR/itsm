@@ -481,6 +481,7 @@ def _counters(ticket: Ticket, now) -> dict:
 
 def detail_context(request, ticket: Ticket, **extra) -> dict:
     main, quoted = split_quoted(ticket.description)
+    resolve_form = extra.pop("resolve_form", None)
     annotate_deadlines([ticket])
     targets = sorted(lifecycle.allowed_targets(ticket))
     now = timezone.now()
@@ -493,7 +494,8 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
         "status_actions": _status_actions(ticket, request.user, targets),
         "counters": _counters(ticket, now),
         "initial_attachments": not_inline(
-            ticket.attachments.filter(note__isnull=True), ticket.description_html
+            ticket.attachments.filter(note__isnull=True, in_resolution=False),
+            ticket.description_html,
         ),
         "htmx": is_htmx(request),
         "time": svc.time_totals(ticket, request.user),
@@ -530,6 +532,14 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
             }
         ),
         "note_form": extra.pop("note_form", None) or NoteForm(),
+        "resolve_form": resolve_form
+        or StatusForm(
+            initial={
+                "status": Ticket.Status.RESOLU,
+                "resolution": ticket.resolution,
+                "resolution_html": ticket.resolution_html,
+            }
+        ),
         "remote_form": extra.pop("remote_form", None) or RemoteSessionForm(ticket=ticket),
         "remote_sessions": ticket.remote_sessions.select_related(
             "technician__directory_user", "equipment"
@@ -542,6 +552,9 @@ def detail_context(request, ticket: Ticket, **extra) -> dict:
             for a in mentions.mentionable()
             if a.pk != request.user.pk
         ],
+        # Après une erreur, la saisie est réaffichée en texte ; sinon la résolution enregistrée
+        # (images comprises) préremplit l'éditeur.
+        "resolution_initial_html": "" if resolve_form else ticket.resolution_html,
         "now": now,
         **extra,
     }
@@ -603,15 +616,14 @@ def ticket_status(request, number: int):
     form = StatusForm(request.POST)
     if not form.is_valid():
         return _error(request, ticket, "Statut inconnu.")
+    data = form.cleaned_data
     try:
-        lifecycle.change_status(
-            ticket,
-            form.cleaned_data["status"],
-            request.user,
-            resolution=form.cleaned_data["resolution"] or None,
-        )
+        if data["status"] == Ticket.Status.RESOLU:
+            svc.resolve(ticket, request.user, data["resolution"], data["resolution_html"])
+        else:
+            lifecycle.change_status(ticket, data["status"], request.user)
     except lifecycle.InvalidTransition as exc:
-        return _error(request, ticket, exc)
+        return _error(request, ticket, exc, resolve_form=form)
     return _done(request, ticket, f"Statut : {ticket.get_status_display()}.")
 
 

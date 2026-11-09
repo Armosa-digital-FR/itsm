@@ -72,6 +72,11 @@ def queue_email(
         note=note,
         extra=extra or {},
         note_html=email_html(note.body_html) if note is not None and note.body_html else "",
+        resolution_html=(
+            email_html(ticket.resolution_html)
+            if kind == EmailMessage.Kind.RESOLUTION and ticket.resolution_html
+            else ""
+        ),
     )
     message = EmailMessage.objects.create(
         direction=EmailMessage.Direction.SORTANT,
@@ -188,25 +193,32 @@ def send(message: EmailMessage, client: GraphClient | None = None) -> EmailMessa
             ],
             [],
         )
-        for note in message.notes.all():
-            for attachment in note.attachments.all():
-                # Images insérées dans le texte (FR-014c) : jointes « inline » et référencées
-                # par cid:att-<id> dans le corps.
-                embedded = {}
-                if f'cid:{inline_content_id(attachment)}"' in message.body_html:
-                    embedded = {"isInline": True, "contentId": inline_content_id(attachment)}
-                if attachment.size <= INLINE_ATTACHMENT_LIMIT:
-                    with attachment.file.open("rb") as handle:
-                        inline.append(
-                            _file_attachment(
-                                attachment.filename,
-                                attachment.content_type,
-                                handle.read(),
-                                **embedded,
-                            )
+        attachments = [a for note in message.notes.all() for a in note.attachments.all()]
+        if message.kind == EmailMessage.Kind.RESOLUTION and message.ticket_id:
+            # Images de la résolution (FR-032a) : seulement celles que le corps affiche.
+            attachments += [
+                a
+                for a in message.ticket.attachments.filter(in_resolution=True)
+                if f'cid:{inline_content_id(a)}"' in message.body_html
+            ]
+        for attachment in attachments:
+            # Images insérées dans le texte (FR-014c) : jointes « inline » et référencées
+            # par cid:att-<id> dans le corps.
+            embedded = {}
+            if f'cid:{inline_content_id(attachment)}"' in message.body_html:
+                embedded = {"isInline": True, "contentId": inline_content_id(attachment)}
+            if attachment.size <= INLINE_ATTACHMENT_LIMIT:
+                with attachment.file.open("rb") as handle:
+                    inline.append(
+                        _file_attachment(
+                            attachment.filename,
+                            attachment.content_type,
+                            handle.read(),
+                            **embedded,
                         )
-                else:
-                    large.append((attachment, embedded))
+                    )
+            else:
+                large.append((attachment, embedded))
         draft = client.post(
             base,
             json={

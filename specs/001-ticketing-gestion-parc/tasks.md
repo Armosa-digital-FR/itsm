@@ -430,6 +430,16 @@ Task: "T077 Modèles du parc dans src/inventory/models.py"
 
 ---
 
+## Retour : images dans la résolution (2026-11-09)
+
+**Purpose**: illustrer une résolution par des captures, comme une note (FR-032a).
+
+- [X] T137 [US1] `Ticket.resolution_html`, `Attachment.in_resolution` (migration `0010_resolution_images`) ; `tickets.resolve()` : images en pièces jointes, reprise des images de la résolution précédente, suppression de celles retirées ; `change_status` vide le HTML d'une résolution automatique ; anonymisation (FR-072) : HTML vidé
+- [X] T138 [US1] Panneau « Résoudre le ticket » avec l'éditeur enrichi (prérempli après réouverture, rouvert sur erreur) ; affichage des images dans la résolution ; e-mail de résolution avec images intégrées (`cid:`)
+- [X] T139 Tests : `tests/integration/test_resolution_images.py`, e2e S1 (capture insérée dans la résolution)
+
+---
+
 ## Implementation Strategy
 
 ### MVP First (US5 + US1)

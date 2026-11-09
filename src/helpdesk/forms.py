@@ -223,7 +223,10 @@ class ToolQuickForm(forms.Form):
 
 class StatusForm(forms.Form):
     status = forms.ChoiceField(choices=Ticket.Status.choices)
-    resolution = forms.CharField(label="Résolution", required=False, widget=forms.Textarea)
+    resolution = forms.CharField(
+        label="Résolution", required=False, widget=forms.Textarea(attrs={"rows": 4})
+    )
+    resolution_html = forms.CharField(required=False, widget=forms.HiddenInput)
 
 
 class AssignForm(forms.Form):

@@ -147,6 +147,7 @@ Unicité (`technician`, `tool`). Supprimée automatiquement quand le technicien 
 | `reminders_sent` | entier 0–3 | |
 | `last_reminder_at` | date-heure | |
 | `resolution` | texte | obligatoire pour `resolu` (FR-032) |
+| `resolution_html` | texte | HTML assaini de la résolution avec ses images (FR-032a) ; vide pour une résolution automatique ou après anonymisation |
 | `resolution_kind` | énum {`technicien`, `sans_reponse`} | |
 | `resolved_at`, `closed_at` | date-heure | |
 | `resolution_business_minutes` | entier | délai de résolution en minutes ouvrées (création → résolution, FR-037a) ; effacé à la réouverture |
@@ -235,6 +236,7 @@ Unicité (`note`, `account`) ; index (`account`, `read_at`) pour la pastille de 
 | `file` | fichier (Blob Storage) | ≤ 25 Mo |
 | `filename`, `content_type`, `size` | | |
 | `content_id` | texte | pour les images inline `cid:` |
+| `in_resolution` | booléen | image de la résolution (FR-032a) : exclue des pièces jointes de la demande, jointe à l'e-mail de résolution |
 
 ### Message e-mail (`EmailMessage`)
 

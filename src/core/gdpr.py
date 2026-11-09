@@ -82,6 +82,7 @@ def anonymize_ticket(ticket) -> None:
     )
     ticket.title = mask(ticket.title, names)[:255]
     ticket.resolution = mask(ticket.resolution, names)
+    ticket.resolution_html = ""  # ses images sont des pièces jointes, supprimées ci-dessus
     ticket.description = ""
     ticket.description_html = ""
     ticket.requester = None

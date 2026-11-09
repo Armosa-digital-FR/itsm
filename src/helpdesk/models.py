@@ -253,6 +253,7 @@ class Ticket(models.Model):
     )
     last_reminder_at = models.DateTimeField("dernier rappel", null=True, blank=True)
     resolution = models.TextField("résolution", blank=True)
+    resolution_html = models.TextField("résolution HTML (assainie)", blank=True)
     resolution_kind = models.CharField(
         "type de résolution", max_length=20, choices=ResolutionKind.choices, blank=True
     )
@@ -458,6 +459,7 @@ class Attachment(models.Model):
     content_type = models.CharField("type", max_length=255, blank=True)
     size = models.PositiveBigIntegerField("taille", default=0)
     content_id = models.CharField("Content-ID", max_length=255, blank=True)
+    in_resolution = models.BooleanField("image de la résolution", default=False)
     created_at = models.DateTimeField("ajoutée le", auto_now_add=True)
 
     class Meta:

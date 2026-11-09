@@ -1,5 +1,6 @@
 {# Éditeur enrichi (FR-014c) : texte + images collées, glissées ou insérées.        #}
-{# Paramètres : field (zone de texte liée), html_field (champ caché du HTML), label. #}
+{# Paramètres : field (zone de texte liée), html_field (champ caché du HTML), label, #}
+{# initial_html (HTML déjà assaini qui préremplit l'éditeur, images comprises).      #}
 {# Sans JavaScript, la zone de texte classique reste utilisée.                       #}
 <div class="rich-editor" data-rich-editor>
   <label id="{{ field.id_for_label }}-label" for="{{ field.id_for_label }}">{{ label|default:field.label }}</label>
@@ -12,5 +13,6 @@
   </div>
   <div class="rich-area" contenteditable="true" role="textbox" aria-multiline="true"
        aria-labelledby="{{ field.id_for_label }}-label" data-placeholder="{{ placeholder|default:'' }}" hidden></div>
+  {% if initial_html %}<template data-rich-initial>{{ initial_html }}</template>{% endif %}
   <p class="rich-error" role="alert" hidden></p>
 </div>
