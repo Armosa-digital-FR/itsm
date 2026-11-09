@@ -57,7 +57,7 @@
           {% if action.kind == "take" %}
           <form hx-post="{% url 'helpdesk:ticket_take' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_take' ticket.number %}">{% csrf_token %}<button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="submit">{{ action.label }}</button></form>
           {% elif action.kind == "resolve" %}
-          <button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="button" data-toggle-panel="resolve-panel" aria-expanded="false" aria-controls="resolve-panel">{{ action.label }}</button>
+          <button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="button" data-toggle-panel="resolve-panel" aria-expanded="{% if resolve_form.is_bound %}true{% else %}false{% endif %}" aria-controls="resolve-panel">{{ action.label }}</button>
           {% else %}
           <form hx-post="{% url 'helpdesk:ticket_status' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_status' ticket.number %}">{% csrf_token %}<input type="hidden" name="status" value="{{ action.status }}"><button class="btn {% if action.primary %}btn-primary{% else %}btn-white{% endif %}" type="submit">{{ action.label }}</button></form>
           {% endif %}
@@ -68,10 +68,10 @@
       {% elif ticket.status == "ferme" %}<p class="status-hint" style="margin:0">Ticket fermé : une réponse du demandeur ouvre un nouveau ticket lié.</p>{% endif %}
     </div>
     {% for action in status_actions %}{% if action.kind == "resolve" %}
-    <form class="resolve-panel" id="resolve-panel" hidden hx-post="{% url 'helpdesk:ticket_status' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_status' ticket.number %}">{% csrf_token %}
+    <form class="resolve-panel" id="resolve-panel"{% if not resolve_form.is_bound %} hidden{% endif %} hx-post="{% url 'helpdesk:ticket_status' ticket.number %}" method="post" action="{% url 'helpdesk:ticket_status' ticket.number %}">{% csrf_token %}
       <input type="hidden" name="status" value="resolu">
-      <div class="field"><label for="resolution">Résolution</label><textarea id="resolution" name="resolution" rows="3" required>{{ ticket.resolution }}</textarea>
-      <span class="help">Envoyée au demandeur et conservée dans la base de résolution : n'y saisissez pas de données personnelles.</span></div>
+      {% include "core/partials/rich_editor.html" with field=resolve_form.resolution html_field=resolve_form.resolution_html initial_html=resolution_initial_html|rich_html label="Résolution" placeholder="Ce qui a été fait ; collez ou glissez une capture pour l'illustrer." %}
+      <p class="muted" style="margin:0">Envoyée au demandeur, images comprises, et conservée dans la base de résolution : n'y saisissez pas de données personnelles.</p>
       <div class="actions">
         <button class="btn" type="button" data-toggle-panel="resolve-panel">Annuler</button>
         <button class="btn btn-primary" type="submit">Valider la résolution</button>
@@ -100,7 +100,8 @@
       {% if ticket.resolution and ticket.status == "resolu" or ticket.resolution and ticket.status == "ferme" %}
       <section aria-labelledby="resolution-title">
         <h2 class="section-title" id="resolution-title">Résolution{% if ticket.resolution_kind == "sans_reponse" %} · sans réponse du demandeur{% endif %}</h2>
-        <div class="note-body">{{ ticket.resolution }}</div>
+        {% if ticket.resolution_html %}<div class="note-body html rich-html">{{ ticket.resolution_html|rich_html }}</div>
+        {% else %}<div class="note-body">{{ ticket.resolution }}</div>{% endif %}
       </section>
       {% endif %}
 

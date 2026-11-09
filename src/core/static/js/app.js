@@ -86,7 +86,9 @@ function richInit(root) {
     var error = box.querySelector(".rich-error");
     if (!source || !hidden || !area) return;
 
-    area.textContent = source.value;  // texte déjà saisi (réaffichage après erreur)
+    var initial = box.querySelector("template[data-rich-initial]");
+    if (initial) area.innerHTML = initial.innerHTML;  // contenu enregistré, assaini par le serveur
+    else area.textContent = source.value;  // texte déjà saisi (réaffichage après erreur)
     var label = box.querySelector('label[for="' + source.id + '"]');
     if (label) label.removeAttribute("for");  // le libellé désigne désormais la zone éditable
     source.hidden = true;
@@ -170,7 +172,7 @@ document.addEventListener("click", function (event) {
     b.setAttribute("aria-expanded", String(!panel.hidden));
   });
   if (!panel.hidden) {
-    var first = panel.querySelector("textarea, input:not([type=hidden]), select");
+    var first = panel.querySelector(".rich-area:not([hidden]), textarea:not([hidden]), input:not([type=hidden]):not([hidden]), select");
     if (first) first.focus();
   }
 });

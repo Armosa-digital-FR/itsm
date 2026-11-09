@@ -23,7 +23,7 @@ def test_s10_mentionner_un_collegue(logged_page):
     )
     ticket = TicketFactory(title="VPN instable")
     page.goto(f"{page.base_url}/tickets/{ticket.number}/")
-    area = page.locator(".rich-area")
+    area = page.locator(".composer .rich-area")
     expect(area).to_be_visible()
     area.click()
     page.keyboard.type("@iv")
@@ -40,7 +40,7 @@ def test_s10_mentionner_un_collegue(logged_page):
 
     # Pas de suggestion dans une réponse au demandeur.
     page.locator(".segmented label", has_text="Répondre au demandeur").click()
-    page.locator(".rich-area").click()
+    page.locator(".composer .rich-area").click()
     page.keyboard.type("@iv")
     expect(page.get_by_role("listbox")).to_have_count(0)
 

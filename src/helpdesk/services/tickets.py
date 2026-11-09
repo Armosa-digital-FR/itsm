@@ -3,6 +3,7 @@
 Les vues restent minces : toute règle passe par ce module ou par `lifecycle`.
 """
 
+import re
 from dataclasses import dataclass, field
 from datetime import date
 
@@ -10,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import Sum
+from django.urls import reverse
 from django.utils import timezone
 
 from core.models import Settings
@@ -68,9 +70,10 @@ def save_files(ticket: Ticket, files, note: TicketNote | None = None) -> list[st
     return refused
 
 
-def save_files_with_cids(ticket: Ticket, files, note: TicketNote | None = None):
+def save_files_with_cids(
+    ticket: Ticket, files, note: TicketNote | None = None, in_resolution: bool = False
+):
     """Comme `save_files`, et renvoie aussi la table Content-ID → URL de la pièce jointe."""
-    from django.urls import reverse
 
     refused, cid_map = [], {}
     for item in files:
@@ -97,6 +100,7 @@ def save_files_with_cids(ticket: Ticket, files, note: TicketNote | None = None):
             content_type=ctype or "",
             size=size,
             content_id=cid[:255],
+            in_resolution=in_resolution,
         )
         attachment.file.save(name, content, save=False)
         attachment.save()
@@ -123,13 +127,18 @@ def _rich(html: str):
     return None if rich.is_empty and not rich.refused else rich
 
 
-def _store_rich(ticket: Ticket, rich, *, target, html_field: str, note=None) -> None:
-    """Enregistre les images intégrées puis le HTML avec leurs URL protégées."""
-    _, cid_map = save_files_with_cids(ticket, rich.files, note=note)
+def _rich_html(ticket: Ticket, rich, kept_cids: dict | None = None, **file_options) -> str:
+    """Enregistre les images intégrées ; renvoie le HTML avec leurs URL protégées."""
+    _, cid_map = save_files_with_cids(ticket, rich.files, **file_options)
+    cid_map = {**(kept_cids or {}), **cid_map}
     html = _with_inline_images(rich.html, cid_map) if cid_map else rich.html
     if rich.refused:
         html += "<p><em>Images non conservées : " + ", ".join(rich.refused) + ".</em></p>"
-    setattr(target, html_field, html)
+    return html
+
+
+def _store_rich(ticket: Ticket, rich, *, target, html_field: str, note=None) -> None:
+    setattr(target, html_field, _rich_html(ticket, rich, note=note))
     target.save(update_fields=[html_field])
 
 
@@ -389,6 +398,38 @@ def add_note(
     else:
         mentions.notify(note)
     return note
+
+
+@transaction.atomic
+def resolve(ticket: Ticket, actor, resolution: str = "", resolution_html: str = "") -> Ticket:
+    """Résout le ticket ; la résolution peut contenir des images (FR-032a).
+
+    Les images collées deviennent des pièces jointes de la résolution ; celles d'une résolution
+    précédente que le nouveau texte n'affiche plus sont supprimées.
+    """
+    # Les images d'une résolution précédente (éditeur prérempli) sont gardées ; toute autre
+    # image déjà en ligne est retirée par l'assainissement, comme pour une note.
+    kept = {}
+    previous = set(ticket.attachments.filter(in_resolution=True).values_list("pk", flat=True))
+
+    def keep(match: re.Match) -> str:
+        pk = int(match.group(1))
+        if pk not in previous:
+            return match.group(0)
+        kept[f"resolution-{pk}"] = reverse("helpdesk:attachment", args=[pk])
+        return f'src="cid:resolution-{pk}"'
+
+    rich = _rich(re.sub(r'src="/attachments/(\d+)/"', keep, resolution_html or ""))
+    html = ""
+    if rich:
+        resolution = rich.text
+        html = _rich_html(ticket, rich, kept_cids=kept, in_resolution=True)
+    change_status(ticket, S.RESOLU, actor, resolution=resolution, resolution_html=html)
+    for attachment in ticket.attachments.filter(in_resolution=True):
+        if f"/attachments/{attachment.pk}/" not in html:
+            attachment.file.delete(save=False)
+            attachment.delete()
+    return ticket
 
 
 def add_time(

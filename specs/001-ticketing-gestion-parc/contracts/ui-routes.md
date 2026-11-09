@@ -34,7 +34,7 @@ Légende des rôles : **T** = technicien (et administrateur), **A** = administra
 | GET | `/directory/search/?q=` | T | FR-014 | fragment : 10 utilisateurs actifs max par nom ou e-mail (≥ 2 caractères) |
 | GET | `/tickets/<number>/` | T | US1 | fiche : en-tête, qualification, fil chronologique (notes, e-mails, événements), temps, équipements liés, suggestions de résolution (FR-042) ; marque la réponse et les mentions de l'utilisateur comme lues |
 | POST | `/tickets/<number>/qualify/` | T | FR-015 à FR-019 | met à jour type, catégorie, outil, priorité, filiale ; recalcul de l'échéance ; affectation auto |
-| POST | `/tickets/<number>/status/` | T | FR-030, FR-032 | corps : `status`, `resolution` si `resolu` ; transition refusée → fragment d'erreur `422` |
+| POST | `/tickets/<number>/status/` | T | FR-030, FR-032, FR-032a | corps : `status`, et pour `resolu` : `resolution` (texte) et `resolution_html` (éditeur enrichi, images `data:` converties en pièces jointes) ; transition refusée → fragment d'erreur `422`, saisie réaffichée |
 | POST | `/tickets/<number>/take/` | T | FR-023 | l'utilisateur courant devient assigné ; passe en `pris_en_compte` si `cree` |
 | POST | `/tickets/<number>/assign/` | T | FR-024 | corps : `assignee` et/ou `group` ; `assignment_mode = manuel` |
 | POST | `/tickets/bulk-assign/` | T | cas limite | réaffectation en masse des tickets d'un technicien vers un autre/groupe |

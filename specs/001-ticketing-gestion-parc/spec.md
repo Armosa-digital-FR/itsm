@@ -88,6 +88,13 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   ticket au statut « Pris en compte », mis à jour en direct (HH:MM:SS), figé pendant les
   attentes. « Ouvert depuis » est aussi en direct. Les deux ne comptent que les heures ouvrées.
 
+### Session 2026-11-09 (retour : images dans la résolution)
+
+- Q: La résolution peut-elle contenir des captures, comme les notes ? → A: Oui : même éditeur
+  (collage, glisser-déposer, bouton), images affichées dans la résolution de la fiche et
+  intégrées à l'e-mail de résolution envoyé au demandeur. Un texte reste obligatoire (base de
+  résolution, recherche).
+
 ### Session 2026-11-02 (retour : mentionner un collègue dans une note interne)
 
 - Q: Qui peut-on mentionner avec « @ » ? → A: Les techniciens et administrateurs actifs
@@ -426,6 +433,14 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   techniciens) et des notes externes (envoyées au demandeur par e-mail).
 - **FR-032**: Le passage au statut « résolu » DOIT exiger la saisie d'une résolution, transmise
   au demandeur.
+- **FR-032a**: La résolution DOIT accepter des images insérées dans le texte, comme une note
+  (FR-014c : collage, glisser-déposer ou bouton ; mêmes formats et limites) ; un texte reste
+  obligatoire. Les images sont des pièces jointes protégées de la résolution, affichées à leur
+  place dans la résolution de la fiche (jamais parmi les pièces jointes de la demande) et
+  intégrées au corps de l'e-mail de résolution. Après une réouverture, l'éditeur reprend la
+  résolution précédente, images comprises ; une image retirée du texte est supprimée. La
+  résolution automatique « sans réponse du demandeur » est en texte seul ; l'anonymisation
+  (FR-072) supprime les images et ne conserve que le texte masqué.
 - **FR-033**: Un ticket résolu DOIT passer automatiquement à « fermé » après 5 jours ouvrés sans
   contestation du demandeur ; une réponse du demandeur avant ce délai le rouvre.
 - **FR-034**: Le système DOIT envoyer un rappel au demandeur lorsqu'un ticket est « en attente
