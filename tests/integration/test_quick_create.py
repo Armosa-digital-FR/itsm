@@ -27,7 +27,8 @@ def test_creer_une_sous_categorie_selectionnee(technician_client, technician):
     created = Category.objects.get(name="Scanner")
     assert created.parent == parent and created.level == 2
     content = response.content.decode()
-    assert f'<option value="{created.pk}" selected>Matériel › Scanner</option>' in content
+    option = f'<option value="{created.pk}" selected data-parent="{parent.pk}">'
+    assert f"{option}Matériel › Scanner</option>" in content
     assert "Catégorie « Matériel › Scanner » créée et sélectionnée." in content
     assert 'id="id_category"' in content and 'name="category"' in content
     entry = AuditEntry.objects.get(action="category.create")

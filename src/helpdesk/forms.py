@@ -7,6 +7,7 @@ from directory.models import Account, DirectoryUser, Site, Subsidiary
 from inventory.models import Equipment
 
 from .models import Category, TechnicianGroup, Ticket, TicketNote, Tool
+from .services import catalog
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -26,8 +27,29 @@ class MultipleFileField(forms.FileField):
         return [super(MultipleFileField, self).clean(item, initial) for item in items]
 
 
+class CatalogSelect(forms.Select):
+    """Liste déroulante dont chaque option porte des attributs `data-*` (FR-017a) : parente
+    d'une catégorie, catégorie d'un outil. Le filtrage côté navigateur s'en sert."""
+
+    def __init__(self, attrs=None, choices=()):
+        super().__init__(attrs, choices)
+        self.option_data = {}
+
+    def __deepcopy__(self, memo):
+        copy = super().__deepcopy__(memo)
+        copy.option_data = dict(self.option_data)
+        return copy
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex, attrs)
+        option["attrs"].update(self.option_data.get(str(value), {}))
+        return option
+
+
 class CategoryChoiceField(forms.ModelChoiceField):
     """Catégories actives, libellées par leur chemin complet et triées par ce chemin."""
+
+    widget = CatalogSelect
 
     def __init__(self, **kwargs):
         queryset = Category.objects.filter(is_active=True).select_related("parent__parent")
@@ -35,17 +57,57 @@ class CategoryChoiceField(forms.ModelChoiceField):
 
     def refresh_choices(self):
         """Calculé à l'instanciation du formulaire (jamais à l'import du module)."""
+        categories = list(self.queryset)
         self.choices = [("", "—")] + sorted(
-            ((c.pk, c.full_path) for c in self.queryset), key=lambda item: item[1].lower()
+            ((c.pk, c.full_path) for c in categories), key=lambda item: item[1].lower()
         )
+        self.widget.attrs["data-catalog"] = "category"
+        self.widget.option_data = {
+            str(c.pk): {"data-parent": c.parent_id} for c in categories if c.parent_id
+        }
+
+
+class ToolChoiceField(forms.ModelChoiceField):
+    """Outils actifs ; chaque option indique la catégorie de l'outil (FR-017a)."""
+
+    widget = CatalogSelect
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("queryset", Tool.objects.filter(is_active=True))
+        kwargs.setdefault("empty_label", "—")
+        super().__init__(**kwargs)
+
+    def refresh_choices(self):
+        self.widget.attrs["data-catalog"] = "tool"
+        self.widget.option_data = {
+            str(t.pk): {"data-category": t.category_id}
+            for t in self.queryset.select_related("category")
+            if catalog.tool_domain(t)
+        }
 
 
 class ITSMForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
-            if isinstance(field, CategoryChoiceField):
+            if isinstance(field, CategoryChoiceField | ToolChoiceField):
                 field.refresh_choices()
+
+
+class CatalogCheckMixin:
+    """Saisie liée catégorie / outil (FR-017a) : choisir un outil complète la catégorie dans le
+    navigateur ; le serveur refuse un outil rattaché à une autre branche que la catégorie."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["tool"].widget.attrs["data-catalog-fill"] = ""
+
+    def clean(self):
+        data = super().clean()
+        category, tool = data.get("category"), data.get("tool")
+        if not catalog.tool_fits(category, tool):
+            self.add_error("tool", catalog.mismatch_message(category, tool))
+        return data
 
 
 def technicians():
@@ -96,12 +158,7 @@ class TicketFilterForm(ITSMForm):
         empty_label="Tous",
     )
     category = CategoryChoiceField(label="Catégorie", required=False)
-    tool = forms.ModelChoiceField(
-        label="Outil",
-        required=False,
-        queryset=Tool.objects.filter(is_active=True),
-        empty_label="Tous",
-    )
+    tool = ToolChoiceField(label="Outil", required=False, empty_label="Tous")
     breached = forms.BooleanField(label="Délai dépassé", required=False)
     mon_temps = forms.BooleanField(label="J'y ai passé du temps", required=False)
 
@@ -116,7 +173,7 @@ class TicketFilterForm(ITSMForm):
         ]
 
 
-class TicketCreateForm(ITSMForm):
+class TicketCreateForm(CatalogCheckMixin, ITSMForm):
     requester = forms.ModelChoiceField(
         label="Demandeur",
         queryset=DirectoryUser.objects.filter(is_active=True),
@@ -131,9 +188,7 @@ class TicketCreateForm(ITSMForm):
         label="Type", required=False, choices=[("", "—"), *Ticket.Type.choices]
     )
     category = CategoryChoiceField(label="Catégorie", required=False)
-    tool = forms.ModelChoiceField(
-        label="Outil", required=False, queryset=Tool.objects.filter(is_active=True), empty_label="—"
-    )
+    tool = ToolChoiceField(label="Outil", required=False)
     priority = forms.ChoiceField(
         label="Priorité", choices=Ticket.Priority.choices, initial=Ticket.Priority.NORMALE
     )
@@ -146,14 +201,12 @@ class TicketCreateForm(ITSMForm):
     )
 
 
-class QualifyForm(ITSMForm):
+class QualifyForm(CatalogCheckMixin, ITSMForm):
     type = forms.ChoiceField(
         label="Type", required=False, choices=[("", "—"), *Ticket.Type.choices]
     )
     category = CategoryChoiceField(label="Catégorie", required=False)
-    tool = forms.ModelChoiceField(
-        label="Outil", required=False, queryset=Tool.objects.filter(is_active=True), empty_label="—"
-    )
+    tool = ToolChoiceField(label="Outil", required=False)
     priority = forms.ChoiceField(label="Priorité", choices=Ticket.Priority.choices)
     subsidiary = forms.ModelChoiceField(
         label="Entité",
@@ -175,13 +228,11 @@ class QualifyForm(ITSMForm):
     )
 
 
-class CatalogSelectForm(ITSMForm):
+class CatalogSelectForm(CatalogCheckMixin, ITSMForm):
     """Listes Catégorie et Outil seules, réaffichées après une création rapide."""
 
     category = CategoryChoiceField(label="Catégorie", required=False)
-    tool = forms.ModelChoiceField(
-        label="Outil", required=False, queryset=Tool.objects.filter(is_active=True), empty_label="—"
-    )
+    tool = ToolChoiceField(label="Outil", required=False)
 
 
 class CategoryQuickForm(forms.Form):
@@ -219,6 +270,14 @@ class ToolQuickForm(forms.Form):
         queryset=TechnicianGroup.objects.all(),
         empty_label="— (aucun)",
     )
+    new_tool_category = CategoryChoiceField(label="Catégorie de l'outil", required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        field = self.fields["new_tool_category"]
+        field.refresh_choices()
+        field.widget.attrs.pop("data-catalog")
+        field.widget.attrs["data-tool-category"] = ""  # préremplie avec la catégorie du ticket
 
 
 class StatusForm(forms.Form):
@@ -312,7 +371,7 @@ class KnowledgeSearchForm(ITSMForm):
         ),
     )
     category = CategoryChoiceField(label="Catégorie", required=False)
-    tool = forms.ModelChoiceField(
+    tool = ToolChoiceField(
         label="Outil", required=False, empty_label="Tous", queryset=Tool.objects.all()
     )
     subsidiary = forms.ModelChoiceField(

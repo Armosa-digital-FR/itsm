@@ -98,11 +98,29 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Tool)
 class ToolAdmin(AuditedRelationsMixin, admin.ModelAdmin):
-    list_display = ["name", "default_group", "competent", "is_active"]
-    list_filter = ["is_active", "default_group"]
-    search_fields = ["name"]
+    list_display = ["name", "category", "default_group", "competent", "is_active"]
+    list_filter = ["is_active", "default_group", ("category", admin.RelatedOnlyFieldListFilter)]
+    search_fields = ["name", "category__name"]
+    list_select_related = ["category__parent__parent", "default_group"]
+    fields = ["name", "category", "description", "default_group", "is_active"]
     inlines = [SkillInlineForTool]
     audit_action = "skill.change"
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "category":
+            kwargs["queryset"] = Category.objects.filter(is_active=True).select_related(
+                "parent__parent"
+            )
+            kwargs["help_text"] = (
+                "Domaine de l'outil (ex. « Logiciels › Métier ») : à la qualification d'un "
+                "ticket, la liste des outils se réduit à ceux de la catégorie choisie."
+            )
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name == "category":
+            field.choices = [("", "—")] + sorted(
+                ((c.pk, c.full_path) for c in field.queryset), key=lambda item: item[1].lower()
+            )
+        return field
 
     @admin.display(description="techniciens compétents")
     def competent(self, obj):

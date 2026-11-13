@@ -88,6 +88,15 @@ téléphone) ; emplacement (site) et statut (stock ou en utilisation)."
   ticket au statut « Pris en compte », mis à jour en direct (HH:MM:SS), figé pendant les
   attentes. « Ouvert depuis » est aussi en direct. Les deux ne comptent que les heures ouvrées.
 
+### Session 2026-11-13 (retour : catégorie et outil trop indépendants)
+
+- Q: Comment éviter un ticket classé « Logiciel › X3 » avec l'outil X3, ou un outil sans
+  rapport avec sa catégorie ? → A: La catégorie décrit le domaine, l'outil le produit précis.
+  Chaque outil appartient à une seule catégorie (facultative le temps de la reprise) ; la liste
+  des outils se réduit à la branche de la catégorie choisie, choisir un outil complète la
+  catégorie, et une combinaison d'une autre branche est refusée. Les doublons existants
+  (catégories portant le nom d'un outil) sont nettoyés à la main dans l'administration.
+
 ### Session 2026-11-09 (retour : images dans la résolution)
 
 - Q: La résolution peut-elle contenir des captures, comme les notes ? → A: Oui : même éditeur
@@ -398,6 +407,15 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   3 niveaux (catégorie, sous-catégorie, sous-sous-catégorie), administrable.
 - **FR-017**: Chaque ticket DOIT pouvoir être associé à un outil du référentiel d'outils et à un
   ou plusieurs équipements du parc.
+- **FR-017a**: Chaque outil PEUT être rattaché à une seule catégorie, son domaine (ex. X3 →
+  « Logiciels › Métier »). Un outil convient à une catégorie de la même branche : la sienne,
+  une de ses parentes ou une de ses sous-catégories ; un outil sans catégorie, ou dont la
+  catégorie est désactivée, convient partout. À la création et à la qualification, la liste des
+  outils se réduit à ceux qui conviennent à la catégorie choisie ; choisir un outil renseigne
+  sa catégorie si la catégorie est vide, plus large ou d'une autre branche. Le système DOIT
+  refuser d'enregistrer une catégorie et un outil qui ne conviennent pas ; un ticket déjà
+  incohérent n'est contrôlé que lorsque sa catégorie ou son outil change. Les filtres de la
+  liste des tickets réduisent aussi les outils, sans compléter la catégorie.
 - **FR-018**: Chaque ticket DOIT avoir une priorité parmi haute, normale et basse ; la priorité
   par défaut est normale.
 - **FR-019**: Un ticket DOIT être rattaché à un demandeur et à une entité (filiale) pour pouvoir
@@ -406,7 +424,8 @@ ticket lié, déclarer une intervention et vérifier sa présence dans l'histori
   sa qualification) ou après anonymisation (FR-072).
 - **FR-019a**: Lors de la création ou de la qualification d'un ticket, un technicien DOIT
   pouvoir créer une catégorie (nom et catégorie parente, 3 niveaux au plus, nom unique sous un
-  même parent) ou un outil (nom unique, groupe compétent facultatif) directement depuis la
+  même parent) ou un outil (nom unique, groupe compétent et catégorie facultatifs, la
+  catégorie du ticket étant proposée) directement depuis la
   liste correspondante, sans passer par l'administration ; l'élément créé est sélectionné et
   la création est tracée dans le journal d'audit. Désactivation, renommage et réorganisation
   restent dans l'administration.

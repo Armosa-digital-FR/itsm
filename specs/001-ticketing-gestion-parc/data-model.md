@@ -95,6 +95,7 @@ Un « technicien » est un compte ayant le rôle `technicien` ou `administrateur
 | `name` | texte | unique, obligatoire |
 | `description` | texte | optionnel |
 | `default_group` | → TechnicianGroup | optionnel ; groupe compétent sur l'outil |
+| `category` | → Category | optionnel ; domaine de l'outil, une seule catégorie (FR-017a) ; mis à vide si la catégorie est supprimée |
 | `is_active` | booléen | |
 
 ### Compétence (`Skill`)
@@ -130,7 +131,7 @@ Unicité (`technician`, `tool`). Supprimée automatiquement quand le technicien 
 | `site` | → Site | site du demandeur, recopié à la création, modifiable (FR-019) |
 | `type` | énum {`incident`, `demande`} | vide tant que non qualifié |
 | `category` | → Category | nœud de niveau 1 à 3 |
-| `tool` | → Tool | optionnel ; déclenche l'affectation automatique |
+| `tool` | → Tool | optionnel ; déclenche l'affectation automatique ; de la même branche que `category` (FR-017a) |
 | `priority` | énum {`haute`, `normale`, `basse`} | défaut `normale` |
 | `status` | énum (voir machine à états) | défaut `cree` |
 | `assignee` | → Account | technicien responsable |
@@ -413,6 +414,7 @@ En ajout seul (déclencheur PostgreSQL refusant `UPDATE`/`DELETE`, sauf purge de
 ```text
 Subsidiary 1─* Site            Subsidiary 1─* DirectoryUser       DirectoryUser 1─0..1 Account
 Account *─* TechnicianGroup    Account *─* Tool (via Skill)       Tool *─0..1 TechnicianGroup
+Tool *─0..1 Category (domaine)
 Category 1─* Category (3 niveaux)
 Ticket *─1 DirectoryUser (requester)   Ticket *─1 Subsidiary   Ticket *─0..1 Category
 Ticket *─0..1 Tool   Ticket *─0..1 Account (assignee)   Ticket *─0..1 TechnicianGroup

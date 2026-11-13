@@ -172,13 +172,14 @@ class Command(BaseCommand):
                 "Droits": ["Dossier partagé", "Application"],
             },
         }
-        leaves = {}
+        leaves, domains = {}, {}
         for i, (root, children) in enumerate(tree.items()):
             level1, _ = Category.objects.get_or_create(
                 name=root, parent=None, defaults={"position": i}
             )
             for child, grandchildren in children.items():
                 level2, _ = Category.objects.get_or_create(name=child, parent=level1)
+                domains[child] = level2
                 for leaf in grandchildren:
                     leaves[leaf], _ = Category.objects.get_or_create(name=leaf, parent=level2)
 
@@ -193,16 +194,19 @@ class Command(BaseCommand):
         poste.members.set([technicians["Hugo"], technicians["Zoé"]])
         reseau.members.set([technicians["Nathan"], technicians["Valentine"]])
         tools = {}
-        for name, group in [
-            ("Outlook", None),
-            ("Teams", None),
-            ("ERP", poste),
-            ("VPN", reseau),
-            ("Imprimantes", poste),
+        for name, group, domain in [
+            ("Outlook", None, "Messagerie"),
+            ("Teams", None, "Messagerie"),
+            ("ERP", poste, "Métier"),
+            ("VPN", reseau, None),  # sans catégorie : proposé partout
+            ("Imprimantes", poste, "Impression"),
         ]:
             tools[name], _ = Tool.objects.get_or_create(
                 name=name, defaults={"default_group": group}
             )
+            if domain and tools[name].category_id is None:  # domaine de l'outil (FR-017a)
+                tools[name].category = domains[domain]
+                tools[name].save(update_fields=["category"])
 
         from helpdesk.models import Skill
 
