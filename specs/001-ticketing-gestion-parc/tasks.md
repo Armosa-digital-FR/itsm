@@ -440,6 +440,16 @@ Task: "T077 Modèles du parc dans src/inventory/models.py"
 
 ---
 
+## Retour : catégorie et outil liés (2026-11-13)
+
+**Purpose**: un outil appartient à une catégorie ; les deux listes se répondent (FR-017a).
+
+- [X] T140 [US2] `Tool.category` (migration `0011_outil_categorie`) ; `catalog.tool_fits` / `check_tool` (même branche) ; contrôle dans `create_manual`, `qualify` (seulement si catégorie ou outil change) et les formulaires de création et de qualification ; administration des outils (colonne, filtre, champ trié par chemin) ; outils de démonstration rattachés
+- [X] T141 [US2] Listes liées : options `data-parent` / `data-category`, filtrage et complétion dans `app.js` (y compris après création rapide) ; « Nouvel outil » avec sa catégorie, préremplie avec celle du ticket
+- [X] T142 Tests : `tests/integration/test_tool_category.py`, e2e `tests/e2e/test_tool_category.py`
+
+---
+
 ## Implementation Strategy
 
 ### MVP First (US5 + US1)

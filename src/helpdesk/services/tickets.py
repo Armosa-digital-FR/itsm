@@ -26,7 +26,7 @@ from helpdesk.models import (
     TicketNote,
     TimeEntry,
 )
-from helpdesk.services import mentions
+from helpdesk.services import catalog, mentions
 from helpdesk.services.lifecycle import change_status, record_event, reopen_deadline_passed
 from helpdesk.signals import ticket_created, ticket_qualified
 
@@ -218,6 +218,7 @@ def create_manual(
     `description_html` vient de l'éditeur enrichi (images intégrées, FR-014c) ; à défaut,
     la description texte est utilisée telle quelle.
     """
+    catalog.check_tool(category, tool)
     rich = _rich(description_html)
     ticket = Ticket(
         title=title.strip()[:255],
@@ -300,6 +301,8 @@ def qualify(ticket: Ticket, actor, **fields) -> set[str]:
     if changed:
         if "priority" in changed and not ticket.priority:
             raise ValidationError("La priorité est obligatoire.")
+        if changed & {"category", "tool"}:  # un ticket déjà incohérent n'est pas bloqué sinon
+            catalog.check_tool(ticket.category, ticket.tool)
         ticket.save()
         ticket_qualified.send(sender=Ticket, ticket=ticket, actor=actor, changed=changed)
     return changed

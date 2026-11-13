@@ -98,6 +98,15 @@ class Tool(models.Model):
         related_name="tools",
         verbose_name="groupe compétent",
     )
+    # Domaine de l'outil (FR-017a) : la liste des outils se réduit à la catégorie choisie.
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tools",
+        verbose_name="catégorie",
+    )
     is_active = models.BooleanField("actif", default=True)
 
     class Meta:

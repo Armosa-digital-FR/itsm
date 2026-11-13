@@ -188,6 +188,83 @@ document.addEventListener("change", function (event) {
   form.querySelector("[data-composer-submit]").textContent = choice.getAttribute("data-submit");
 });
 
+// Catégorie et outil liés (FR-017a) : la liste des outils se réduit à la branche de la
+// catégorie choisie (ses parentes et ses sous-catégories ; outils sans catégorie toujours
+// proposés). Choisir un outil complète la catégorie, ou la précise si elle est plus large.
+function catalogLineage(categorySelect, id) {
+  var ids = [];
+  while (id && ids.indexOf(id) === -1) {
+    ids.push(id);
+    var option = categorySelect.querySelector('option[value="' + id + '"]');
+    id = option ? option.getAttribute("data-parent") : null;
+  }
+  return ids;
+}
+function catalogFits(categorySelect, categoryId, toolOption) {
+  var domain = toolOption.getAttribute("data-category");
+  if (!categoryId || !domain) return true;
+  return catalogLineage(categorySelect, categoryId).indexOf(domain) !== -1 ||
+    catalogLineage(categorySelect, domain).indexOf(categoryId) !== -1;
+}
+function catalogPair(element) {
+  var form = element.closest("form");
+  var category = form && form.querySelector('select[data-catalog="category"]');
+  var tool = form && form.querySelector('select[data-catalog="tool"]');
+  return category && tool ? { category: category, tool: tool } : null;
+}
+// keepSelected : au chargement, un ticket déjà incohérent garde son outil (pas d'effacement
+// silencieux à l'enregistrement d'un autre champ).
+function catalogFilter(pair, keepSelected) {
+  var categoryId = pair.category.value;
+  Array.prototype.forEach.call(pair.tool.options, function (option) {
+    var hide = !catalogFits(pair.category, categoryId, option) && !(keepSelected && option.selected);
+    option.hidden = hide;
+    option.disabled = hide;
+  });
+  var selected = pair.tool.options[pair.tool.selectedIndex];
+  if (selected && selected.disabled) pair.tool.value = "";
+}
+function catalogFill(pair) {
+  var option = pair.tool.options[pair.tool.selectedIndex];
+  var domain = option && option.getAttribute("data-category");
+  if (domain && pair.tool.hasAttribute("data-catalog-fill") &&
+      catalogLineage(pair.category, pair.category.value).indexOf(domain) === -1) {
+    pair.category.value = domain;
+  }
+  catalogFilter(pair, false);
+}
+function catalogInit(root) {
+  // Liste réaffichée après une création rapide : le nouvel élément sélectionné compte
+  // comme un choix de l'utilisateur.
+  var created = root.matches && root.matches(".quick-select") && root.querySelector(".quick-done");
+  var select = created && root.querySelector("select[data-catalog]");
+  var pair = select && catalogPair(select);
+  if (pair) {
+    if (select === pair.tool) catalogFill(pair); else catalogFilter(pair, false);
+    return;
+  }
+  root.querySelectorAll('select[data-catalog="category"]').forEach(function (category) {
+    var found = catalogPair(category);
+    if (found) catalogFilter(found, true);
+  });
+}
+document.addEventListener("DOMContentLoaded", function () { catalogInit(document); });
+document.addEventListener("htmx:load", function (event) { catalogInit(event.target); });
+document.addEventListener("change", function (event) {
+  var select = event.target.closest && event.target.closest("select[data-catalog]");
+  var pair = select && catalogPair(select);
+  if (!pair) return;
+  if (select === pair.tool) catalogFill(pair); else catalogFilter(pair, false);
+});
+// « Nouvel outil » : la catégorie de l'outil reprend celle choisie sur le ticket.
+document.addEventListener("toggle", function (event) {
+  var details = event.target;
+  if (!details.open || !details.querySelector) return;
+  var target = details.querySelector("select[data-tool-category]");
+  var pair = target && !target.value && catalogPair(details);
+  if (pair) target.value = pair.category.value;
+}, true);
+
 // Création rapide (catégorie, outil) : Entrée dans le panneau crée l'élément au lieu
 // d'envoyer le formulaire de qualification qui l'englobe.
 document.addEventListener("keydown", function (event) {

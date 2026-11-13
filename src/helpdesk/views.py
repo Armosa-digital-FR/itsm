@@ -943,12 +943,14 @@ def quick_create(request, kind: str):
     created = None
     if quick.is_valid():
         create = catalog.create_category if kind == "category" else catalog.create_tool
+        options = {"category": quick.cleaned_data["new_tool_category"]} if kind == "tool" else {}
         try:
             created = create(
                 request.user,
                 quick.cleaned_data[name_field],
                 quick.cleaned_data[link_field],
                 request=request,
+                **options,
             )
         except ValidationError as exc:
             for message in exc.messages:
